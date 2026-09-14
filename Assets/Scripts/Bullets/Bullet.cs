@@ -3,7 +3,7 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class Bullet2D : MonoBehaviour
 {
-    [SerializeField] private float speed = 15f;
+    [SerializeField] private float speed = 14f;
     [SerializeField] private string obstacleTag = "BulletBlocker";
 
     private Rigidbody2D rb;

@@ -257,7 +257,44 @@ public class InventoryUIController : MonoBehaviour
 
         return null;
     }
+    public bool GiveItem(ItemSO item, InventorySlotType type, int count = 1, int ammoCount = 0)
+    {
+        if (inventoryData == null)
+            return false;
 
+        if (item == null || count <= 0)
+            return false;
+
+        bool success = inventoryData.TryGiveItem(item, type, count, ammoCount);
+        if (success)
+            RefreshUI();
+
+        return success;
+    }
+
+    public bool DropFromSlot(InventorySlotType slotType, int slotIndex)
+    {
+        if (inventoryData == null)
+            return false;
+
+        bool success = inventoryData.TryDropFromSlot(slotType, slotIndex);
+        if (success)
+            RefreshUI();
+
+        return success;
+    }
+
+    public bool RemoveItemAmount(ItemSO item, int amount)
+    {
+        if (inventoryData == null || item == null || amount <= 0)
+            return false;
+
+        bool success = inventoryData.TryRemoveItemAmount(item, amount);
+        if (success)
+            RefreshUI();
+
+        return success;
+    }
     public int GetWeaponItemCountAtSlot(int slotIndex)
     {
         if (inventoryData == null)

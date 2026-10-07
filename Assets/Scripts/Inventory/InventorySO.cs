@@ -154,6 +154,140 @@ public class InventorySO : ScriptableObject
         return true;
     }
 
+    public InventorySlotType GetPreferredSlotType(ItemSO item, InventorySlotType fallbackType)
+    {
+        if (item == null)
+            return fallbackType;
+
+        if (item is WeaponSO)
+            return InventorySlotType.Weapon;
+        if (item is ArmorSO)
+            return InventorySlotType.Armor;
+        if (item is ConsumableSO)
+            return InventorySlotType.Consumable;
+
+        return InventorySlotType.Universal;
+    }
+
+    public bool TryGiveItem(ItemSO item, InventorySlotType preferredType, int count = 1, int ammoCount = 0)
+    {
+        EnsureDefaults();
+
+        if (item == null || count <= 0)
+            return false;
+
+        InventorySlotType[] slotPriority =
+        {
+            GetPreferredSlotType(item, preferredType),
+            InventorySlotType.Universal
+        };
+
+        for (int s = 0; s < slotPriority.Length; s++)
+        {
+            InventorySlotType targetType = slotPriority[s];
+            if (targetType == InventorySlotType.Universal && !CanPlaceItem(InventorySlotType.Universal, item))
+                continue;
+
+            ItemSO[] targetSlots = GetSlotsForType(targetType);
+            int[] targetCounts = GetCountsForType(targetType);
+            int[] targetAmmoCounts = GetAmmoCountsForType(targetType);
+
+            if (targetSlots == null || targetCounts == null || targetAmmoCounts == null)
+                continue;
+
+            for (int i = 0; i < targetSlots.Length; i++)
+            {
+                if (targetSlots[i] == item)
+                {
+                    targetCounts[i] += count;
+                    if (ammoCount > 0)
+                        targetAmmoCounts[i] = ammoCount;
+                    return true;
+                }
+            }
+
+            for (int i = 0; i < targetSlots.Length; i++)
+            {
+                if (targetSlots[i] == null)
+                {
+                    targetSlots[i] = item;
+                    targetCounts[i] = count;
+                    targetAmmoCounts[i] = ammoCount;
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public bool TryDropFromSlot(InventorySlotType slotType, int index)
+    {
+        EnsureDefaults();
+
+        ItemSO[] targetSlots = GetSlotsForType(slotType);
+        int[] targetCounts = GetCountsForType(slotType);
+        int[] targetAmmoCounts = GetAmmoCountsForType(slotType);
+
+        if (targetSlots == null || targetCounts == null || targetAmmoCounts == null)
+            return false;
+
+        if (index < 0 || index >= targetSlots.Length)
+            return false;
+
+        targetSlots[index] = null;
+        targetCounts[index] = 0;
+        targetAmmoCounts[index] = 0;
+        return true;
+    }
+
+    public bool TryRemoveItemAmount(ItemSO item, int amount)
+    {
+        if (item == null || amount <= 0)
+            return false;
+
+        int remaining = amount;
+        InventorySlotType[] slotTypes =
+        {
+            InventorySlotType.Universal,
+            InventorySlotType.Weapon,
+            InventorySlotType.Armor,
+            InventorySlotType.Consumable
+        };
+
+        for (int s = 0; s < slotTypes.Length; s++)
+        {
+            ItemSO[] items = GetSlotsForType(slotTypes[s]);
+            int[] counts = GetCountsForType(slotTypes[s]);
+            int[] ammoCounts = GetAmmoCountsForType(slotTypes[s]);
+
+            if (items == null || counts == null)
+                continue;
+
+            for (int i = 0; i < items.Length && remaining > 0; i++)
+            {
+                if (items[i] != item)
+                    continue;
+
+                int removeCount = Mathf.Min(counts[i], remaining);
+                counts[i] -= removeCount;
+                remaining -= removeCount;
+
+                if (counts[i] <= 0)
+                {
+                    items[i] = null;
+                    counts[i] = 0;
+                    ammoCounts[i] = 0;
+                }
+            }
+
+            if (remaining <= 0)
+                break;
+        }
+
+        return remaining <= 0;
+    }
+
     public void RemoveItemsWithNoCount()
     {
         RemoveItemsWithNoCount(slots, slotCounts, slotAmmoCounts);

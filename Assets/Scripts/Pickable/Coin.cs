@@ -5,7 +5,7 @@ public class Coin : MonoBehaviour
     [SerializeField] private int scoreValue = 10;
 
     [Header("Data References")]
-    [SerializeField] private ScoreData scoreData;
+    [SerializeField] private PlayerData playerData;
 
     private void OnTriggerEnter2D(Collider2D other)
     {
@@ -13,9 +13,9 @@ public class Coin : MonoBehaviour
         if (other.CompareTag("Player"))
         {
             // Optional: Access player components or increment global score here
-            if (scoreData != null)
+            if (playerData != null)
             {
-                scoreData.AddScore(scoreValue);
+                playerData.AddScore(scoreValue);
             }
 
             // Destroy this coin GameObject immediately

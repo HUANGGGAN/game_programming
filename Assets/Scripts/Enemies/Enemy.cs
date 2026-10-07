@@ -27,6 +27,7 @@ public class EnemyChase : MonoBehaviour
     private float currentHealth;
     private Vector2 knockbackVelocity;
     private float knockbackRemaining;
+    private float lastAttackTime;
     private Coroutine hitFlashRoutine;
     private readonly HashSet<int> recentDamageSourceIds = new HashSet<int>();
     private readonly Dictionary<int, float> recentDamageSourceTimes = new Dictionary<int, float>();
@@ -87,7 +88,21 @@ public class EnemyChase : MonoBehaviour
             return;
 
         if (player != null)
-            agent.SetDestination(player.position);
+        {
+            float distanceToPlayer = Vector2.Distance(transform.position, player.position);
+
+            if (distanceToPlayer <= attackRange)
+            {
+                if (Time.time >= lastAttackTime + attackInterval)
+                {
+                    Attack();
+                }
+            }
+            else
+            {
+                agent.SetDestination(player.position);
+            }
+        }
 
         if (knockbackRemaining > 0f)
         {
@@ -96,6 +111,21 @@ public class EnemyChase : MonoBehaviour
         }
 
         CleanupExpiredDamageSources();
+    }
+
+    private void Attack()
+    {
+        if (player == null)
+            return;
+
+        Player playerComponent = player.GetComponent<Player>();
+        if (playerComponent != null)
+        {
+            playerComponent.TakeDamage(damage);
+        }
+
+        lastAttackTime = Time.time;
+        Debug.Log($"Enemy attack! Damage: {damage}, Range: {attackRange}, Player: {player.name}");
     }
 
     private void OnTriggerEnter2D(Collider2D other)

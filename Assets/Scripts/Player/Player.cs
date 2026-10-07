@@ -5,7 +5,9 @@ using UnityEngine.InputSystem; // Required for New Input System
 public class Player : MonoBehaviour
 {
     [Header("Data References")]
-    [SerializeField] private ScoreData scoreData;
+    [SerializeField] private PlayerData playerData;
+    [SerializeField] private HealthBar healthBar;
+    [SerializeField] private HealthBar manaBar;
     [SerializeField] private SpriteRenderer playerSpriteRenderer;
 
     [Header("Movement Configuration")]
@@ -29,9 +31,29 @@ public class Player : MonoBehaviour
 
     private void Start()
     {
-        if (scoreData != null)
+        if (manaBar != null)
         {
-            scoreData.ResetScore();
+            manaBar.SetManaBar(true);
+        }
+
+        if (healthBar != null)
+        {
+            healthBar.SetManaBar(false);
+        }
+
+        if (playerData != null)
+        {
+            playerData.ResetScore();
+            playerData.OnPlayerStatsChanged += UpdatePlayerBarsFromData;
+            UpdatePlayerBarsFromData();
+        }
+    }
+
+    private void OnDestroy()
+    {
+        if (playerData != null)
+        {
+            playerData.OnPlayerStatsChanged -= UpdatePlayerBarsFromData;
         }
     }
 
@@ -85,11 +107,33 @@ public class Player : MonoBehaviour
     {
         if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
         {
-            if (scoreData != null)
+            if (playerData != null)
             {
-                scoreData.currentScore += 10;
-                Debug.Log($"Score is now: {scoreData.currentScore}");
+                playerData.currentScore += 10;
+                Debug.Log($"Score is now: {playerData.currentScore}");
             }
+        }
+    }
+
+    public void TakeDamage(float amount)
+    {
+        if (playerData == null)
+            return;
+
+        playerData.ApplyDamage(amount);
+        UpdatePlayerBarsFromData();
+    }
+
+    private void UpdatePlayerBarsFromData()
+    {
+        if (healthBar != null && playerData != null)
+        {
+            healthBar.RefreshFromData(playerData);
+        }
+
+        if (manaBar != null && playerData != null)
+        {
+            manaBar.RefreshFromData(playerData);
         }
     }
 

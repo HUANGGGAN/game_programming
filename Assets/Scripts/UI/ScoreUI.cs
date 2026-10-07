@@ -4,7 +4,7 @@ using TMPro;
 public class ScoreUI : MonoBehaviour
 {
     [Header("Data Reference")]
-    [SerializeField] private ScoreData scoreData;
+    [SerializeField] private PlayerData playerData;
 
     [Header("UI Reference")]
     [SerializeField] private TextMeshProUGUI scoreText;
@@ -14,10 +14,10 @@ public class ScoreUI : MonoBehaviour
 
     private void OnEnable()
     {
-        if (scoreData != null)
+        if (playerData != null)
         {
             // 1. Subscribe to the change event
-            scoreData.OnScoreChanged += UpdateScoreDisplay;
+            playerData.OnScoreChanged += UpdateScoreDisplay;
         }
 
         // 2. Refresh display once on startup to show initial score
@@ -26,19 +26,19 @@ public class ScoreUI : MonoBehaviour
 
     private void OnDisable()
     {
-        if (scoreData != null)
+        if (playerData != null)
         {
             // 3. ALWAYS unsubscribe to prevent memory leaks / null references!
-            scoreData.OnScoreChanged -= UpdateScoreDisplay;
+            playerData.OnScoreChanged -= UpdateScoreDisplay;
         }
     }
 
     // This method ONLY executes when OnScoreChanged is fired
     private void UpdateScoreDisplay()
     {
-        if (scoreData != null && scoreText != null)
+        if (playerData != null && scoreText != null)
         {
-            scoreText.text = $"{prefix}{scoreData.currentScore}";
+            scoreText.text = $"{prefix}{playerData.currentScore}";
         }
     }
 }

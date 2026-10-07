@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: HuntingShotgun
+  m_EditorClassIdentifier: Assembly-CSharp::GunSO
+  itemName: Hunting Shotgun
+  itemID: 2
+  rarity: Uncommon
+  icon: {fileID: -4880596957545370123, guid: 5ebfc126d4cfa8d96b707ba17f6efac4, type: 3}
+  description: 
+  shootInterval: 1
+  consumeAmmo: 1
+  hasLimitedAmmo: 0
+  knockbackForce: 1
+  firePointOffset: {x: 0.5, y: 0}
+  effect: 
+  capacity: 6
+  reloadTime: 3
+  spread: 30
+  burstCount: 5
+  bulletData: {fileID: 11400000, guid: 017ee7bc7b52a9d0e87ac3dd69c38d2b, type: 2}

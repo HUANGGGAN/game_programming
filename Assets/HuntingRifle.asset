@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: HuntingRifle
+  m_EditorClassIdentifier: Assembly-CSharp::GunSO
+  itemName: HuntingRifle
+  itemID: 1
+  rarity: Uncommon
+  icon: {fileID: 6950184803735107884, guid: 70ed73f485f2f7ed98be356ecd071c07, type: 3}
+  description: 
+  shootInterval: 0.7
+  consumeAmmo: 1
+  hasLimitedAmmo: 0
+  knockbackForce: 1
+  firePointOffset: {x: 0.5, y: 0.1}
+  effect: 
+  capacity: 7
+  reloadTime: 2
+  spread: 5
+  burstCount: 1
+  bulletData: {fileID: 11400000, guid: dca8888ebb6cac27e83009bd78528d41, type: 2}

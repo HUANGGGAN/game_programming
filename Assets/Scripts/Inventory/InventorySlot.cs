@@ -9,11 +9,13 @@ public class InventorySlot : MonoBehaviour,
     IDropHandler
 {
     public int slotIndex;
+    public InventorySlotType slotType;
 
     [SerializeField] private Image itemIconImage;
 
     private CanvasGroup iconCanvasGroup;
     private InventoryUIController uiController;
+    private ItemSO currentItem;
 
     private Vector3 originalLocalPosition;
     private bool isDragging;
@@ -32,8 +34,9 @@ public class InventorySlot : MonoBehaviour,
     public void SetupSlot(ItemSO item, int index)
     {
         slotIndex = index;
+        currentItem = item;
 
-        if (item != null && item.icon != null)
+        if (item != null && item.icon != null && CanAccept(item))
         {
             itemIconImage.sprite = item.icon;
             itemIconImage.color = Color.white;
@@ -44,6 +47,39 @@ public class InventorySlot : MonoBehaviour,
             itemIconImage.sprite = null;
             itemIconImage.color = Color.clear;
             isEmpty = true;
+        }
+    }
+
+    public void SetSlotType(InventorySlotType type)
+    {
+        slotType = type;
+        if (currentItem != null && !CanAccept(currentItem))
+        {
+            itemIconImage.sprite = null;
+            itemIconImage.color = Color.clear;
+            isEmpty = true;
+            currentItem = null;
+        }
+    }
+
+    public bool CanAccept(ItemSO item)
+    {
+        if (item == null)
+            return true;
+
+        if (slotType == InventorySlotType.Universal)
+            return true;
+
+        switch (slotType)
+        {
+            case InventorySlotType.Weapon:
+                return item is WeaponSO;
+            case InventorySlotType.Armor:
+                return item is ArmorSO;
+            case InventorySlotType.Consumable:
+                return item is ConsumableSO;
+            default:
+                return false;
         }
     }
 
@@ -59,7 +95,6 @@ public class InventorySlot : MonoBehaviour,
 
         originalLocalPosition = itemIconImage.transform.localPosition;
 
-        // Prevent the dragged icon from blocking the slot underneath.
         iconCanvasGroup.blocksRaycasts = false;
     }
 
@@ -68,7 +103,6 @@ public class InventorySlot : MonoBehaviour,
         if (!isDragging)
             return;
 
-        // Move icon to mouse position.
         itemIconImage.transform.position = eventData.position;
     }
 
@@ -78,34 +112,23 @@ public class InventorySlot : MonoBehaviour,
             return;
 
         isDragging = false;
-
-        // Put icon back where it originally was.
         itemIconImage.transform.localPosition = originalLocalPosition;
-
-        // Enable raycasts again.
         iconCanvasGroup.blocksRaycasts = true;
     }
 
     public void OnDrop(PointerEventData eventData)
     {
-        InventorySlot draggedSlot =
-            eventData.pointerDrag?.GetComponent<InventorySlot>();
+        InventorySlot draggedSlot = eventData.pointerDrag?.GetComponent<InventorySlot>();
 
         if (draggedSlot == null)
             return;
 
-        if (draggedSlot.isEmpty)
-            return;
-
-        if (draggedSlot == this)
+        if (draggedSlot.isEmpty || draggedSlot == this)
             return;
 
         if (uiController == null)
             return;
 
-        uiController.SwapItems(
-            draggedSlot.slotIndex,
-            this.slotIndex
-        );
+        uiController.TrySwapItems(draggedSlot.slotType, draggedSlot.slotIndex, slotType, slotIndex);
     }
 }

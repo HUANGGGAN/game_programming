@@ -1,3 +1,5 @@
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
@@ -7,26 +9,52 @@ public class EnemyChase : MonoBehaviour
     [Header("Target Setup")]
     [SerializeField] private Transform player;
 
-    [Header("Health Setup")]
-    [SerializeField] private int maxHealth = 3;
-    [SerializeField] private string bulletTag = "Bullet"; // Set your Bullet prefab tag
+    [Header("Enemy Data")]
+    [SerializeField] private EnemySO enemyData;
+
+    [Header("Combat Stats")]
+    [SerializeField] private float attackRange = 1.5f;
+    [SerializeField] private float damage = 10f;
+    [SerializeField] private float knockbackForce = 4f;
+    [SerializeField] private float knockbackResistance = 0f;
+    [SerializeField] private float speed = 2.5f;
+    [SerializeField] private float attackInterval = 1.2f;
+    [SerializeField] private float maxHealth = 35f;
+    [SerializeField] private float hitCooldownDuration = 0.2f;
 
     private NavMeshAgent agent;
-    private int currentHealth;
+    private SpriteRenderer spriteRenderer;
+    private float currentHealth;
+    private Vector2 knockbackVelocity;
+    private float knockbackRemaining;
+    private Coroutine hitFlashRoutine;
+    private readonly HashSet<int> recentDamageSourceIds = new HashSet<int>();
+    private readonly Dictionary<int, float> recentDamageSourceTimes = new Dictionary<int, float>();
+
+    private const float KnockbackDuration = 0.12f;
+    private const float HitFlashDuration = 0.08f;
+    private static readonly Color HitColor = new Color(1f, 0.35f, 0.35f, 1f);
 
     private void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
+        spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+
+        ApplyEnemyData();
 
         // 2D settings
         agent.updateRotation = false;
         agent.updateUpAxis = false;
+        agent.speed = speed;
+        agent.stoppingDistance = attackRange;
     }
 
     private void OnEnable()
     {
         // Reset health every time the enemy is spawned/reactivated
         currentHealth = maxHealth;
+        recentDamageSourceIds.Clear();
+        recentDamageSourceTimes.Clear();
 
         // Auto-find Player if not assigned in Inspector
         if (player == null)
@@ -39,31 +67,131 @@ public class EnemyChase : MonoBehaviour
         }
     }
 
-    private void Update()
+    private void ApplyEnemyData()
     {
-        if (player == null || !agent.isOnNavMesh)
+        if (enemyData == null)
             return;
 
-        agent.SetDestination(player.position);
+        attackRange = enemyData.attackRange;
+        damage = enemyData.damage;
+        knockbackForce = enemyData.knockbackForce;
+        knockbackResistance = enemyData.knockbackResistance;
+        speed = enemyData.speed;
+        attackInterval = enemyData.attackInterval;
+        maxHealth = enemyData.HP;
+    }
+
+    private void Update()
+    {
+        if (!agent.isOnNavMesh)
+            return;
+
+        if (player != null)
+            agent.SetDestination(player.position);
+
+        if (knockbackRemaining > 0f)
+        {
+            agent.velocity = knockbackVelocity;
+            knockbackRemaining -= Time.deltaTime;
+        }
+
+        CleanupExpiredDamageSources();
     }
 
     private void OnTriggerEnter2D(Collider2D other)
     {
-        // Check if hit by a Bullet
-        if (other.CompareTag(bulletTag) || other.GetComponent<Bullet2D>() != null)
+        Bullet2D bullet = other.GetComponent<Bullet2D>();
+        if (bullet == null)
+            bullet = other.GetComponentInParent<Bullet2D>();
+
+        if (bullet != null)
+            TakeDamage(bullet.Damage, bullet.TravelDirection, bullet.KnockbackForce, bullet.GetInstanceID());
+    }
+
+    public void TakeDamage(float damageAmount)
+    {
+        TakeDamage(damageAmount, Vector2.zero, 0f, 0);
+    }
+
+    private void TakeDamage(float damageAmount, Vector2 knockbackDirection, float knockbackForce, int damageSourceId)
+    {
+        if (damageAmount <= 0f || currentHealth <= 0f)
+            return;
+
+        if (damageSourceId != 0 && !CanTakeDamageFromSource(damageSourceId))
+            return;
+
+        currentHealth -= damageAmount;
+
+        if (currentHealth <= 0f)
         {
-            TakeDamage(1);
+            Die();
+            return;
+        }
+
+        if (spriteRenderer != null)
+        {
+            if (hitFlashRoutine != null)
+            {
+                StopCoroutine(hitFlashRoutine);
+            }
+
+            hitFlashRoutine = StartCoroutine(FlashRedRoutine());
+        }
+
+        if (knockbackForce > 0f && knockbackDirection.sqrMagnitude > 0f)
+        {
+            knockbackVelocity = knockbackDirection.normalized * (knockbackForce * (1f - Mathf.Clamp01(knockbackResistance)));
+            knockbackRemaining = KnockbackDuration;
         }
     }
 
-    public void TakeDamage(int damageAmount)
+    private bool CanTakeDamageFromSource(int sourceId)
     {
-        currentHealth -= damageAmount;
+        if (sourceId == 0)
+            return true;
 
-        if (currentHealth <= 0)
+        if (recentDamageSourceIds.Contains(sourceId))
+            return false;
+
+        recentDamageSourceIds.Add(sourceId);
+        recentDamageSourceTimes[sourceId] = Time.time;
+        return true;
+    }
+
+    private void CleanupExpiredDamageSources()
+    {
+        if (recentDamageSourceTimes.Count == 0)
+            return;
+
+        float currentTime = Time.time;
+        List<int> expiredSourceIds = new List<int>();
+
+        foreach (KeyValuePair<int, float> source in recentDamageSourceTimes)
         {
-            Die();
+            if (currentTime - source.Value >= hitCooldownDuration)
+            {
+                expiredSourceIds.Add(source.Key);
+            }
         }
+
+        for (int i = 0; i < expiredSourceIds.Count; i++)
+        {
+            recentDamageSourceIds.Remove(expiredSourceIds[i]);
+            recentDamageSourceTimes.Remove(expiredSourceIds[i]);
+        }
+    }
+
+    private IEnumerator FlashRedRoutine()
+    {
+        if (spriteRenderer == null)
+            yield break;
+
+        Color originalColor = spriteRenderer.color;
+        spriteRenderer.color = HitColor;
+        yield return new WaitForSeconds(HitFlashDuration);
+        spriteRenderer.color = originalColor;
+        hitFlashRoutine = null;
     }
 
     private void Die()

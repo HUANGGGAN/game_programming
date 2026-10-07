@@ -13,5 +13,7 @@ MonoBehaviour:
   m_Name: TestItem
   m_EditorClassIdentifier: Assembly-CSharp::ItemSO
   itemName: New Item
-  icon: {fileID: -9197134654715703934, guid: 9ed1b489a11d85467bf1dde1f337d141, type: 3}
+  itemID: 0
+  rarity: 
+  icon: {fileID: 5463704798289644582, guid: 0631ad953509ea2cf8135691f85e5ded, type: 3}
   description: 

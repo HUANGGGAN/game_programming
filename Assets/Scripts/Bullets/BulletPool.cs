@@ -8,38 +8,71 @@ public class BulletPool : MonoBehaviour
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private int poolSize = 10;
 
-    private List<Bullet2D> bulletPool = new List<Bullet2D>();
+    private Dictionary<string, List<Bullet2D>> bulletPools = new Dictionary<string, List<Bullet2D>>();
 
     private void Awake()
     {
         Instance = this;
-
-        // Populate initial pool
-        for (int i = 0; i < poolSize; i++)
-        {
-            GameObject obj = Instantiate(bulletPrefab, transform);
-            Bullet2D bullet = obj.GetComponent<Bullet2D>();
-            bullet.Deactivate();
-            bulletPool.Add(bullet);
-        }
     }
 
-    public Bullet2D GetBullet()
+    public Bullet2D GetBullet(BulletSO bulletData)
     {
-        // Find an inactive bullet to reuse
+        if (bulletData == null)
+        {
+            Debug.LogError("Cannot get a bullet without BulletSO data.", this);
+            return null;
+        }
+
+        string poolKey = string.IsNullOrWhiteSpace(bulletData.bulletId)
+            ? bulletData.name
+            : bulletData.bulletId;
+
+        if (!bulletPools.TryGetValue(poolKey, out List<Bullet2D> bulletPool))
+        {
+            bulletPool = new List<Bullet2D>();
+            bulletPools.Add(poolKey, bulletPool);
+
+            for (int i = 0; i < poolSize; i++)
+            {
+                Bullet2D pooledBullet = CreateBullet(bulletData);
+                if (pooledBullet == null) return null;
+                bulletPool.Add(pooledBullet);
+            }
+        }
+
         foreach (Bullet2D bullet in bulletPool)
         {
             if (!bullet.gameObject.activeInHierarchy)
             {
+                bullet.Initialize(bulletData);
                 return bullet;
             }
         }
 
-        // Expand pool if empty
-        GameObject obj = Instantiate(bulletPrefab, transform);
-        Bullet2D newBullet = obj.GetComponent<Bullet2D>();
-        newBullet.Deactivate();
-        bulletPool.Add(newBullet);
+        Bullet2D newBullet = CreateBullet(bulletData);
+        if (newBullet != null) bulletPool.Add(newBullet);
         return newBullet;
+    }
+
+    private Bullet2D CreateBullet(BulletSO bulletData)
+    {
+        if (bulletPrefab == null)
+        {
+            Debug.LogError("Bullet prefab is not assigned on BulletPool.", this);
+            return null;
+        }
+
+        GameObject obj = Instantiate(bulletPrefab, transform);
+        Bullet2D bullet = obj.GetComponent<Bullet2D>();
+        if (bullet == null)
+        {
+            Debug.LogError("Bullet prefab must have a Bullet2D component.", obj);
+            Destroy(obj);
+            return null;
+        }
+
+        bullet.Initialize(bulletData);
+        bullet.Deactivate();
+        return bullet;
     }
 }

@@ -6,6 +6,7 @@ public class Player : MonoBehaviour
 {
     [Header("Data References")]
     [SerializeField] private ScoreData scoreData;
+    [SerializeField] private SpriteRenderer playerSpriteRenderer;
 
     [Header("Movement Configuration")]
     [SerializeField] private float moveSpeed = 5.0f; // Movement speed in units/sec
@@ -19,6 +20,11 @@ public class Player : MonoBehaviour
         // Cache the Rigidbody2D reference
         _rb = GetComponent<Rigidbody2D>();
         mainCamera = Camera.main;
+        if (playerSpriteRenderer == null)
+            playerSpriteRenderer = GetComponent<SpriteRenderer>();
+
+        if (playerSpriteRenderer != null)
+            playerSpriteRenderer.flipX = false;
     }
 
     private void Start()
@@ -33,7 +39,7 @@ public class Player : MonoBehaviour
     {
         ReadMovementInput();
         HandleScoreInput();
-        RotateTowardsCursor();
+        FaceTowardCursor();
     }
 
     private void FixedUpdate()
@@ -87,26 +93,18 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void RotateTowardsCursor()
+    private void FaceTowardCursor()
     {
-        // 1. Get current mouse position in screen coordinates using the New Input System
-        if (Mouse.current == null) return;
-        Vector2 mouseScreenPosition = Mouse.current.position.ReadValue();
+        if (Mouse.current == null || mainCamera == null || playerSpriteRenderer == null)
+            return;
 
-        // 2. Convert screen position to 2D world space
+        Vector2 mouseScreenPosition = Mouse.current.position.ReadValue();
         Vector3 mouseWorldPosition = mainCamera.ScreenToWorldPoint(new Vector3(
-            mouseScreenPosition.x, 
-            mouseScreenPosition.y, 
-            mainCamera.nearClipPlane
+            mouseScreenPosition.x,
+            mouseScreenPosition.y,
+            Mathf.Abs(mainCamera.transform.position.z - transform.position.z)
         ));
 
-        // 3. Calculate direction vector from player to mouse
-        Vector2 direction = (Vector2)mouseWorldPosition - (Vector2)transform.position;
-
-        // 4. Calculate angle in degrees
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-
-        // 5. Apply rotation (subtract 90f if your sprite faces UP by default)
-        transform.rotation = Quaternion.Euler(0f, 0f, angle);
+        playerSpriteRenderer.flipX = mouseWorldPosition.x < transform.position.x;
     }
 }

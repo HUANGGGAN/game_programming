@@ -129,8 +129,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyChase
   player: {fileID: 0}
-  maxHealth: 3
-  bulletTag: Bullet
+  maxHealth: 35
 --- !u!61 &4459930256354742505
 BoxCollider2D:
   m_ObjectHideFlags: 0

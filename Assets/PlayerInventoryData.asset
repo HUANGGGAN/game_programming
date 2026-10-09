@@ -13,41 +13,87 @@ MonoBehaviour:
   m_Name: PlayerInventoryData
   m_EditorClassIdentifier: Assembly-CSharp::InventorySO
   slots:
-  - {fileID: 11400000, guid: f0d53b2e348bfcbc58d28788a358f872, type: 2}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 11400000, guid: 698988ad1135bdd91a9c8b7fdf0693b6, type: 2}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - item: {fileID: 11400000, guid: 698988ad1135bdd91a9c8b7fdf0693b6, type: 2}
+    count: 1
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
   weaponSlots:
-  - {fileID: 11400000, guid: 6eaaa913aa565a5a29bf8c39a6cff58b, type: 2}
-  - {fileID: 11400000, guid: 63f5adaa1c208e31fa6497ecfdf2bee4, type: 2}
-  - {fileID: 11400000, guid: 93a6db102b64f8c52bb761f3e5d86021, type: 2}
+  - item: {fileID: 11400000, guid: f0d53b2e348bfcbc58d28788a358f872, type: 2}
+    count: 1
+    ammoCount: 6
+  - item: {fileID: 11400000, guid: 63f5adaa1c208e31fa6497ecfdf2bee4, type: 2}
+    count: 1
+    ammoCount: 10
+  - item: {fileID: 11400000, guid: 93a6db102b64f8c52bb761f3e5d86021, type: 2}
+    count: 2
+    ammoCount: 0
   armorSlots:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
   consumableSlots:
-  - {fileID: 0}
-  - {fileID: 0}
-  slotCounts: 010000000000000000000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-  weaponSlotCounts: 010000000100000001000000
-  armorSlotCounts: 00000000000000000000000000000000
-  consumableSlotCounts: 0000000000000000
-  slotAmmoCounts: 030000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
-  weaponSlotAmmoCounts: 040000000900000000000000
-  armorSlotAmmoCounts: 00000000000000000000000000000000
-  consumableSlotAmmoCounts: 0000000000000000
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0

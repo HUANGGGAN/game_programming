@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem; // New Input System
 using TMPro;
@@ -5,7 +6,6 @@ using TMPro;
 public class PlayerShooter2D : MonoBehaviour
 {
     [Header("Bullet Setup")]
-    [SerializeField] private BulletSO bulletData;
     [SerializeField] private Transform firePoint; // Optional offset point (e.g., gun tip)
     [SerializeField, Min(0.01f)] private float shootInterval;
     [SerializeField] private InventoryUIController inventoryUIController;
@@ -18,6 +18,11 @@ public class PlayerShooter2D : MonoBehaviour
     private bool shootingEnabled = true;
     private float nextShotTime;
     private WeaponSO equippedWeapon;
+    private readonly List<IWeaponAttackHandler> attackHandlers = new List<IWeaponAttackHandler>
+    {
+        new MeleeAttack(),
+        new ProjectileAttack()
+    };
     private bool isReloading;
     private float reloadFinishTime;
 
@@ -40,6 +45,12 @@ public class PlayerShooter2D : MonoBehaviour
     private void Update()
     {
         if (Time.timeScale == 0f) return;
+
+        for (int i = 0; i < attackHandlers.Count; i++)
+        {
+            if (attackHandlers[i] is ITimedWeaponAttackHandler timedHandler)
+                timedHandler.Tick(Time.deltaTime);
+        }
 
         if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
             StartReload();
@@ -85,7 +96,7 @@ public class PlayerShooter2D : MonoBehaviour
 
             if (item is WeaponSO weapon && !weapon.consumeAmmo)
             {
-                ammoText.text = $"{infinity}/{infinity}";
+                ammoText.text = string.Empty;
             }
             else if (item is WeaponSO consumingWeapon && !consumingWeapon.hasLimitedAmmo)
             {
@@ -115,27 +126,16 @@ public class PlayerShooter2D : MonoBehaviour
             return false;
         }
 
-        if (equippedWeapon is not GunSO gun)
+        if (FindAttackHandler(equippedWeapon) == null)
         {
-            this.inventoryUIController = inventoryUIController;
-            this.equippedWeapon = equippedWeapon;
-            bulletData = null;
-            weaponHolder?.SetEquippedWeapon(equippedWeapon);
-            RefreshWeaponAmmoTexts();
-            return true;
-        }
-
-        if (gun.bulletData == null || gun.shootInterval <= 0f)
-        {
-            Debug.LogWarning("Cannot equip a gun without bullet data and a positive shoot interval.", this);
+            Debug.LogWarning($"No registered attack handler supports {equippedWeapon.name}.", this);
             return false;
         }
 
         this.inventoryUIController = inventoryUIController;
         this.equippedWeapon = equippedWeapon;
-        bulletData = gun.bulletData;
         weaponHolder?.SetEquippedWeapon(equippedWeapon);
-        SetShootInterval(gun.shootInterval);
+        SetShootInterval(equippedWeapon.shootInterval);
         nextShotTime = Time.time + shootInterval;
         RefreshWeaponAmmoTexts();
         return true;
@@ -145,27 +145,26 @@ public class PlayerShooter2D : MonoBehaviour
     {
         CancelReload();
         equippedWeapon = null;
-        bulletData = null;
         weaponHolder?.SetEquippedWeapon(null);
         RefreshWeaponAmmoTexts();
     }
 
     private void StartReload()
     {
-        if (isReloading || equippedWeapon is not GunSO gun || inventoryUIController == null ||
-            !gun.consumeAmmo || gun.hasLimitedAmmo || gun.capacity <= 0 ||
-            inventoryUIController.GetEquippedWeaponAmmoCount() >= gun.capacity)
+        if (isReloading || equippedWeapon is not IReloadableWeapon reloadable || inventoryUIController == null ||
+            !equippedWeapon.consumeAmmo || equippedWeapon.hasLimitedAmmo || reloadable.AmmoCapacity <= 0 ||
+            inventoryUIController.GetEquippedWeaponAmmoCount() >= reloadable.AmmoCapacity)
             return;
 
         isReloading = true;
-        reloadFinishTime = Time.time + Mathf.Max(0f, gun.reloadTime);
+        reloadFinishTime = Time.time + Mathf.Max(0f, reloadable.ReloadDuration);
         SetReloadTextVisible(true);
     }
 
     private void CompleteReload()
     {
-        if (inventoryUIController != null && equippedWeapon is GunSO gun)
-            inventoryUIController.TryReloadEquippedWeapon(gun, gun.capacity);
+        if (inventoryUIController != null && equippedWeapon is IReloadableWeapon reloadable)
+            inventoryUIController.TryReloadEquippedWeapon(equippedWeapon, reloadable.AmmoCapacity);
 
         isReloading = false;
         SetReloadTextVisible(false);
@@ -201,12 +200,15 @@ public class PlayerShooter2D : MonoBehaviour
 
     private void Shoot()
     {
-        if (Mouse.current == null || bulletData == null || inventoryUIController == null || equippedWeapon == null)
+        if (Mouse.current == null || inventoryUIController == null || equippedWeapon == null)
             return;
 
         bool shouldConsumeAmmo = equippedWeapon.consumeAmmo;
         if (shouldConsumeAmmo && !inventoryUIController.HasEquippedWeaponAmmo())
+        {
+            StartReload();
             return;
+        }
 
         Transform weaponTransform = weaponHolder != null ? weaponHolder.transform : transform;
         Vector3 aimOrigin = weaponTransform.position;
@@ -235,14 +237,37 @@ public class PlayerShooter2D : MonoBehaviour
         // 3. Calculate direction vector snapshot
         Vector2 shootDirection = ((Vector2)mouseWorldPos - (Vector2)aimOrigin).normalized;
 
-        // 4. Fetch pooled bullet and launch
-        Bullet2D bullet = BulletPool.Instance.GetBullet(bulletData);
-        if (bullet != null && (!shouldConsumeAmmo || inventoryUIController.TryConsumeEquippedWeaponAmmo()))
+        if (!TryPerformAttack(spawnPosition, shootDirection))
+            return;
+
+        if (shouldConsumeAmmo)
+            RefreshWeaponAmmoTexts();
+    }
+
+    public void RegisterAttackHandler(IWeaponAttackHandler handler)
+    {
+        if (handler != null && !attackHandlers.Contains(handler))
+            attackHandlers.Insert(0, handler);
+    }
+
+    private IWeaponAttackHandler FindAttackHandler(WeaponSO weapon)
+    {
+        for (int i = 0; i < attackHandlers.Count; i++)
         {
-            bullet.transform.position = spawnPosition;
-            bullet.Launch(shootDirection);
-            if (shouldConsumeAmmo)
-                RefreshWeaponAmmoTexts();
+            if (attackHandlers[i].CanHandle(weapon))
+                return attackHandlers[i];
         }
+
+        return null;
+    }
+
+    private bool TryPerformAttack(Vector2 origin, Vector2 direction)
+    {
+        IWeaponAttackHandler handler = FindAttackHandler(equippedWeapon);
+        return handler != null && handler.TryPerform(
+            equippedWeapon,
+            origin,
+            direction,
+            () => inventoryUIController.TryConsumeEquippedWeaponAmmo());
     }
 }

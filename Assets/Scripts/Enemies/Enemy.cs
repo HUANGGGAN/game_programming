@@ -24,6 +24,8 @@ public class EnemyChase : MonoBehaviour
 
     private NavMeshAgent agent;
     private SpriteRenderer spriteRenderer;
+    private bool spriteFacesRightByDefault = true;
+    private Color originalSpriteColor;
     private float currentHealth;
     private Vector2 knockbackVelocity;
     private float knockbackRemaining;
@@ -31,6 +33,7 @@ public class EnemyChase : MonoBehaviour
     private Coroutine hitFlashRoutine;
     private readonly HashSet<int> recentDamageSourceIds = new HashSet<int>();
     private readonly Dictionary<int, float> recentDamageSourceTimes = new Dictionary<int, float>();
+    private readonly List<ActiveEffect> activeEffects = new List<ActiveEffect>();
 
     private const float KnockbackDuration = 0.12f;
     private const float HitFlashDuration = 0.08f;
@@ -56,6 +59,7 @@ public class EnemyChase : MonoBehaviour
         currentHealth = maxHealth;
         recentDamageSourceIds.Clear();
         recentDamageSourceTimes.Clear();
+        activeEffects.Clear();
 
         // Auto-find Player if not assigned in Inspector
         if (player == null)
@@ -73,6 +77,9 @@ public class EnemyChase : MonoBehaviour
         if (enemyData == null)
             return;
 
+        if (spriteRenderer != null && enemyData.sprite != null)
+            spriteRenderer.sprite = enemyData.sprite;
+        spriteFacesRightByDefault = enemyData.spriteFacesRightByDefault;
         attackRange = enemyData.attackRange;
         damage = enemyData.damage;
         knockbackForce = enemyData.knockbackForce;
@@ -84,8 +91,14 @@ public class EnemyChase : MonoBehaviour
 
     private void Update()
     {
+        EffectRuntime.Tick(activeEffects, Time.deltaTime, amount => TakeDamage(amount));
+        if (currentHealth <= 0f || !isActiveAndEnabled)
+            return;
+
         if (!agent.isOnNavMesh)
             return;
+
+        agent.speed = EffectRuntime.HasEffect(activeEffects, EffectRuntime.Faint) ? 0f : speed;
 
         if (player != null)
         {
@@ -111,6 +124,16 @@ public class EnemyChase : MonoBehaviour
         }
 
         CleanupExpiredDamageSources();
+        UpdateSpriteFacing();
+    }
+
+    private void UpdateSpriteFacing()
+    {
+        if (spriteRenderer == null || Mathf.Abs(agent.velocity.x) <= 0.01f)
+            return;
+
+        bool movingLeft = agent.velocity.x < 0f;
+        spriteRenderer.flipX = movingLeft == spriteFacesRightByDefault;
     }
 
     private void Attack()
@@ -121,7 +144,10 @@ public class EnemyChase : MonoBehaviour
         Player playerComponent = player.GetComponent<Player>();
         if (playerComponent != null)
         {
-            playerComponent.TakeDamage(damage);
+            if (playerComponent.TakeDamage(damage) && enemyData != null)
+                playerComponent.ApplyEffects(enemyData.effects);
+            Vector2 knockbackDirection = (Vector2)player.position - (Vector2)transform.position;
+            playerComponent.ApplyKnockback(knockbackDirection, knockbackForce);
         }
 
         lastAttackTime = Time.time;
@@ -134,37 +160,49 @@ public class EnemyChase : MonoBehaviour
         if (bullet == null)
             bullet = other.GetComponentInParent<Bullet2D>();
 
-        if (bullet != null)
-            TakeDamage(bullet.Damage, bullet.TravelDirection, bullet.KnockbackForce, bullet.GetInstanceID());
+        if (bullet != null && TakeDamage(bullet.Damage, bullet.TravelDirection, bullet.KnockbackForce, bullet.DamageSourceId))
+            ApplyEffects(bullet.Effects);
     }
 
-    public void TakeDamage(float damageAmount)
+    public bool TakeDamage(float damageAmount)
     {
-        TakeDamage(damageAmount, Vector2.zero, 0f, 0);
+        return TakeDamage(damageAmount, Vector2.zero, 0f, 0);
     }
 
-    private void TakeDamage(float damageAmount, Vector2 knockbackDirection, float knockbackForce, int damageSourceId)
+    public bool TakeDamage(float damageAmount, Vector2 knockbackDirection, float knockbackForce)
+    {
+        return TakeDamage(damageAmount, knockbackDirection, knockbackForce, 0);
+    }
+
+    private bool TakeDamage(float damageAmount, Vector2 knockbackDirection, float knockbackForce, int damageSourceId)
+    {
+        return TakeDamage(damageAmount, knockbackDirection, knockbackForce, damageSourceId, hitCooldownDuration);
+    }
+
+    public bool TakeDamage(float damageAmount, Vector2 knockbackDirection, float knockbackForce, int damageSourceId, float damageSourceDuration)
     {
         if (damageAmount <= 0f || currentHealth <= 0f)
-            return;
+            return false;
 
-        if (damageSourceId != 0 && !CanTakeDamageFromSource(damageSourceId))
-            return;
+        if (damageSourceId != 0 && !CanTakeDamageFromSource(damageSourceId, damageSourceDuration))
+            return false;
 
         currentHealth -= damageAmount;
 
         if (currentHealth <= 0f)
         {
             Die();
-            return;
+            return true;
         }
 
         if (spriteRenderer != null)
         {
-            if (hitFlashRoutine != null)
+            if (hitFlashRoutine == null)
             {
-                StopCoroutine(hitFlashRoutine);
+                originalSpriteColor = spriteRenderer.color;
             }
+            else
+                StopCoroutine(hitFlashRoutine);
 
             hitFlashRoutine = StartCoroutine(FlashRedRoutine());
         }
@@ -174,9 +212,16 @@ public class EnemyChase : MonoBehaviour
             knockbackVelocity = knockbackDirection.normalized * (knockbackForce * (1f - Mathf.Clamp01(knockbackResistance)));
             knockbackRemaining = KnockbackDuration;
         }
+
+        return true;
     }
 
-    private bool CanTakeDamageFromSource(int sourceId)
+    public void ApplyEffects(EffectDefinition[] effects)
+    {
+        EffectRuntime.Apply(activeEffects, effects);
+    }
+
+    private bool CanTakeDamageFromSource(int sourceId, float sourceDuration)
     {
         if (sourceId == 0)
             return true;
@@ -185,7 +230,7 @@ public class EnemyChase : MonoBehaviour
             return false;
 
         recentDamageSourceIds.Add(sourceId);
-        recentDamageSourceTimes[sourceId] = Time.time;
+        recentDamageSourceTimes[sourceId] = Time.time + Mathf.Max(hitCooldownDuration, sourceDuration);
         return true;
     }
 
@@ -199,7 +244,7 @@ public class EnemyChase : MonoBehaviour
 
         foreach (KeyValuePair<int, float> source in recentDamageSourceTimes)
         {
-            if (currentTime - source.Value >= hitCooldownDuration)
+            if (currentTime >= source.Value)
             {
                 expiredSourceIds.Add(source.Key);
             }
@@ -217,10 +262,9 @@ public class EnemyChase : MonoBehaviour
         if (spriteRenderer == null)
             yield break;
 
-        Color originalColor = spriteRenderer.color;
         spriteRenderer.color = HitColor;
         yield return new WaitForSeconds(HitFlashDuration);
-        spriteRenderer.color = originalColor;
+        spriteRenderer.color = originalSpriteColor;
         hitFlashRoutine = null;
     }
 

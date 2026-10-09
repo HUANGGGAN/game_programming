@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: Mace
+  m_EditorClassIdentifier: Assembly-CSharp::MeleeSO
+  itemName: New Item
+  itemID: 0
+  rarity: 
+  icon: {fileID: 0}
+  description: 
+  shootInterval: 1
+  consumeAmmo: 1
+  hasLimitedAmmo: 0
+  firePointOffset: {x: 0.5, y: 0.1}
+  effect: 
+  attackRange: 2
+  attackAngle: 90
+  attackDamage: 10
+  attackDuration: 0.5
+  knockbackForce: 1

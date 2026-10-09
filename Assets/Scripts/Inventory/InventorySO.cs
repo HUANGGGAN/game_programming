@@ -1,5 +1,13 @@
 using UnityEngine;
 
+[System.Serializable]
+public class InventorySlotData
+{
+    public ItemSO item;
+    public int count;
+    public int ammoCount;
+}
+
 public enum InventorySlotType
 {
     Universal,
@@ -11,18 +19,10 @@ public enum InventorySlotType
 [CreateAssetMenu(fileName = "NewInventory", menuName = "Inventory/Inventory Storage")]
 public class InventorySO : ScriptableObject
 {
-    public ItemSO[] slots = new ItemSO[18];
-    public ItemSO[] weaponSlots = new ItemSO[3];
-    public ItemSO[] armorSlots = new ItemSO[4];
-    public ItemSO[] consumableSlots = new ItemSO[2];
-    public int[] slotCounts;
-    public int[] weaponSlotCounts;
-    public int[] armorSlotCounts;
-    public int[] consumableSlotCounts;
-    public int[] slotAmmoCounts;
-    public int[] weaponSlotAmmoCounts;
-    public int[] armorSlotAmmoCounts;
-    public int[] consumableSlotAmmoCounts;
+    public InventorySlotData[] slots = new InventorySlotData[18];
+    public InventorySlotData[] weaponSlots = new InventorySlotData[3];
+    public InventorySlotData[] armorSlots = new InventorySlotData[4];
+    public InventorySlotData[] consumableSlots = new InventorySlotData[2];
 
     private void OnEnable()
     {
@@ -31,46 +31,31 @@ public class InventorySO : ScriptableObject
 
     public void EnsureDefaults()
     {
-        if (slots == null) slots = new ItemSO[18];
-        if (weaponSlots == null) weaponSlots = new ItemSO[3];
-        if (armorSlots == null) armorSlots = new ItemSO[4];
-        if (consumableSlots == null) consumableSlots = new ItemSO[2];
-
-        EnsureSlotState(slots, ref slotCounts, ref slotAmmoCounts);
-        EnsureSlotState(weaponSlots, ref weaponSlotCounts, ref weaponSlotAmmoCounts);
-        EnsureSlotState(armorSlots, ref armorSlotCounts, ref armorSlotAmmoCounts);
-        EnsureSlotState(consumableSlots, ref consumableSlotCounts, ref consumableSlotAmmoCounts);
+        EnsureSlotState(ref slots, 18);
+        EnsureSlotState(ref weaponSlots, 3);
+        EnsureSlotState(ref armorSlots, 4);
+        EnsureSlotState(ref consumableSlots, 2);
     }
 
-    private static void EnsureSlotState(ItemSO[] items, ref int[] counts, ref int[] ammoCounts)
+    private static void EnsureSlotState(ref InventorySlotData[] slotData, int capacity)
     {
-        if (counts == null)
+        if (slotData == null)
         {
-            counts = new int[items.Length];
-            for (int i = 0; i < items.Length; i++)
-                counts[i] = items[i] != null ? 1 : 0;
+            slotData = new InventorySlotData[capacity];
         }
-        else if (counts.Length != items.Length)
+        else if (slotData.Length != capacity)
         {
-            System.Array.Resize(ref counts, items.Length);
+            System.Array.Resize(ref slotData, capacity);
         }
 
-        if (ammoCounts == null)
+        for (int i = 0; i < slotData.Length; i++)
         {
-            ammoCounts = new int[items.Length];
-            for (int i = 0; i < items.Length; i++)
-            {
-                if (items[i] is GunSO weapon)
-                    ammoCounts[i] = Mathf.Max(0, weapon.capacity);
-            }
-        }
-        else if (ammoCounts.Length != items.Length)
-        {
-            System.Array.Resize(ref ammoCounts, items.Length);
+            if (slotData[i] == null)
+                slotData[i] = new InventorySlotData();
         }
     }
 
-    public ItemSO[] GetSlotsForType(InventorySlotType slotType)
+    public InventorySlotData[] GetSlotsForType(InventorySlotType slotType)
     {
         switch (slotType)
         {
@@ -90,67 +75,31 @@ public class InventorySO : ScriptableObject
     public bool TrySwapSlots(InventorySlotType typeA, int indexA, InventorySlotType typeB, int indexB)
     {
         EnsureDefaults();
-        ItemSO[] slotsA = GetSlotsForType(typeA);
-        ItemSO[] slotsB = GetSlotsForType(typeB);
-        int[] countsA = GetCountsForType(typeA);
-        int[] countsB = GetCountsForType(typeB);
-        int[] ammoCountsA = GetAmmoCountsForType(typeA);
-        int[] ammoCountsB = GetAmmoCountsForType(typeB);
+        InventorySlotData[] slotsA = GetSlotsForType(typeA);
+        InventorySlotData[] slotsB = GetSlotsForType(typeB);
         if (slotsA == null || slotsB == null)
             return false;
 
         if (indexA < 0 || indexA >= slotsA.Length || indexB < 0 || indexB >= slotsB.Length)
             return false;
 
-        ItemSO itemA = slotsA[indexA];
-        ItemSO itemB = slotsB[indexB];
-        if (!CanPlaceItem(typeB, itemA) || !CanPlaceItem(typeA, itemB))
+        InventorySlotData slotA = slotsA[indexA];
+        InventorySlotData slotB = slotsB[indexB];
+        if (!CanPlaceItem(typeB, slotA.item) || !CanPlaceItem(typeA, slotB.item))
             return false;
 
-        int countA = countsA[indexA];
-        int countB = countsB[indexB];
-        int ammoCountA = ammoCountsA[indexA];
-        int ammoCountB = ammoCountsB[indexB];
-        slotsA[indexA] = itemB;
-        slotsB[indexB] = itemA;
-        countsA[indexA] = countB;
-        countsB[indexB] = countA;
-        ammoCountsA[indexA] = ammoCountB;
-        ammoCountsB[indexB] = ammoCountA;
+        slotsA[indexA] = slotB;
+        slotsB[indexB] = slotA;
         return true;
-    }
-
-    public int[] GetCountsForType(InventorySlotType slotType)
-    {
-        switch (slotType)
-        {
-            case InventorySlotType.Universal: return slotCounts;
-            case InventorySlotType.Weapon: return weaponSlotCounts;
-            case InventorySlotType.Armor: return armorSlotCounts;
-            case InventorySlotType.Consumable: return consumableSlotCounts;
-            default: return slotCounts;
-        }
-    }
-
-    public int[] GetAmmoCountsForType(InventorySlotType slotType)
-    {
-        switch (slotType)
-        {
-            case InventorySlotType.Universal: return slotAmmoCounts;
-            case InventorySlotType.Weapon: return weaponSlotAmmoCounts;
-            case InventorySlotType.Armor: return armorSlotAmmoCounts;
-            case InventorySlotType.Consumable: return consumableSlotAmmoCounts;
-            default: return slotAmmoCounts;
-        }
     }
 
     public bool TryConsumeWeaponAmmo(int slotIndex)
     {
         EnsureDefaults();
-        if (slotIndex < 0 || slotIndex >= weaponSlotAmmoCounts.Length || weaponSlotAmmoCounts[slotIndex] <= 0)
+        if (slotIndex < 0 || slotIndex >= weaponSlots.Length || weaponSlots[slotIndex].ammoCount <= 0)
             return false;
 
-        weaponSlotAmmoCounts[slotIndex]--;
+        weaponSlots[slotIndex].ammoCount--;
         return true;
     }
 
@@ -188,31 +137,29 @@ public class InventorySO : ScriptableObject
             if (targetType == InventorySlotType.Universal && !CanPlaceItem(InventorySlotType.Universal, item))
                 continue;
 
-            ItemSO[] targetSlots = GetSlotsForType(targetType);
-            int[] targetCounts = GetCountsForType(targetType);
-            int[] targetAmmoCounts = GetAmmoCountsForType(targetType);
+            InventorySlotData[] targetSlots = GetSlotsForType(targetType);
 
-            if (targetSlots == null || targetCounts == null || targetAmmoCounts == null)
+            if (targetSlots == null)
                 continue;
 
             for (int i = 0; i < targetSlots.Length; i++)
             {
-                if (targetSlots[i] == item)
+                if (targetSlots[i].item == item)
                 {
-                    targetCounts[i] += count;
+                    targetSlots[i].count += count;
                     if (ammoCount > 0)
-                        targetAmmoCounts[i] = ammoCount;
+                        targetSlots[i].ammoCount = ammoCount;
                     return true;
                 }
             }
 
             for (int i = 0; i < targetSlots.Length; i++)
             {
-                if (targetSlots[i] == null)
+                if (targetSlots[i].item == null)
                 {
-                    targetSlots[i] = item;
-                    targetCounts[i] = count;
-                    targetAmmoCounts[i] = ammoCount;
+                    targetSlots[i].item = item;
+                    targetSlots[i].count = count;
+                    targetSlots[i].ammoCount = ammoCount;
                     return true;
                 }
             }
@@ -225,19 +172,17 @@ public class InventorySO : ScriptableObject
     {
         EnsureDefaults();
 
-        ItemSO[] targetSlots = GetSlotsForType(slotType);
-        int[] targetCounts = GetCountsForType(slotType);
-        int[] targetAmmoCounts = GetAmmoCountsForType(slotType);
+        InventorySlotData[] targetSlots = GetSlotsForType(slotType);
 
-        if (targetSlots == null || targetCounts == null || targetAmmoCounts == null)
+        if (targetSlots == null)
             return false;
 
         if (index < 0 || index >= targetSlots.Length)
             return false;
 
-        targetSlots[index] = null;
-        targetCounts[index] = 0;
-        targetAmmoCounts[index] = 0;
+        targetSlots[index].item = null;
+        targetSlots[index].count = 0;
+        targetSlots[index].ammoCount = 0;
         return true;
     }
 
@@ -257,27 +202,25 @@ public class InventorySO : ScriptableObject
 
         for (int s = 0; s < slotTypes.Length; s++)
         {
-            ItemSO[] items = GetSlotsForType(slotTypes[s]);
-            int[] counts = GetCountsForType(slotTypes[s]);
-            int[] ammoCounts = GetAmmoCountsForType(slotTypes[s]);
+            InventorySlotData[] items = GetSlotsForType(slotTypes[s]);
 
-            if (items == null || counts == null)
+            if (items == null)
                 continue;
 
             for (int i = 0; i < items.Length && remaining > 0; i++)
             {
-                if (items[i] != item)
+                if (items[i].item != item)
                     continue;
 
-                int removeCount = Mathf.Min(counts[i], remaining);
-                counts[i] -= removeCount;
+                int removeCount = Mathf.Min(items[i].count, remaining);
+                items[i].count -= removeCount;
                 remaining -= removeCount;
 
-                if (counts[i] <= 0)
+                if (items[i].count <= 0)
                 {
-                    items[i] = null;
-                    counts[i] = 0;
-                    ammoCounts[i] = 0;
+                    items[i].item = null;
+                    items[i].count = 0;
+                    items[i].ammoCount = 0;
                 }
             }
 
@@ -290,26 +233,26 @@ public class InventorySO : ScriptableObject
 
     public void RemoveItemsWithNoCount()
     {
-        RemoveItemsWithNoCount(slots, slotCounts, slotAmmoCounts);
-        RemoveItemsWithNoCount(weaponSlots, weaponSlotCounts, weaponSlotAmmoCounts);
-        RemoveItemsWithNoCount(armorSlots, armorSlotCounts, armorSlotAmmoCounts);
-        RemoveItemsWithNoCount(consumableSlots, consumableSlotCounts, consumableSlotAmmoCounts);
+        RemoveItemsWithNoCount(slots);
+        RemoveItemsWithNoCount(weaponSlots);
+        RemoveItemsWithNoCount(armorSlots);
+        RemoveItemsWithNoCount(consumableSlots);
     }
 
-    private static void RemoveItemsWithNoCount(ItemSO[] items, int[] counts, int[] ammoCounts)
+    private static void RemoveItemsWithNoCount(InventorySlotData[] slots)
     {
-        for (int i = 0; i < items.Length; i++)
+        for (int i = 0; i < slots.Length; i++)
         {
-            if (items[i] == null)
+            if (slots[i].item == null)
             {
-                counts[i] = 0;
-                ammoCounts[i] = 0;
+                slots[i].count = 0;
+                slots[i].ammoCount = 0;
             }
-            else if (counts[i] <= 0)
+            else if (slots[i].count <= 0)
             {
-                items[i] = null;
-                counts[i] = 0;
-                ammoCounts[i] = 0;
+                slots[i].item = null;
+                slots[i].count = 0;
+                slots[i].ammoCount = 0;
             }
         }
     }

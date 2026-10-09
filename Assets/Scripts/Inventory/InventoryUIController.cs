@@ -134,7 +134,7 @@ public class InventoryUIController : MonoBehaviour
         if (inventoryData == null || slotIndex < 0 || slotIndex >= inventoryData.weaponSlots.Length)
             return false;
 
-        return inventoryData.weaponSlots[slotIndex] is WeaponSO;
+        return inventoryData.weaponSlots[slotIndex].item is WeaponSO;
     }
 
     private bool EquipShooterForSelectedWeapon()
@@ -142,7 +142,7 @@ public class InventoryUIController : MonoBehaviour
         if (playerShooter == null)
             return true;
 
-        if (inventoryData.weaponSlots[equippedWeaponIndex] is WeaponSO weapon)
+        if (inventoryData.weaponSlots[equippedWeaponIndex].item is WeaponSO weapon)
             return playerShooter.EquipWeapon(weapon, this);
 
         playerShooter.UnequipWeapon();
@@ -190,7 +190,7 @@ public class InventoryUIController : MonoBehaviour
 
         for (int i = 0; i < universalSlots.Length; i++)
         {
-            ItemSO item = i < inventoryData.slots.Length ? inventoryData.slots[i] : null;
+            ItemSO item = i < inventoryData.slots.Length ? inventoryData.slots[i].item : null;
             universalSlots[i].SetupSlot(item, i);
             universalSlots[i].SetSlotType(InventorySlotType.Universal);
         }
@@ -203,7 +203,7 @@ public class InventoryUIController : MonoBehaviour
 
         for (int i = 0; i < weaponSlots.Length; i++)
         {
-            ItemSO item = i < inventoryData.weaponSlots.Length ? inventoryData.weaponSlots[i] : null;
+            ItemSO item = i < inventoryData.weaponSlots.Length ? inventoryData.weaponSlots[i].item : null;
             weaponSlots[i].SetupSlot(item, i);
             weaponSlots[i].SetSlotType(InventorySlotType.Weapon);
         }
@@ -212,7 +212,7 @@ public class InventoryUIController : MonoBehaviour
         {
             for (int i = 0; i < weaponGuiSlots.Length; i++)
             {
-                ItemSO item = i < inventoryData.weaponSlots.Length ? inventoryData.weaponSlots[i] : null;
+                ItemSO item = i < inventoryData.weaponSlots.Length ? inventoryData.weaponSlots[i].item : null;
                 weaponGuiSlots[i].SetWeaponIcon(item != null ? item.icon : null);
                 bool isEquipped = i == equippedWeaponIndex;
                 weaponGuiSlots[i].SetEquipped(isEquipped);
@@ -227,7 +227,7 @@ public class InventoryUIController : MonoBehaviour
 
         for (int i = 0; i < armorSlots.Length; i++)
         {
-            ItemSO item = i < inventoryData.armorSlots.Length ? inventoryData.armorSlots[i] : null;
+            ItemSO item = i < inventoryData.armorSlots.Length ? inventoryData.armorSlots[i].item : null;
             armorSlots[i].SetupSlot(item, i);
             armorSlots[i].SetSlotType(InventorySlotType.Armor);
         }
@@ -240,7 +240,7 @@ public class InventoryUIController : MonoBehaviour
 
         for (int i = 0; i < consumableSlots.Length; i++)
         {
-            ItemSO item = i < inventoryData.consumableSlots.Length ? inventoryData.consumableSlots[i] : null;
+            ItemSO item = i < inventoryData.consumableSlots.Length ? inventoryData.consumableSlots[i].item : null;
             consumableSlots[i].SetupSlot(item, i);
             consumableSlots[i].SetSlotType(InventorySlotType.Consumable);
         }
@@ -253,7 +253,7 @@ public class InventoryUIController : MonoBehaviour
             return null;
 
         if (slotIndex >= 0 && slotIndex < inventoryData.weaponSlots.Length)
-            return inventoryData.weaponSlots[slotIndex];
+            return inventoryData.weaponSlots[slotIndex].item;
 
         return null;
     }
@@ -301,10 +301,10 @@ public class InventoryUIController : MonoBehaviour
             return 0;
 
         inventoryData.EnsureDefaults();
-        if (slotIndex < 0 || slotIndex >= inventoryData.weaponSlotCounts.Length)
+        if (slotIndex < 0 || slotIndex >= inventoryData.weaponSlots.Length)
             return 0;
 
-        return inventoryData.weaponSlotCounts[slotIndex];
+        return inventoryData.weaponSlots[slotIndex].count;
     }
 
     public int GetWeaponAmmoCountAtSlot(int slotIndex)
@@ -313,10 +313,10 @@ public class InventoryUIController : MonoBehaviour
             return 0;
 
         inventoryData.EnsureDefaults();
-        if (slotIndex < 0 || slotIndex >= inventoryData.weaponSlotAmmoCounts.Length)
+        if (slotIndex < 0 || slotIndex >= inventoryData.weaponSlots.Length)
             return 0;
 
-        return inventoryData.weaponSlotAmmoCounts[slotIndex];
+        return inventoryData.weaponSlots[slotIndex].ammoCount;
     }
 
     // For InventorySlot drag-and-drop swapping
@@ -341,9 +341,8 @@ public class InventoryUIController : MonoBehaviour
         inventoryData.EnsureDefaults();
         int slotIndex = equippedWeaponIndex;
         return slotIndex >= 0 && slotIndex < inventoryData.weaponSlots.Length &&
-            inventoryData.weaponSlots[slotIndex] is GunSO &&
-            slotIndex < inventoryData.weaponSlotAmmoCounts.Length &&
-            inventoryData.weaponSlotAmmoCounts[slotIndex] > 0;
+            inventoryData.weaponSlots[slotIndex].item is WeaponSO &&
+            inventoryData.weaponSlots[slotIndex].ammoCount > 0;
     }
 
     // For PlayerShooter2D to consume ammo when shooting
@@ -358,24 +357,24 @@ public class InventoryUIController : MonoBehaviour
             return 0;
 
         inventoryData.EnsureDefaults();
-        if (equippedWeaponIndex < 0 || equippedWeaponIndex >= inventoryData.weaponSlotAmmoCounts.Length)
+        if (equippedWeaponIndex < 0 || equippedWeaponIndex >= inventoryData.weaponSlots.Length)
             return 0;
 
-        return inventoryData.weaponSlotAmmoCounts[equippedWeaponIndex];
+        return inventoryData.weaponSlots[equippedWeaponIndex].ammoCount;
     }
 
-    public bool TryReloadEquippedWeapon(GunSO weapon, int ammoCapacity)
+    public bool TryReloadEquippedWeapon(WeaponSO weapon, int ammoCapacity)
     {
         if (inventoryData == null || weapon == null || ammoCapacity <= 0)
             return false;
 
         inventoryData.EnsureDefaults();
         if (equippedWeaponIndex < 0 || equippedWeaponIndex >= inventoryData.weaponSlots.Length ||
-            inventoryData.weaponSlots[equippedWeaponIndex] != weapon ||
-            inventoryData.weaponSlotCounts[equippedWeaponIndex] <= 0)
+            inventoryData.weaponSlots[equippedWeaponIndex].item != weapon ||
+            inventoryData.weaponSlots[equippedWeaponIndex].count <= 0)
             return false;
 
-        inventoryData.weaponSlotAmmoCounts[equippedWeaponIndex] = ammoCapacity;
+        inventoryData.weaponSlots[equippedWeaponIndex].ammoCount = ammoCapacity;
         return true;
     }
 }

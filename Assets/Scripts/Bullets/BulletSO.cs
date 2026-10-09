@@ -17,4 +17,5 @@ public class BulletSO : ScriptableObject
     public bool isExplosive = false; // If true, bullet can explode on impact
     public float explosionRadius = 2f; // Only relevant if isExplosive is true
     public float knockbackForce = 5f; // Force applied to enemies on hit
+    public EffectDefinition[] effects;
 }

@@ -1,8 +1,11 @@
 using UnityEngine;
+using System.Threading;
 
 [RequireComponent(typeof(Rigidbody2D))]
 public class Bullet2D : MonoBehaviour
 {
+    private static int nextDamageSourceId;
+
     [SerializeField] private string obstacleTag = "BulletBlocker";
 
     private Rigidbody2D rb;
@@ -11,9 +14,12 @@ public class Bullet2D : MonoBehaviour
     private Camera mainCamera;
     private BulletSO bulletData;
     private float remainingLifetime;
+    private int damageSourceId;
 
     public float Damage => bulletData != null ? bulletData.damage : 0f;
     public float KnockbackForce => bulletData != null ? bulletData.knockbackForce : 0f;
+    public EffectDefinition[] Effects => bulletData != null ? bulletData.effects : null;
+    public int DamageSourceId => damageSourceId;
     public Vector2 TravelDirection => rb != null && rb.linearVelocity.sqrMagnitude > 0f
         ? rb.linearVelocity.normalized
         : transform.right;
@@ -48,6 +54,8 @@ public class Bullet2D : MonoBehaviour
     public void Launch(Vector2 direction)
     {
         if (bulletData == null) return;
+
+        damageSourceId = Interlocked.Increment(ref nextDamageSourceId);
 
         // Re-enable visual, collider, and GameObject state when re-firing
         gameObject.SetActive(true);

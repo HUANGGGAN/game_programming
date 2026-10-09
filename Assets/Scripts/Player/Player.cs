@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem; // Required for New Input System
 
@@ -15,7 +16,12 @@ public class Player : MonoBehaviour
 
     private Rigidbody2D _rb;
     private Vector2 _inputVector;
+    private Vector2 knockbackVelocity;
+    private float knockbackRemaining;
+    private readonly List<ActiveEffect> activeEffects = new List<ActiveEffect>();
     private Camera mainCamera;
+
+    private const float KnockbackDuration = 0.12f;
 
     private void Awake()
     {
@@ -59,6 +65,7 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
+        EffectRuntime.Tick(activeEffects, Time.deltaTime, amount => TakeDamage(amount));
         ReadMovementInput();
         HandleScoreInput();
         FaceTowardCursor();
@@ -66,8 +73,15 @@ public class Player : MonoBehaviour
 
     private void FixedUpdate()
     {
-        // Apply velocity directly to the physics body during the physics step
-        _rb.linearVelocity = _inputVector * moveSpeed;
+        float effectiveMoveSpeed = EffectRuntime.HasEffect(activeEffects, EffectRuntime.Faint) ? 0f : moveSpeed;
+        _rb.linearVelocity = _inputVector * effectiveMoveSpeed + knockbackVelocity;
+
+        if (knockbackRemaining > 0f)
+        {
+            knockbackRemaining -= Time.fixedDeltaTime;
+            if (knockbackRemaining <= 0f)
+                knockbackVelocity = Vector2.zero;
+        }
     }
 
     private void ReadMovementInput()
@@ -115,13 +129,28 @@ public class Player : MonoBehaviour
         }
     }
 
-    public void TakeDamage(float amount)
+    public bool TakeDamage(float amount)
     {
-        if (playerData == null)
-            return;
+        if (playerData == null || amount <= 0f || playerData.currentHealth <= 0f)
+            return false;
 
         playerData.ApplyDamage(amount);
         UpdatePlayerBarsFromData();
+        return true;
+    }
+
+    public void ApplyEffects(EffectDefinition[] effects)
+    {
+        EffectRuntime.Apply(activeEffects, effects);
+    }
+
+    public void ApplyKnockback(Vector2 direction, float force)
+    {
+        if (force <= 0f || direction.sqrMagnitude <= Mathf.Epsilon)
+            return;
+
+        knockbackVelocity = direction.normalized * force;
+        knockbackRemaining = KnockbackDuration;
     }
 
     private void UpdatePlayerBarsFromData()

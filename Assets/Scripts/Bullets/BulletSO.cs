@@ -1,5 +1,15 @@
 using UnityEngine;
 
+public static class CriticalAttack
+{
+    public static float RollDamage(float baseDamage, float critRate, float critMultiplier)
+    {
+        return UnityEngine.Random.value < Mathf.Clamp01(critRate)
+            ? baseDamage * critMultiplier
+            : baseDamage;
+    }
+}
+
 [CreateAssetMenu(fileName = "NewBulletData", menuName = "Weapons/Bullet Data")]
 public class BulletSO : ScriptableObject
 {
@@ -17,5 +27,8 @@ public class BulletSO : ScriptableObject
     public bool isExplosive = false; // If true, bullet can explode on impact
     public float explosionRadius = 2f; // Only relevant if isExplosive is true
     public float knockbackForce = 5f; // Force applied to enemies on hit
+    [Range(0f, 1f)] public float critRate = 0.05f;
+    public float critMul = 3f;
     public EffectDefinition[] effects;
+    public int attackAttribute = 0; // Attribute ID for the bullet's attack type (e.g., fire, ice, poison)
 }

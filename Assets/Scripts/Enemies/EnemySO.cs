@@ -21,11 +21,11 @@ public class ActiveEffect
 
 public static class EffectRuntime
 {
-    public const int Fire = 0;
-    public const int Faint = 1;
-    public const int Bleed = 2;
+    public const int Fire = 1;
+    public const int Faint = 2;
+    public const int Bleed = 3;
 
-    public static void Apply(List<ActiveEffect> activeEffects, EffectDefinition[] definitions)
+    public static void Apply(List<ActiveEffect> activeEffects, EffectDefinition[] definitions, float probabilityMultiplier = 1f)
     {
         if (activeEffects == null || definitions == null)
             return;
@@ -35,7 +35,7 @@ public static class EffectRuntime
             if (definition == null || definition.duration <= 0f || definition.level <= 0)
                 continue;
 
-            float probability = Mathf.Clamp01(definition.probability);
+            float probability = Mathf.Clamp01(definition.probability * Mathf.Max(0f, probabilityMultiplier));
             if (probability <= 0f || (probability < 1f && UnityEngine.Random.value >= probability))
                 continue;
 
@@ -130,4 +130,5 @@ public class EnemySO : ScriptableObject
     public float attackInterval = 1.2f;
     public float attackDuration = 0.4f;
     public float HP = 35f;
+    public int attackAttribute = 0; // Attribute ID for the bullet's attack type (e.g., fire, ice, poison)
 }

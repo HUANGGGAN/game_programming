@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem; // New Input System
@@ -10,6 +11,7 @@ public class PlayerShooter2D : MonoBehaviour
     [SerializeField, Min(0.01f)] private float shootInterval;
     [SerializeField] private InventoryUIController inventoryUIController;
     [SerializeField] private GameObject reloadStatusText;
+    [SerializeField] private ChargingBar chargingBar;
     [SerializeField] private TMP_Text[] weaponAmmoTexts = new TMP_Text[3];
 
     private Camera mainCamera;
@@ -21,10 +23,13 @@ public class PlayerShooter2D : MonoBehaviour
     private readonly List<IWeaponAttackHandler> attackHandlers = new List<IWeaponAttackHandler>
     {
         new MeleeAttack(),
+        new ChargedAttack(),
         new ProjectileAttack()
     };
     private bool isReloading;
     private float reloadFinishTime;
+    private bool isChargingAttack;
+    private float chargeStartTime;
 
     private void Awake()
     {
@@ -34,6 +39,9 @@ public class PlayerShooter2D : MonoBehaviour
             weaponHolder = GetComponentInParent<WeaponHolder>();
         if (inventoryUIController == null)
             inventoryUIController = FindObjectOfType<InventoryUIController>(true);
+        if (chargingBar == null)
+            chargingBar = GetComponentInChildren<ChargingBar>(true);
+        chargingBar?.SetVisible(false);
 
         if (reloadStatusText != null)
             reloadCountdownText = reloadStatusText.GetComponent<TMP_Text>();
@@ -65,6 +73,12 @@ public class PlayerShooter2D : MonoBehaviour
                 UpdateReloadCountdown();
                 return;
             }
+        }
+
+        if (equippedWeapon is IChargedProjectileWeapon chargedWeapon)
+        {
+            UpdateChargedAttackInput(chargedWeapon);
+            return;
         }
 
         bool leftClickHeld = Mouse.current != null && Mouse.current.leftButton.isPressed;
@@ -134,6 +148,7 @@ public class PlayerShooter2D : MonoBehaviour
 
         this.inventoryUIController = inventoryUIController;
         this.equippedWeapon = equippedWeapon;
+        chargingBar?.SetVisible(equippedWeapon is IChargedProjectileWeapon);
         weaponHolder?.SetEquippedWeapon(equippedWeapon);
         SetShootInterval(equippedWeapon.shootInterval);
         nextShotTime = Time.time + shootInterval;
@@ -145,6 +160,7 @@ public class PlayerShooter2D : MonoBehaviour
     {
         CancelReload();
         equippedWeapon = null;
+        chargingBar?.SetVisible(false);
         weaponHolder?.SetEquippedWeapon(null);
         RefreshWeaponAmmoTexts();
     }
@@ -156,6 +172,9 @@ public class PlayerShooter2D : MonoBehaviour
             inventoryUIController.GetEquippedWeaponAmmoCount() >= reloadable.AmmoCapacity)
             return;
 
+        isChargingAttack = false;
+        chargeStartTime = 0f;
+        chargingBar?.ResetCharge();
         isReloading = true;
         reloadFinishTime = Time.time + Mathf.Max(0f, reloadable.ReloadDuration);
         SetReloadTextVisible(true);
@@ -175,6 +194,9 @@ public class PlayerShooter2D : MonoBehaviour
     {
         isReloading = false;
         reloadFinishTime = 0f;
+        isChargingAttack = false;
+        chargeStartTime = 0f;
+        chargingBar?.ResetCharge();
         SetReloadTextVisible(false);
     }
 
@@ -198,16 +220,60 @@ public class PlayerShooter2D : MonoBehaviour
         shootingEnabled = enabled;
     }
 
-    private void Shoot()
+    private void UpdateChargedAttackInput(IChargedProjectileWeapon chargedWeapon)
+    {
+        if (Mouse.current == null || !shootingEnabled)
+        {
+            isChargingAttack = false;
+            chargeStartTime = 0f;
+            chargingBar?.ResetCharge();
+            return;
+        }
+
+        var leftButton = Mouse.current.leftButton;
+        if (!isChargingAttack && leftButton.wasPressedThisFrame && Time.time >= nextShotTime)
+        {
+            if (equippedWeapon.consumeAmmo && !inventoryUIController.HasEquippedWeaponAmmo())
+            {
+                StartReload();
+                return;
+            }
+
+            isChargingAttack = true;
+            chargeStartTime = Time.time;
+            chargingBar?.SetCharge(0f);
+        }
+
+        if (isChargingAttack)
+        {
+            float currentCharge = chargedWeapon.MaxChargeTime <= 0f
+                ? 1f
+                : Mathf.Clamp01((Time.time - chargeStartTime) / chargedWeapon.MaxChargeTime);
+            chargingBar?.SetCharge(currentCharge);
+        }
+
+        if (isChargingAttack && leftButton.wasReleasedThisFrame)
+        {
+            isChargingAttack = false;
+            float chargeRatio = chargedWeapon.MaxChargeTime <= 0f
+                ? 1f
+                : Mathf.Clamp01((Time.time - chargeStartTime) / chargedWeapon.MaxChargeTime);
+            if (Shoot(chargeRatio))
+                nextShotTime = Time.time + shootInterval;
+            chargingBar?.ResetCharge();
+        }
+    }
+
+    private bool Shoot(float? chargeRatio = null)
     {
         if (Mouse.current == null || inventoryUIController == null || equippedWeapon == null)
-            return;
+            return false;
 
         bool shouldConsumeAmmo = equippedWeapon.consumeAmmo;
         if (shouldConsumeAmmo && !inventoryUIController.HasEquippedWeaponAmmo())
         {
             StartReload();
-            return;
+            return false;
         }
 
         Transform weaponTransform = weaponHolder != null ? weaponHolder.transform : transform;
@@ -237,11 +303,12 @@ public class PlayerShooter2D : MonoBehaviour
         // 3. Calculate direction vector snapshot
         Vector2 shootDirection = ((Vector2)mouseWorldPos - (Vector2)aimOrigin).normalized;
 
-        if (!TryPerformAttack(spawnPosition, shootDirection))
-            return;
+        if (!TryPerformAttack(spawnPosition, shootDirection, chargeRatio))
+            return false;
 
         if (shouldConsumeAmmo)
             RefreshWeaponAmmoTexts();
+        return true;
     }
 
     public void RegisterAttackHandler(IWeaponAttackHandler handler)
@@ -261,13 +328,23 @@ public class PlayerShooter2D : MonoBehaviour
         return null;
     }
 
-    private bool TryPerformAttack(Vector2 origin, Vector2 direction)
+    private bool TryPerformAttack(Vector2 origin, Vector2 direction, float? chargeRatio = null)
     {
         IWeaponAttackHandler handler = FindAttackHandler(equippedWeapon);
-        return handler != null && handler.TryPerform(
-            equippedWeapon,
-            origin,
-            direction,
-            () => inventoryUIController.TryConsumeEquippedWeaponAmmo());
+        if (handler == null)
+            return false;
+
+        Func<bool> tryConsumeAmmo = () => inventoryUIController.TryConsumeEquippedWeaponAmmo();
+        if (chargeRatio.HasValue)
+        {
+            return handler is IChargedAttackHandler chargedHandler && chargedHandler.TryPerformCharged(
+                equippedWeapon,
+                origin,
+                direction,
+                chargeRatio.Value,
+                tryConsumeAmmo);
+        }
+
+        return handler.TryPerform(equippedWeapon, origin, direction, tryConsumeAmmo);
     }
 }

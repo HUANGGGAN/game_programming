@@ -99,6 +99,7 @@ public class EnemyChase : MonoBehaviour
             return;
 
         agent.speed = EffectRuntime.HasEffect(activeEffects, EffectRuntime.Faint) ? 0f : speed;
+        
 
         if (player != null)
         {
@@ -151,7 +152,6 @@ public class EnemyChase : MonoBehaviour
         }
 
         lastAttackTime = Time.time;
-        Debug.Log($"Enemy attack! Damage: {damage}, Range: {attackRange}, Player: {player.name}");
     }
 
     private void OnTriggerEnter2D(Collider2D other)
@@ -161,7 +161,7 @@ public class EnemyChase : MonoBehaviour
             bullet = other.GetComponentInParent<Bullet2D>();
 
         if (bullet != null && TakeDamage(bullet.Damage, bullet.TravelDirection, bullet.KnockbackForce, bullet.DamageSourceId))
-            ApplyEffects(bullet.Effects);
+            ApplyEffects(bullet.Effects, bullet.EffectProbabilityMultiplier);
     }
 
     public bool TakeDamage(float damageAmount)
@@ -216,9 +216,9 @@ public class EnemyChase : MonoBehaviour
         return true;
     }
 
-    public void ApplyEffects(EffectDefinition[] effects)
+    public void ApplyEffects(EffectDefinition[] effects, float probabilityMultiplier = 1f)
     {
-        EffectRuntime.Apply(activeEffects, effects);
+        EffectRuntime.Apply(activeEffects, effects, probabilityMultiplier);
     }
 
     private bool CanTakeDamageFromSource(int sourceId, float sourceDuration)

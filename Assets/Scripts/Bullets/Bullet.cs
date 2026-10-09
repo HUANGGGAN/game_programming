@@ -14,11 +14,14 @@ public class Bullet2D : MonoBehaviour
     private Camera mainCamera;
     private BulletSO bulletData;
     private float remainingLifetime;
+    private float currentDamage;
+    private float effectProbabilityMultiplier = 1f;
     private int damageSourceId;
 
-    public float Damage => bulletData != null ? bulletData.damage : 0f;
+    public float Damage => currentDamage;
     public float KnockbackForce => bulletData != null ? bulletData.knockbackForce : 0f;
     public EffectDefinition[] Effects => bulletData != null ? bulletData.effects : null;
+    public float EffectProbabilityMultiplier => effectProbabilityMultiplier;
     public int DamageSourceId => damageSourceId;
     public Vector2 TravelDirection => rb != null && rb.linearVelocity.sqrMagnitude > 0f
         ? rb.linearVelocity.normalized
@@ -35,6 +38,8 @@ public class Bullet2D : MonoBehaviour
     public void Initialize(BulletSO data)
     {
         bulletData = data;
+        currentDamage = bulletData != null ? bulletData.damage : 0f;
+        effectProbabilityMultiplier = 1f;
 
         if (bulletData == null) return;
 
@@ -53,8 +58,20 @@ public class Bullet2D : MonoBehaviour
 
     public void Launch(Vector2 direction)
     {
+        Launch(direction, bulletData != null ? bulletData.damage : 0f);
+    }
+
+    public void Launch(Vector2 direction, float damage)
+    {
+        Launch(direction, damage, bulletData != null ? bulletData.speed : 0f, 1f);
+    }
+
+    public void Launch(Vector2 direction, float damage, float speed, float effectProbabilityMultiplier)
+    {
         if (bulletData == null) return;
 
+        currentDamage = damage;
+        this.effectProbabilityMultiplier = Mathf.Max(0f, effectProbabilityMultiplier);
         damageSourceId = Interlocked.Increment(ref nextDamageSourceId);
 
         // Re-enable visual, collider, and GameObject state when re-firing
@@ -68,7 +85,7 @@ public class Bullet2D : MonoBehaviour
         transform.rotation = Quaternion.Euler(0f, 0f, angle);
 
         // Apply velocity
-        rb.linearVelocity = direction.normalized * bulletData.speed;
+        rb.linearVelocity = direction.normalized * Mathf.Max(0f, speed);
     }
 
     private void Update()

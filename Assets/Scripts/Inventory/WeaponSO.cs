@@ -17,7 +17,17 @@ public interface IReloadableWeapon
     float ReloadDuration { get; }
 }
 
-[CreateAssetMenu(fileName = "NewWeapon", menuName = "Item/Weapon")]
+public interface IChargedProjectileWeapon
+{
+    float BaseDamage { get; }
+    float BaseSpeed { get; }
+    float MaxChargeTime { get; }
+    float AttackMultiplier { get; }
+    float SpeedMultiplier { get; }
+    float ProbabilityMultiplier { get; }
+}
+
+[CreateAssetMenu(fileName = "NewWeapon", menuName = "Weapon/Weapon")]
 public class WeaponSO : ItemSO
 {
     [Header("Weapon Stats")]
@@ -27,7 +37,7 @@ public class WeaponSO : ItemSO
     public Vector2 firePointOffset = new Vector2(0.5f, 0.1f); // Offset for the fire point relative to the weapon's position
 }
 
-[CreateAssetMenu(fileName = "NewGun", menuName = "Item/Gun")]
+[CreateAssetMenu(fileName = "NewGun", menuName = "Weapon/Gun")]
 public class GunSO : WeaponSO, IProjectileWeapon, IProjectilePatternWeapon, IReloadableWeapon
 {
     [Header("Gun Stats")]
@@ -43,7 +53,26 @@ public class GunSO : WeaponSO, IProjectileWeapon, IProjectilePatternWeapon, IRel
     public float ReloadDuration => reloadTime;
 }
 
-[CreateAssetMenu(fileName = "NewMelee", menuName = "Item/Melee")]
+[CreateAssetMenu(fileName = "NewChargedWeapon", menuName = "Weapon/Charged")]
+public class ChargedSO : GunSO, IChargedProjectileWeapon
+{
+    [Header("Charge Stats")]
+    public float baseDamage = 10f;
+    public float baseSpeed = 10f;
+    [Min(0f)] public float maxChargeTime = 1f;
+    public float attackMul = 3f;
+    public float speedMul = 2f;
+    public float probMul = 2f;
+
+    public float BaseDamage => baseDamage;
+    public float BaseSpeed => baseSpeed;
+    public float MaxChargeTime => maxChargeTime;
+    public float AttackMultiplier => attackMul;
+    public float SpeedMultiplier => speedMul;
+    public float ProbabilityMultiplier => probMul;
+}
+
+[CreateAssetMenu(fileName = "NewMelee", menuName = "Weapon/Melee")]
 public class MeleeSO : WeaponSO
 {
     [Header("Melee Stats")]
@@ -52,11 +81,14 @@ public class MeleeSO : WeaponSO
     public float attackDamage = 10.0f; // Damage value for the melee attack
     public float attackDuration = 0.1f; // Duration of the melee attack
     public float knockbackForce = 1.0f; // Force applied to enemies on hit
+    [Range(0f, 1f)] public float critRate = 0.05f;
+    public float critMul = 3f;
     public bool drawAttackRange;
     public EffectDefinition[] effects;
+    public int attackAttribute = 0; // Attribute ID for the bullet's attack type (e.g., fire, ice, poison)
 }
 
-[CreateAssetMenu(fileName = "NewWand", menuName = "Item/Wand")]
+[CreateAssetMenu(fileName = "NewWand", menuName = "Weapon/Wand")]
 public class WandSO : WeaponSO, IProjectileWeapon
 {
     [Header("Wand Stats")]
@@ -66,7 +98,7 @@ public class WandSO : WeaponSO, IProjectileWeapon
     // Additional wand-specific stats can be added here
 }
 
-[CreateAssetMenu(fileName = "NewArmor", menuName = "Item/Armor")]
+[CreateAssetMenu(fileName = "NewArmor", menuName = "Weapon/Armor")]
 public class ArmorSO : ItemSO
 {
     [Header("Armor Stats")]

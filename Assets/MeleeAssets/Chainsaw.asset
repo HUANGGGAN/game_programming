@@ -21,9 +21,17 @@ MonoBehaviour:
   consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
-  effect: 
-  attackRange: 1.5
+  attackRange: 1.7
   attackAngle: 40
   attackDamage: 3
-  attackDuration: 0.5
-  knockbackForce: 1
+  attackDuration: 0.3
+  knockbackForce: 0.2
+  critRate: 0.05
+  critMul: 3
+  drawAttackRange: 1
+  effects:
+  - effectID: 3
+    duration: 2
+    probability: 1
+    level: 1
+  attackAttribute: 0

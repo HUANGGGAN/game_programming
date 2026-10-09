@@ -12,18 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 0}
   m_Name: Pan
   m_EditorClassIdentifier: Assembly-CSharp::MeleeSO
-  itemName: New Item
-  itemID: 0
-  rarity: 
-  icon: {fileID: 0}
+  itemName: Pan
+  itemID: 3
+  rarity: 1
+  icon: {fileID: 5148381696236788057, guid: 1186b10d1e3317bb0b89393fb20b71a8, type: 3}
   description: 
-  shootInterval: 1
-  consumeAmmo: 1
+  shootInterval: 0.6
+  consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
-  effect: 
-  attackRange: 2
-  attackAngle: 90
-  attackDamage: 10
-  attackDuration: 0.5
-  knockbackForce: 1
+  attackRange: 1.7
+  attackAngle: 110
+  attackDamage: 5
+  attackDuration: 0.1
+  knockbackForce: 6
+  critRate: 0.05
+  critMul: 3
+  drawAttackRange: 1
+  effects: []
+  attackAttribute: 0

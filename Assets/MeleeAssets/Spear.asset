@@ -1,0 +1,33 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 0}
+  m_Name: Spear
+  m_EditorClassIdentifier: Assembly-CSharp::MeleeSO
+  itemName: Spear
+  itemID: 5
+  rarity: 2
+  icon: {fileID: 3749446161351167426, guid: ef94ffc5886277c309147616d07dc375, type: 3}
+  description: 
+  shootInterval: 0.7
+  consumeAmmo: 0
+  hasLimitedAmmo: 0
+  firePointOffset: {x: 0.5, y: 0.1}
+  attackRange: 2.5
+  attackAngle: 20
+  attackDamage: 7
+  attackDuration: 0.1
+  knockbackForce: 1
+  critRate: 0.05
+  critMul: 3
+  drawAttackRange: 1
+  effects: []
+  attackAttribute: 0

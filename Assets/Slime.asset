@@ -12,9 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bad93a88726efe32ac8a9dfb5185349, type: 3}
   m_Name: Slime
   m_EditorClassIdentifier: Assembly-CSharp::EnemySO
-  effect: 
+  sprite: {fileID: 585364160268699015, guid: a752813ee7b8c8b94b34010757015b7b, type: 3}
+  spriteFacesRightByDefault: 1
+  effects:
+  - effectID: 0
+    duration: 10
+    probability: 1
+    level: 1
   resistances: 
-  attackRange: 1.5
+  attackRange: 1.2
   damage: 10
   knockbackForce: 4
   knockbackResistance: 0
@@ -22,3 +28,4 @@ MonoBehaviour:
   attackInterval: 1.2
   attackDuration: 0.4
   HP: 35
+  attackAttribute: 0

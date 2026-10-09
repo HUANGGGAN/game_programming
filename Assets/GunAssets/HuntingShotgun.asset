@@ -10,21 +10,19 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 0}
-  m_Name: HandGun
+  m_Name: HuntingShotgun
   m_EditorClassIdentifier: Assembly-CSharp::GunSO
-  itemName: Hand Gun
-  itemID: 0
-  rarity: Common
-  icon: {fileID: 7677211468609144201, guid: 5a8beaf99369d54979413d37c7fd9990, type: 3}
+  itemName: Hunting Shotgun
+  itemID: 2
+  rarity: Uncommon
+  icon: {fileID: -4880596957545370123, guid: 5ebfc126d4cfa8d96b707ba17f6efac4, type: 3}
   description: 
-  shootInterval: 0.45
+  shootInterval: 0.9
   consumeAmmo: 1
   hasLimitedAmmo: 0
-  knockbackForce: 1
-  firePointOffset: {x: 4, y: 0.3}
-  effect: 
-  capacity: 10
-  reloadTime: 1
-  spread: 5
-  burstCount: 1
-  bulletData: {fileID: 11400000, guid: d2831981d54ce33ecbd4dbb057d7ecae, type: 2}
+  firePointOffset: {x: 3, y: 0}
+  capacity: 6
+  reloadTime: 2
+  spread: 30
+  burstCount: 5
+  bulletData: {fileID: 11400000, guid: 017ee7bc7b52a9d0e87ac3dd69c38d2b, type: 2}

@@ -13,17 +13,21 @@ MonoBehaviour:
   m_Name: WoodenClub
   m_EditorClassIdentifier: Assembly-CSharp::MeleeSO
   itemName: Wooden Club
-  itemID: 0
-  rarity: Common
+  itemID: 6
+  rarity: 1
   icon: {fileID: -104293320526628631, guid: 6921d1b278467ee91aa51f7ccdb26b89, type: 3}
   description: 
   shootInterval: 0.4
   consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
-  effect: 
   attackRange: 2
   attackAngle: 120
-  attackDamage: 10
-  attackDuration: 0.5
-  knockbackForce: 5
+  attackDamage: 6
+  attackDuration: 0.1
+  knockbackForce: 3
+  critRate: 0.05
+  critMul: 3
+  drawAttackRange: 1
+  effects: []
+  attackAttribute: 0

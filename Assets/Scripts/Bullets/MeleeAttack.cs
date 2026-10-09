@@ -22,6 +22,7 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
     private Vector2 activeDirection;
     private float activeDuration;
     private float elapsedDuration;
+    private float activeDamage;
     private int activeDamageSourceId;
 
     public bool CanHandle(WeaponSO weapon)
@@ -45,6 +46,7 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
         activeDirection = direction.normalized;
         activeDuration = Mathf.Max(0f, meleeWeapon.attackDuration);
         elapsedDuration = 0f;
+        activeDamage = CriticalAttack.RollDamage(meleeWeapon.attackDamage, meleeWeapon.critRate, meleeWeapon.critMul);
         activeDamageSourceId = Interlocked.Increment(ref nextDamageSourceId);
 
         if (meleeWeapon.drawAttackRange)
@@ -95,7 +97,7 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
                 ? directionToEnemy.normalized
                 : activeDirection;
             if (enemy.TakeDamage(
-                activeWeapon.attackDamage,
+                activeDamage,
                 knockbackDirection,
                 activeWeapon.knockbackForce,
                 activeDamageSourceId,

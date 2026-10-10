@@ -21,6 +21,9 @@ public class InventorySlot : MonoBehaviour,
     private bool isDragging;
     private bool isEmpty;
 
+    public InventoryUIController UIController => uiController;
+    public bool IsDragging => isDragging;
+
     private void Awake()
     {
         uiController = GetComponentInParent<InventoryUIController>();

@@ -160,7 +160,19 @@ public class EnemyChase : MonoBehaviour
         if (bullet == null)
             bullet = other.GetComponentInParent<Bullet2D>();
 
-        if (bullet != null && TakeDamage(bullet.Damage, bullet.TravelDirection, bullet.KnockbackForce, bullet.DamageSourceId))
+        if (bullet != null)
+            bullet.ApplyDirectHit(this);
+    }
+
+    public void TakeBulletHit(Bullet2D bullet)
+    {
+        if (bullet != null && TakeDamage(
+            bullet.Damage,
+            bullet.TravelDirection,
+            bullet.KnockbackForce,
+            bullet.DamageSourceId,
+            hitCooldownDuration,
+            bullet.AttackAttributes))
             ApplyEffects(bullet.Effects, bullet.EffectProbabilityMultiplier);
     }
 
@@ -176,15 +188,19 @@ public class EnemyChase : MonoBehaviour
 
     private bool TakeDamage(float damageAmount, Vector2 knockbackDirection, float knockbackForce, int damageSourceId)
     {
-        return TakeDamage(damageAmount, knockbackDirection, knockbackForce, damageSourceId, hitCooldownDuration);
+        return TakeDamage(damageAmount, knockbackDirection, knockbackForce, damageSourceId, hitCooldownDuration, null);
     }
 
-    public bool TakeDamage(float damageAmount, Vector2 knockbackDirection, float knockbackForce, int damageSourceId, float damageSourceDuration)
+    public bool TakeDamage(float damageAmount, Vector2 knockbackDirection, float knockbackForce, int damageSourceId, float damageSourceDuration, int[] attackAttributes = null)
     {
         if (damageAmount <= 0f || currentHealth <= 0f)
             return false;
 
         if (damageSourceId != 0 && !CanTakeDamageFromSource(damageSourceId, damageSourceDuration))
+            return false;
+
+        damageAmount *= GetAttackDamageMultiplier(attackAttributes);
+        if (damageAmount <= 0f)
             return false;
 
         currentHealth -= damageAmount;
@@ -218,7 +234,39 @@ public class EnemyChase : MonoBehaviour
 
     public void ApplyEffects(EffectDefinition[] effects, float probabilityMultiplier = 1f)
     {
-        EffectRuntime.Apply(activeEffects, effects, probabilityMultiplier);
+        EffectRuntime.Apply(activeEffects, effects, probabilityMultiplier, enemyData != null ? enemyData.resistances : null);
+    }
+
+    private float GetAttackDamageMultiplier(int[] attackAttributes)
+    {
+        if (enemyData == null || attackAttributes == null || attackAttributes.Length == 0)
+            return 1f;
+
+        bool resisted = HasMatchingAttribute(attackAttributes, enemyData.resistances);
+        bool weakened = HasMatchingAttribute(attackAttributes, enemyData.weaknesses);
+        float multiplier = 1f;
+        if (resisted)
+            multiplier *= 0.3f;
+        if (weakened)
+            multiplier *= 2f;
+        return multiplier;
+    }
+
+    private static bool HasMatchingAttribute(int[] attackAttributes, int[] targetAttributes)
+    {
+        if (targetAttributes == null)
+            return false;
+
+        for (int i = 0; i < attackAttributes.Length; i++)
+        {
+            for (int j = 0; j < targetAttributes.Length; j++)
+            {
+                if (attackAttributes[i] == targetAttributes[j])
+                    return true;
+            }
+        }
+
+        return false;
     }
 
     private bool CanTakeDamageFromSource(int sourceId, float sourceDuration)

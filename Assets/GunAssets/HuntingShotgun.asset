@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: HuntingShotgun
   m_EditorClassIdentifier: Assembly-CSharp::GunSO
   itemName: Hunting Shotgun
-  itemID: 2
+  itemID: 10
   rarity: Uncommon
   icon: {fileID: -4880596957545370123, guid: 5ebfc126d4cfa8d96b707ba17f6efac4, type: 3}
   description: 

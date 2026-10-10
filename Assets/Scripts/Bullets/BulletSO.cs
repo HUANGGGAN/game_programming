@@ -27,8 +27,9 @@ public class BulletSO : ScriptableObject
     public bool isExplosive = false; // If true, bullet can explode on impact
     public float explosionRadius = 2f; // Only relevant if isExplosive is true
     public float knockbackForce = 5f; // Force applied to enemies on hit
+    public float explosiveDamage = 20f; // Damage dealt by the explosion
     [Range(0f, 1f)] public float critRate = 0.05f;
     public float critMul = 3f;
     public EffectDefinition[] effects;
-    public int attackAttribute = 0; // Attribute ID for the bullet's attack type (e.g., fire, ice, poison)
+    public int[] attackAttributes; // Attribute ID for the bullet's attack type (e.g., fire, ice, poison)
 }

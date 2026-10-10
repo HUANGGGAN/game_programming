@@ -118,12 +118,32 @@ public class InventorySO : ScriptableObject
         return InventorySlotType.Universal;
     }
 
-    public bool TryGiveItem(ItemSO item, InventorySlotType preferredType, int count = 1, int ammoCount = 0)
+    public bool CanGiveItem(ItemSO item, InventorySlotType preferredType, int count = 1)
+    {
+        return FindSlotForItem(item, preferredType, count) != null;
+    }
+
+    private InventorySlotData FindSlotForItem(ItemSO item, InventorySlotType preferredType, int count)
     {
         EnsureDefaults();
-
         if (item == null || count <= 0)
-            return false;
+            return null;
+
+        InventorySlotType[] allSlotTypes =
+        {
+            InventorySlotType.Universal,
+            InventorySlotType.Weapon,
+            InventorySlotType.Armor,
+            InventorySlotType.Consumable
+        };
+        foreach (InventorySlotType type in allSlotTypes)
+        {
+            foreach (InventorySlotData slot in GetSlotsForType(type))
+            {
+                if (slot.item == item)
+                    return slot;
+            }
+        }
 
         InventorySlotType[] slotPriority =
         {
@@ -131,41 +151,44 @@ public class InventorySO : ScriptableObject
             InventorySlotType.Universal
         };
 
-        for (int s = 0; s < slotPriority.Length; s++)
+        foreach (InventorySlotType type in slotPriority)
         {
-            InventorySlotType targetType = slotPriority[s];
-            if (targetType == InventorySlotType.Universal && !CanPlaceItem(InventorySlotType.Universal, item))
+            if (!CanPlaceItem(type, item))
                 continue;
 
-            InventorySlotData[] targetSlots = GetSlotsForType(targetType);
-
+            InventorySlotData[] targetSlots = GetSlotsForType(type);
             if (targetSlots == null)
                 continue;
 
-            for (int i = 0; i < targetSlots.Length; i++)
+            foreach (InventorySlotData slot in targetSlots)
             {
-                if (targetSlots[i].item == item)
-                {
-                    targetSlots[i].count += count;
-                    if (ammoCount > 0)
-                        targetSlots[i].ammoCount = ammoCount;
-                    return true;
-                }
-            }
-
-            for (int i = 0; i < targetSlots.Length; i++)
-            {
-                if (targetSlots[i].item == null)
-                {
-                    targetSlots[i].item = item;
-                    targetSlots[i].count = count;
-                    targetSlots[i].ammoCount = ammoCount;
-                    return true;
-                }
+                if (slot.item == null)
+                    return slot;
             }
         }
 
-        return false;
+        return null;
+    }
+
+    public bool TryGiveItem(ItemSO item, InventorySlotType preferredType, int count = 1, int ammoCount = 0)
+    {
+        InventorySlotData slot = FindSlotForItem(item, preferredType, count);
+        if (slot == null)
+            return false;
+
+        if (slot.item == item)
+        {
+            slot.count += count;
+            if (ammoCount > 0)
+                slot.ammoCount = ammoCount;
+        }
+        else
+        {
+            slot.item = item;
+            slot.count = count;
+            slot.ammoCount = ammoCount;
+        }
+        return true;
     }
 
     public bool TryDropFromSlot(InventorySlotType slotType, int index)
@@ -186,9 +209,28 @@ public class InventorySO : ScriptableObject
         return true;
     }
 
+    public int GetItemCount(ItemSO item)
+    {
+        EnsureDefaults();
+        if (item == null)
+            return 0;
+
+        int total = 0;
+        InventorySlotData[][] groups = { slots, weaponSlots, armorSlots, consumableSlots };
+        foreach (InventorySlotData[] group in groups)
+        {
+            foreach (InventorySlotData slot in group)
+            {
+                if (slot.item == item)
+                    total += Mathf.Max(0, slot.count);
+            }
+        }
+        return total;
+    }
+
     public bool TryRemoveItemAmount(ItemSO item, int amount)
     {
-        if (item == null || amount <= 0)
+        if (item == null || amount <= 0 || GetItemCount(item) < amount)
             return false;
 
         int remaining = amount;

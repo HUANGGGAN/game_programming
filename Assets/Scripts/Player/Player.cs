@@ -65,10 +65,16 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
+        Interactable.UpdateInteraction(transform);
         EffectRuntime.Tick(activeEffects, Time.deltaTime, amount => TakeDamage(amount));
         ReadMovementInput();
         HandleScoreInput();
         FaceTowardCursor();
+    }
+
+    private void OnDisable()
+    {
+        Interactable.ClearSelection();
     }
 
     private void FixedUpdate()
@@ -137,6 +143,11 @@ public class Player : MonoBehaviour
         playerData.ApplyDamage(amount);
         UpdatePlayerBarsFromData();
         return true;
+    }
+
+    public bool TryUseMP(int amount)
+    {
+        return amount <= 0 || (playerData != null && playerData.TryUseMP(amount));
     }
 
     public void ApplyEffects(EffectDefinition[] effects)

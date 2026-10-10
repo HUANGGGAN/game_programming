@@ -25,7 +25,7 @@ public static class EffectRuntime
     public const int Faint = 2;
     public const int Bleed = 3;
 
-    public static void Apply(List<ActiveEffect> activeEffects, EffectDefinition[] definitions, float probabilityMultiplier = 1f)
+    public static void Apply(List<ActiveEffect> activeEffects, EffectDefinition[] definitions, float probabilityMultiplier = 1f, int[] blockedEffectIDs = null)
     {
         if (activeEffects == null || definitions == null)
             return;
@@ -33,6 +33,8 @@ public static class EffectRuntime
         foreach (EffectDefinition definition in definitions)
         {
             if (definition == null || definition.duration <= 0f || definition.level <= 0)
+                continue;
+            if (Contains(blockedEffectIDs, definition.effectID))
                 continue;
 
             float probability = Mathf.Clamp01(definition.probability * Mathf.Max(0f, probabilityMultiplier));
@@ -68,6 +70,20 @@ public static class EffectRuntime
                 current.remainTime = Mathf.Max(current.remainTime, definition.duration);
             }
         }
+    }
+
+    private static bool Contains(int[] values, int value)
+    {
+        if (values == null)
+            return false;
+
+        for (int i = 0; i < values.Length; i++)
+        {
+            if (values[i] == value)
+                return true;
+        }
+
+        return false;
     }
 
     public static void Tick(List<ActiveEffect> activeEffects, float deltaTime, Action<float> applyDamage)
@@ -120,6 +136,7 @@ public class EnemySO : ScriptableObject
     [Header("Status Effects")]
     public EffectDefinition[] effects;
     public int[] resistances;
+    public int[] weaknesses;
 
     [Header("Combat Stats")]
     public float attackRange = 1.5f;
@@ -130,5 +147,5 @@ public class EnemySO : ScriptableObject
     public float attackInterval = 1.2f;
     public float attackDuration = 0.4f;
     public float HP = 35f;
-    public int attackAttribute = 0; // Attribute ID for the bullet's attack type (e.g., fire, ice, poison)
+    public int[] attackAttributes; // Attribute IDs for the bullet's attack type (e.g., fire, ice, poison)
 }

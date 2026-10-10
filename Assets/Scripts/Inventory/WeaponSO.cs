@@ -85,15 +85,16 @@ public class MeleeSO : WeaponSO
     public float critMul = 3f;
     public bool drawAttackRange;
     public EffectDefinition[] effects;
-    public int attackAttribute = 0; // Attribute ID for the bullet's attack type (e.g., fire, ice, poison)
+    public int[] attackAttributes; // Attribute IDs for the bullet's attack type (e.g., fire, ice, poison)
 }
 
 [CreateAssetMenu(fileName = "NewWand", menuName = "Weapon/Wand")]
 public class WandSO : WeaponSO, IProjectileWeapon
 {
     [Header("Wand Stats")]
-    public int MPCost = 0; // Mana cost per shot
-    public BulletSO bulletData; // Reference to the bullet data used by this gun
+    [Min(0)] public int MPCost = 0; // Mana cost per shot
+    public BulletSO bulletData;
+    public int attackMode; // 0: projectile; other modes require their own attack handler
     public BulletSO ProjectileData => bulletData;
     // Additional wand-specific stats can be added here
 }
@@ -107,6 +108,7 @@ public class ArmorSO : ItemSO
     public float speedPenalty = 0.0f; // Penalty to movement speed when wearing the armor
     public float knockbackResistance = 0.0f; // Resistance to knockback effects
     public int[] resistances; // Array of resistance IDs that this armor provides (e.g., fire, ice, poison)
+    public int[] weaknesses;
 }
 
 [CreateAssetMenu(fileName = "NewConsumable", menuName = "Item/Consumable")]

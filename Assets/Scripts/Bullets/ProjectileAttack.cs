@@ -10,12 +10,37 @@ public sealed class ProjectileAttack : IWeaponAttackHandler
 {
     public bool CanHandle(WeaponSO weapon)
     {
-        return weapon is IProjectileWeapon projectileWeapon && projectileWeapon.ProjectileData != null;
+        return weapon is not WandSO && weapon is IProjectileWeapon projectileWeapon && projectileWeapon.ProjectileData != null;
     }
 
     public bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, Func<bool> tryConsumeAmmo)
     {
         return ProjectileAttackExecutor.TryPerform(weapon, origin, direction, null, tryConsumeAmmo);
+    }
+}
+
+public sealed class WandProjectileAttack : IWeaponAttackHandler
+{
+    private readonly Func<int, bool> tryConsumeMP;
+
+    public WandProjectileAttack(Func<int, bool> tryConsumeMP)
+    {
+        this.tryConsumeMP = tryConsumeMP;
+    }
+
+    public bool CanHandle(WeaponSO weapon)
+    {
+        return weapon is WandSO wand && wand.attackMode == 0 && wand.bulletData != null;
+    }
+
+    public bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, Func<bool> tryConsumeAmmo)
+    {
+        if (!CanHandle(weapon))
+            return false;
+
+        WandSO wand = (WandSO)weapon;
+        return ProjectileAttackExecutor.TryPerform(
+            wand, origin, direction, null, () => tryConsumeMP != null && tryConsumeMP(Mathf.Max(0, wand.MPCost)));
     }
 }
 
@@ -43,7 +68,7 @@ public sealed class ChargedAttack : IWeaponAttackHandler, IChargedAttackHandler
 
 internal static class ProjectileAttackExecutor
 {
-    public static bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, float? chargeRatio, Func<bool> tryConsumeAmmo)
+    public static bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, float? chargeRatio, Func<bool> tryConsumeResource)
     {
         if (weapon is not IProjectileWeapon projectileWeapon || projectileWeapon.ProjectileData == null || BulletPool.Instance == null)
             return false;
@@ -68,7 +93,7 @@ internal static class ProjectileAttackExecutor
             spread = Mathf.Max(0f, patternWeapon.ProjectileSpread);
         }
 
-        bool ammoConsumed = false;
+        bool resourceConsumed = false;
         bool firedAny = false;
         for (int i = 0; i < burstCount; i++)
         {
@@ -76,11 +101,12 @@ internal static class ProjectileAttackExecutor
             if (bullet == null)
                 break;
 
-            if (weapon.consumeAmmo && !ammoConsumed)
+            // Wand handlers supply mana consumption here instead of inventory ammo.
+            if ((weapon is WandSO || weapon.consumeAmmo) && !resourceConsumed)
             {
-                if (!tryConsumeAmmo())
+                if (!tryConsumeResource())
                     return false;
-                ammoConsumed = true;
+                resourceConsumed = true;
             }
 
             float spreadOffset = burstCount == 1

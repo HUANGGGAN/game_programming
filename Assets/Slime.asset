@@ -14,12 +14,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemySO
   sprite: {fileID: 585364160268699015, guid: a752813ee7b8c8b94b34010757015b7b, type: 3}
   spriteFacesRightByDefault: 1
-  effects:
-  - effectID: 0
-    duration: 10
-    probability: 1
-    level: 1
+  effects: []
   resistances: 
+  weaknesses: 01000000
   attackRange: 1.2
   damage: 10
   knockbackForce: 4
@@ -27,5 +24,5 @@ MonoBehaviour:
   speed: 2.5
   attackInterval: 1.2
   attackDuration: 0.4
-  HP: 35
-  attackAttribute: 0
+  HP: 30
+  attackAttributes: 

@@ -16,6 +16,7 @@ public class PlayerShooter2D : MonoBehaviour
 
     private Camera mainCamera;
     private WeaponHolder weaponHolder;
+    private Player player;
     private TMP_Text reloadCountdownText;
     private bool shootingEnabled = true;
     private float nextShotTime;
@@ -34,6 +35,11 @@ public class PlayerShooter2D : MonoBehaviour
     private void Awake()
     {
         mainCamera = Camera.main;
+        player = GetComponent<Player>();
+        if (player == null)
+            player = GetComponentInParent<Player>();
+        attackHandlers.Insert(0, new WandProjectileAttack(
+            amount => amount <= 0 || (player != null && player.TryUseMP(amount))));
         weaponHolder = GetComponent<WeaponHolder>();
         if (weaponHolder == null)
             weaponHolder = GetComponentInParent<WeaponHolder>();
@@ -108,7 +114,7 @@ public class PlayerShooter2D : MonoBehaviour
                 continue;
             }
 
-            if (item is WeaponSO weapon && !weapon.consumeAmmo)
+            if (item is WandSO || (item is WeaponSO weapon && !weapon.consumeAmmo))
             {
                 ammoText.text = string.Empty;
             }
@@ -269,7 +275,7 @@ public class PlayerShooter2D : MonoBehaviour
         if (Mouse.current == null || inventoryUIController == null || equippedWeapon == null)
             return false;
 
-        bool shouldConsumeAmmo = equippedWeapon.consumeAmmo;
+        bool shouldConsumeAmmo = equippedWeapon is not WandSO && equippedWeapon.consumeAmmo;
         if (shouldConsumeAmmo && !inventoryUIController.HasEquippedWeaponAmmo())
         {
             StartReload();

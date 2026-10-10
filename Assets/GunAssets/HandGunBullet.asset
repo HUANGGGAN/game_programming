@@ -23,5 +23,8 @@ MonoBehaviour:
   isExplosive: 0
   explosionRadius: 0
   knockbackForce: 1.1
+  explosiveDamage: 20
+  critRate: 0.05
+  critMul: 3
   effects: []
-  attackAttribute: 0
+  attackAttributes: 

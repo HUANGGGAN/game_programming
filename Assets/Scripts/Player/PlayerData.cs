@@ -76,8 +76,19 @@ public class PlayerData : ScriptableObject
 
     public void UseMP(int amount)
     {
-        currentMP = Mathf.Max(0, currentMP - amount);
+        currentMP = Mathf.Max(0, currentMP - Mathf.Max(0, amount));
         OnPlayerStatsChanged?.Invoke();
+    }
+
+    public bool TryUseMP(int amount)
+    {
+        amount = Mathf.Max(0, amount);
+        if (currentMP < amount)
+            return false;
+
+        if (amount > 0)
+            UseMP(amount);
+        return true;
     }
 
     public void RestoreMP(int amount)

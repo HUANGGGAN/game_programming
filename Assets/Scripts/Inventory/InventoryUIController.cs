@@ -257,6 +257,11 @@ public class InventoryUIController : MonoBehaviour
 
         return null;
     }
+    public bool CanGiveItem(ItemSO item, InventorySlotType type, int count = 1)
+    {
+        return inventoryData != null && inventoryData.CanGiveItem(item, type, count);
+    }
+
     public bool GiveItem(ItemSO item, InventorySlotType type, int count = 1, int ammoCount = 0)
     {
         if (inventoryData == null)
@@ -272,6 +277,16 @@ public class InventoryUIController : MonoBehaviour
         return success;
     }
 
+    public InventorySlotData GetSlotData(InventorySlotType slotType, int slotIndex)
+    {
+        if (inventoryData == null)
+            return null;
+
+        inventoryData.EnsureDefaults();
+        InventorySlotData[] slots = inventoryData.GetSlotsForType(slotType);
+        return slots != null && slotIndex >= 0 && slotIndex < slots.Length ? slots[slotIndex] : null;
+    }
+
     public bool DropFromSlot(InventorySlotType slotType, int slotIndex)
     {
         if (inventoryData == null)
@@ -282,6 +297,11 @@ public class InventoryUIController : MonoBehaviour
             RefreshUI();
 
         return success;
+    }
+
+    public int GetItemCount(ItemSO item)
+    {
+        return inventoryData != null ? inventoryData.GetItemCount(item) : 0;
     }
 
     public bool RemoveItemAmount(ItemSO item, int amount)

@@ -32,6 +32,6 @@ MonoBehaviour:
   effects:
   - effectID: 3
     duration: 2
-    probability: 1
+    probability: 0.5
     level: 1
-  attackAttribute: 0
+  attackAttributes: 

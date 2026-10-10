@@ -101,7 +101,8 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
                 knockbackDirection,
                 activeWeapon.knockbackForce,
                 activeDamageSourceId,
-                activeDuration + Time.fixedDeltaTime))
+                activeDuration + Time.fixedDeltaTime,
+                activeWeapon.attackAttributes))
             {
                 enemy.ApplyEffects(activeWeapon.effects);
             }

@@ -1,38 +1,69 @@
 using UnityEngine;
 
-[RequireComponent(typeof(Collider2D))]
-public class PickableItem : MonoBehaviour
+public class PickableItem : Interactable
 {
     [SerializeField] private ItemSO item;
     [SerializeField] private int count = 1;
     [SerializeField] private int ammoCount = 0;
     [SerializeField] private InventoryUIController inventoryUI;
+    [SerializeField, Tooltip("SpriteRenderer on a child object. Automatically found if unassigned.")]
+    private SpriteRenderer itemSpriteRenderer;
 
-    private void OnTriggerEnter2D(Collider2D other)
+    protected override void OnEnable()
     {
-        if (!other.CompareTag("Player"))
-            return;
+        base.OnEnable();
+        UpdateItemSprite();
+    }
 
-        if (item == null)
-            return;
+    private void OnValidate()
+    {
+        UpdateItemSprite();
+    }
 
-        if (inventoryUI == null)
-            return;
+    private void UpdateItemSprite()
+    {
+        if (itemSpriteRenderer != null &&
+            (itemSpriteRenderer.transform == transform || !itemSpriteRenderer.transform.IsChildOf(transform)))
+            itemSpriteRenderer = null;
 
-        InventorySlotType slotType = InventorySlotType.Universal;
-        if (item is WeaponSO)
-            slotType = InventorySlotType.Weapon;
-        else if (item is ArmorSO)
-            slotType = InventorySlotType.Armor;
-        else if (item is ConsumableSO)
-            slotType = InventorySlotType.Consumable;
-
-        Debug.Log($"Picked up {item.itemName} x{count} (Ammo: {ammoCount})");
-        if (inventoryUI.GiveItem(item, slotType, count, ammoCount))
+        if (itemSpriteRenderer == null)
         {
-            Debug.Log($"Picked up {item.itemName} x{count} (Ammo: {ammoCount})");
-            Destroy(gameObject);
+            foreach (SpriteRenderer childRenderer in GetComponentsInChildren<SpriteRenderer>(true))
+            {
+                if (childRenderer.transform == transform)
+                    continue;
+
+                itemSpriteRenderer = childRenderer;
+                break;
+            }
         }
-        
+
+        if (itemSpriteRenderer != null && item != null)
+            itemSpriteRenderer.sprite = item.icon;
+    }
+
+    private void ResolveInventory()
+    {
+        if (inventoryUI == null)
+            inventoryUI = FindFirstObjectByType<InventoryUIController>(FindObjectsInactive.Include);
+    }
+
+    public override string GetHint()
+    {
+        ResolveInventory();
+        return inventoryUI != null && inventoryUI.CanGiveItem(item, InventorySlotType.Universal, count)
+            ? "Press F to pick up"
+            : "Inventory full";
+    }
+
+    public override bool TryInteract()
+    {
+        ResolveInventory();
+        if (inventoryUI == null || !inventoryUI.GiveItem(item, InventorySlotType.Universal, count, ammoCount))
+            return false;
+
+        gameObject.SetActive(false);
+        Destroy(gameObject);
+        return true;
     }
 }

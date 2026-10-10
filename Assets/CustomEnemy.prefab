@@ -13,13 +13,14 @@ GameObject:
   - component: {fileID: 3824156322840085398}
   - component: {fileID: 7724359918339073360}
   - component: {fileID: 6132795026671694266}
+  - component: {fileID: 1104871773222838367}
   m_Layer: 0
   m_Name: CustomEnemy
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &6680667575978569131
 Transform:
   m_ObjectHideFlags: 0
@@ -84,7 +85,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: 4801227835787818748, guid: 6ea6d5ba745d7a4c1992ded3f244f469, type: 3}
+  m_Sprite: {fileID: 585364160268699015, guid: a752813ee7b8c8b94b34010757015b7b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0
@@ -129,10 +130,53 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::EnemyChase
   player: {fileID: 0}
-  maxHealth: 3
-  bulletTag: Bullet
+  enemyData: {fileID: 11400000, guid: 33c3178df5ed2b12e986c4da81b7fd3a, type: 2}
+  attackRange: 1.5
+  damage: 10
+  knockbackForce: 4
+  knockbackResistance: 0
+  speed: 2.5
+  attackInterval: 1.2
+  maxHealth: 20
+  hitCooldownDuration: 0.2
 --- !u!58 &6132795026671694266
 CircleCollider2D:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6031229713666679085}
+  m_Enabled: 0
+  serializedVersion: 3
+  m_Density: 1
+  m_Material: {fileID: 0}
+  m_IncludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_ExcludeLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  m_LayerOverridePriority: 0
+  m_ForceSendLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ForceReceiveLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_ContactCaptureLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_CallbackLayers:
+    serializedVersion: 2
+    m_Bits: 4294967295
+  m_IsTrigger: 0
+  m_UsedByEffector: 0
+  m_CompositeOperation: 0
+  m_CompositeOrder: 0
+  m_Offset: {x: -0.1, y: -0.18}
+  m_Radius: 2.2
+--- !u!70 &1104871773222838367
+CapsuleCollider2D:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -165,5 +209,6 @@ CircleCollider2D:
   m_UsedByEffector: 0
   m_CompositeOperation: 0
   m_CompositeOrder: 0
-  m_Offset: {x: -0.1, y: -0.18}
-  m_Radius: 2.2
+  m_Offset: {x: 0, y: 0}
+  m_Size: {x: 4.34, y: 3}
+  m_Direction: 0

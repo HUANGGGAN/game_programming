@@ -53,7 +53,7 @@ MonoBehaviour:
   onInteract:
     m_PersistentCalls:
       m_Calls: []
-  item: {fileID: 11400000, guid: f0d53b2e348bfcbc58d28788a358f872, type: 2}
+  item: {fileID: 11400000, guid: 3e5b0d0a1936a8f7c91cf352f7df5be2, type: 2}
   count: 1
   ammoCount: 0
   inventoryUI: {fileID: 0}
@@ -139,7 +139,7 @@ SpriteRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_MaskInteraction: 0
-  m_Sprite: {fileID: -4880596957545370123, guid: 5ebfc126d4cfa8d96b707ba17f6efac4, type: 3}
+  m_Sprite: {fileID: 6225818281361698569, guid: f4caba175db4d0c4cbbc7fbc9a945443, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
   m_FlipX: 0
   m_FlipY: 0

@@ -92,7 +92,8 @@ public class InventorySO : ScriptableObject
         {
             int maxStack = Mathf.Max(1, slotA.item.maxStackSize);
             int room = Mathf.Max(0, maxStack - slotB.count);
-            if (room > 0)
+            bool eitherFull = slotA.count == maxStack || slotB.count == maxStack;
+            if (!eitherFull && room > 0)
             {
                 int transferred = Mathf.Min(Mathf.Max(0, slotA.count), room);
                 if (transferred == 0)
@@ -106,7 +107,7 @@ public class InventorySO : ScriptableObject
                 }
                 return true;
             }
-            if (slotA.count < maxStack)
+            if (!eitherFull)
                 return false;
         }
         if (!CanPlaceItem(typeB, slotA.item) || !CanPlaceItem(typeA, slotB.item))

@@ -9,25 +9,26 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: a9defc2eb230c20ce96051b757e77152, type: 3}
   m_Name: Knife
   m_EditorClassIdentifier: Assembly-CSharp::MeleeSO
   itemName: Knife
   itemID: 2
   rarity: 1
   icon: {fileID: -3118116746070603060, guid: 785c46e9a6a32e2b8bec0c170e17d185, type: 3}
+  maxStackSize: 1
   description: 
   shootInterval: 0.3
   consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
-  attackRange: 1.5
+  attackRange: 1.8
   attackAngle: 90
   attackDamage: 5
-  attackDuration: 0.1
+  attackDuration: 0.2
   knockbackForce: 1.5
   critRate: 0.05
   critMul: 3
   drawAttackRange: 1
   effects: []
-  attackAttribute: 0
+  attackAttributes: 

@@ -12,6 +12,14 @@ public class EnemyChase : MonoBehaviour
     [Header("Enemy Data")]
     [SerializeField] private EnemySO enemyData;
 
+    [Header("Spawn Settings")]
+    [SerializeField, Min(0.01f)] private float enemy_point = 1f;
+    [SerializeField, Min(0f)] private float enemy_difficulty = 1f;
+    [SerializeField, Min(0f)] private float maxDistance = 50f;
+
+    public float EnemyPoint => enemyData != null ? enemyData.enemy_point : enemy_point;
+    public float EnemyDifficulty => enemyData != null ? enemyData.enemy_difficulty : enemy_difficulty;
+
     [Header("Combat Stats")]
     [SerializeField] private float attackRange = 1.5f;
     [SerializeField] private float damage = 10f;
@@ -21,6 +29,7 @@ public class EnemyChase : MonoBehaviour
     [SerializeField] private float attackInterval = 1.2f;
     [SerializeField] private float maxHealth = 35f;
     [SerializeField] private float hitCooldownDuration = 0.2f;
+    [SerializeField, Min(0f)] private float playerContactPushForce = 1.5f;
 
     private NavMeshAgent agent;
     private SpriteRenderer spriteRenderer;
@@ -60,6 +69,8 @@ public class EnemyChase : MonoBehaviour
         recentDamageSourceIds.Clear();
         recentDamageSourceTimes.Clear();
         activeEffects.Clear();
+        knockbackVelocity = Vector2.zero;
+        knockbackRemaining = 0f;
 
         // Auto-find Player if not assigned in Inspector
         if (player == null)
@@ -87,6 +98,8 @@ public class EnemyChase : MonoBehaviour
         speed = enemyData.speed;
         attackInterval = enemyData.attackInterval;
         maxHealth = enemyData.HP;
+        enemy_point = enemyData.enemy_point;
+        enemy_difficulty = enemyData.enemy_difficulty;
     }
 
     private void Update()
@@ -94,6 +107,12 @@ public class EnemyChase : MonoBehaviour
         EffectRuntime.Tick(activeEffects, Time.deltaTime, amount => TakeDamage(amount));
         if (currentHealth <= 0f || !isActiveAndEnabled)
             return;
+
+        if (player != null && Vector2.Distance(transform.position, player.position) > Mathf.Max(0f, maxDistance))
+        {
+            Die();
+            return;
+        }
 
         if (!agent.isOnNavMesh)
             return;
@@ -135,6 +154,34 @@ public class EnemyChase : MonoBehaviour
 
         bool movingLeft = agent.velocity.x < 0f;
         spriteRenderer.flipX = movingLeft == spriteFacesRightByDefault;
+    }
+
+    private void OnCollisionEnter2D(Collision2D collision)
+    {
+        PushAwayFromPlayer(collision);
+    }
+
+    private void OnCollisionStay2D(Collision2D collision)
+    {
+        PushAwayFromPlayer(collision);
+    }
+
+    private void PushAwayFromPlayer(Collision2D collision)
+    {
+        if (currentHealth <= 0f || playerContactPushForce <= 0f || knockbackRemaining > 0f)
+            return;
+
+        Player contactedPlayer = collision.collider.GetComponentInParent<Player>();
+        if (contactedPlayer == null)
+            return;
+
+        Vector2 direction = (Vector2)transform.position - (Vector2)contactedPlayer.transform.position;
+        if (direction.sqrMagnitude <= Mathf.Epsilon)
+            direction = collision.contactCount > 0 ? collision.GetContact(0).normal : Vector2.right;
+
+        // Use the agent's existing knockback movement so navigation does not cancel the push.
+        knockbackVelocity = direction.normalized * playerContactPushForce;
+        knockbackRemaining = KnockbackDuration;
     }
 
     private void Attack()
@@ -308,6 +355,14 @@ public class EnemyChase : MonoBehaviour
 
     private void Die()
     {
+        if (hitFlashRoutine != null)
+        {
+            StopCoroutine(hitFlashRoutine);
+            hitFlashRoutine = null;
+            if (spriteRenderer != null)
+                spriteRenderer.color = originalSpriteColor;
+        }
+
         // Stop movement before deactivating
         if (agent.isOnNavMesh)
         {

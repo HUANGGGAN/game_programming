@@ -9,13 +9,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 5ec186d1a765adae3aa6d3343c7dd524, type: 3}
   m_Name: HandGun
   m_EditorClassIdentifier: Assembly-CSharp::GunSO
   itemName: Hand Gun
   itemID: 8
   rarity: 1
   icon: {fileID: 7677211468609144201, guid: 5a8beaf99369d54979413d37c7fd9990, type: 3}
+  maxStackSize: 1
   description: 
   shootInterval: 0.45
   consumeAmmo: 1

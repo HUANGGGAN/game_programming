@@ -138,6 +138,10 @@ public class EnemySO : ScriptableObject
     public int[] resistances;
     public int[] weaknesses;
 
+    [Header("Spawn Settings")]
+    [Min(0.01f)] public float enemy_point = 1f;
+    [Min(0f)] public float enemy_difficulty = 1f;
+
     [Header("Combat Stats")]
     public float attackRange = 1.5f;
     public float damage = 10f;

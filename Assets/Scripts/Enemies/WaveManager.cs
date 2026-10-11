@@ -1,20 +1,27 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class WaveManager : MonoBehaviour
 {
-    [SerializeField] private GameObject basicEnemyPrefab;
     [SerializeField] private Transform playerTransform;
-    [SerializeField] private float spawnInterval = 3f;
-    [SerializeField] private int enemiesPerWave = 10;
-    [SerializeField] private float spawnRadius = 15f; // Spawns outside screen view
+    [SerializeField, Range(1f, 10f)] private float baseDifficulty = 1f;
+    [FormerlySerializedAs("spawnInterval")]
+    [SerializeField, Min(0.01f)] private float spawnPeriod = 3f;
+    [SerializeField, Min(0f)] private float totalPoint = 1f;
+    [SerializeField, Min(0f)] private float minRadius = 10f;
+    [FormerlySerializedAs("spawnRadius")]
+    [SerializeField, Min(0f)] private float maxRadius = 15f;
 
     private IEnemySpawner spawner;
     private float timer;
+    private float elapsedTime;
+
+    public float CurrentDifficulty => Mathf.Lerp(Mathf.Clamp(baseDifficulty, 1f, 10f), 10f,
+        Mathf.Clamp01(elapsedTime / 300f));
 
     private void Start()
     {
         spawner = EnemyPoolSpawner.Instance;
-        
         if (playerTransform == null)
         {
             GameObject playerObj = GameObject.FindGameObjectWithTag("Player");
@@ -24,26 +31,26 @@ public class WaveManager : MonoBehaviour
 
     private void Update()
     {
-        if (playerTransform == null || spawner == null) return;
+        elapsedTime += Time.deltaTime;
+        if (spawner == null)
+            spawner = EnemyPoolSpawner.Instance;
+        if (playerTransform == null || spawner == null)
+            return;
 
         timer += Time.deltaTime;
-        if (timer >= spawnInterval)
+        float period = Mathf.Max(0.01f, spawnPeriod);
+        if (timer >= period)
         {
-            timer = 0f;
-            TriggerWave();
+            timer %= period;
+            float currentDifficulty = CurrentDifficulty;
+            spawner.SpawnBatch(new SpawnRequest
+            {
+                centerPosition = playerTransform.position,
+                minRadius = minRadius,
+                maxRadius = maxRadius,
+                totalPoint = totalPoint * currentDifficulty,
+                currentDifficulty = currentDifficulty
+            });
         }
-    }
-
-    private void TriggerWave()
-    {
-        SpawnRequest request = new SpawnRequest
-        {
-            enemyPrefab = basicEnemyPrefab,
-            count = enemiesPerWave,
-            centerPosition = playerTransform.position,
-            radius = spawnRadius
-        };
-
-        spawner.SpawnBatch(request);
     }
 }

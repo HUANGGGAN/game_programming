@@ -9,13 +9,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: 5ec186d1a765adae3aa6d3343c7dd524, type: 3}
   m_Name: HuntingRifle
   m_EditorClassIdentifier: Assembly-CSharp::GunSO
   itemName: Hunting Rifle
   itemID: 9
   rarity: 2
   icon: {fileID: 6950184803735107884, guid: 70ed73f485f2f7ed98be356ecd071c07, type: 3}
+  maxStackSize: 1
   description: 
   shootInterval: 0.7
   consumeAmmo: 1

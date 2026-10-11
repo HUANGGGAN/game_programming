@@ -15,12 +15,12 @@ GameObject:
   - component: {fileID: 6132795026671694266}
   - component: {fileID: 1104871773222838367}
   m_Layer: 0
-  m_Name: CustomEnemy
+  m_Name: Slime
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &6680667575978569131
 Transform:
   m_ObjectHideFlags: 0
@@ -83,7 +83,7 @@ SpriteRenderer:
   m_GlobalIlluminationMeshLod: 0
   m_SortingLayerID: 0
   m_SortingLayer: 0
-  m_SortingOrder: 0
+  m_SortingOrder: 1
   m_MaskInteraction: 0
   m_Sprite: {fileID: 585364160268699015, guid: a752813ee7b8c8b94b34010757015b7b, type: 3}
   m_Color: {r: 1, g: 1, b: 1, a: 1}
@@ -131,6 +131,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyChase
   player: {fileID: 0}
   enemyData: {fileID: 11400000, guid: 33c3178df5ed2b12e986c4da81b7fd3a, type: 2}
+  enemy_point: 1
+  enemy_difficulty: 1
+  maxDistance: 50
   attackRange: 1.5
   damage: 10
   knockbackForce: 4
@@ -139,6 +142,7 @@ MonoBehaviour:
   attackInterval: 1.2
   maxHealth: 20
   hitCooldownDuration: 0.2
+  playerContactPushForce: 1.5
 --- !u!58 &6132795026671694266
 CircleCollider2D:
   m_ObjectHideFlags: 0

@@ -9,21 +9,22 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 0}
+  m_Script: {fileID: 11500000, guid: a9defc2eb230c20ce96051b757e77152, type: 3}
   m_Name: Chainsaw
   m_EditorClassIdentifier: Assembly-CSharp::MeleeSO
   itemName: Chainsaw
-  itemID: 0
-  rarity: Rare
+  itemID: 7
+  rarity: 3
   icon: {fileID: -1572312434468285483, guid: ab250a81891e5de35936e0b4c9368155, type: 3}
+  maxStackSize: 1
   description: 
   shootInterval: 0.3
   consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
-  attackRange: 1.7
+  attackRange: 1.8
   attackAngle: 40
-  attackDamage: 3
+  attackDamage: 7
   attackDuration: 0.3
   knockbackForce: 0.2
   critRate: 0.05
@@ -31,7 +32,7 @@ MonoBehaviour:
   drawAttackRange: 1
   effects:
   - effectID: 3
-    duration: 2
+    duration: 3
     probability: 0.5
     level: 1
   attackAttributes: 

@@ -12,15 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1bad93a88726efe32ac8a9dfb5185349, type: 3}
   m_Name: FireSprite
   m_EditorClassIdentifier: Assembly-CSharp::EnemySO
-  sprite: {fileID: 1415970641839686634, guid: 45ff9e9c0ba1b4308932761add1fcc29, type: 3}
+  sprite: {fileID: 21300000, guid: 2f18eef0799a9411fbdb612a292c147c, type: 3}
   spriteFacesRightByDefault: 1
   effects:
   - effectID: 3
     duration: 2
     probability: 0.5
     level: 1
-  resistances: 
+  resistances: 01000000
   weaknesses: 
+  enemy_point: 2
+  enemy_difficulty: 2.5
   attackRange: 1.2
   damage: 5
   knockbackForce: 4

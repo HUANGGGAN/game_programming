@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-// Structure defining what to spawn, how many, and where
+// A point budget shared by randomly selected, difficulty-eligible enemy types.
 public struct SpawnRequest
 {
-    public GameObject enemyPrefab; // Type of enemy
-    public int count;               // How many to spawn
-    public Vector3 centerPosition;  // Center point of spawn area
-    public float radius;            // Radial spread range
+    public Vector3 centerPosition;
+    public float minRadius;
+    public float maxRadius;
+    public float totalPoint;
+    public float currentDifficulty;
 }
 
 public interface IEnemySpawner

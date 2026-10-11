@@ -16,6 +16,23 @@ public class HealthBar : MonoBehaviour, IPlayerBar
     [SerializeField] private bool isManaBar = false;
 
     private float targetFillAmount = 1f;
+    private Color originalFillColor;
+    private bool hasOriginalFillColor;
+
+    public void SetShielded(bool shielded)
+    {
+        if (fillImage == null)
+            return;
+
+        if (!hasOriginalFillColor)
+        {
+            originalFillColor = fillImage.color;
+            hasOriginalFillColor = true;
+        }
+        fillImage.color = shielded
+            ? new Color(0.8f, 0.8f, 0.8f, originalFillColor.a)
+            : originalFillColor;
+    }
 
     private void Update()
     {

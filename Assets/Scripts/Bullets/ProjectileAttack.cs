@@ -39,6 +39,7 @@ public sealed class WandProjectileAttack : IWeaponAttackHandler
             return false;
 
         WandSO wand = (WandSO)weapon;
+        Tutorial.Instance?.ShowTutorial("wand", "Fire wand will consume MP, and apply fire effect to enemies.\nSome enemies are immune to fire.");
         return ProjectileAttackExecutor.TryPerform(
             wand, origin, direction, null, () => tryConsumeMP != null && tryConsumeMP(Mathf.Max(0, wand.MPCost)));
     }

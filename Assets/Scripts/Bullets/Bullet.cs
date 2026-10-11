@@ -20,6 +20,7 @@ public class Bullet2D : MonoBehaviour
     private int damageSourceId;
     private bool hasImpacted;
     private readonly List<RaycastHit2D> castHits = new List<RaycastHit2D>();
+    private readonly HashSet<EnemyChase> hitEnemies = new HashSet<EnemyChase>();
 
     public float Damage => currentDamage;
     public float KnockbackForce => bulletData != null ? bulletData.knockbackForce : 0f;
@@ -78,6 +79,7 @@ public class Bullet2D : MonoBehaviour
         this.effectProbabilityMultiplier = Mathf.Max(0f, effectProbabilityMultiplier);
         damageSourceId = Interlocked.Increment(ref nextDamageSourceId);
         hasImpacted = false;
+        hitEnemies.Clear();
 
         // Re-enable visual, collider, and GameObject state when re-firing
         gameObject.SetActive(true);
@@ -135,31 +137,46 @@ public class Bullet2D : MonoBehaviour
         castHits.Clear();
         rb.Cast(direction, filter, castHits, distance);
 
-        // Irrelevant colliders must not hide a valid impact farther along the sweep.
-        Collider2D impactCollider = null;
-        float impactDistance = float.PositiveInfinity;
+        Vector2 origin = rb.position;
+        // Process the full sweep in travel order; blockers win ties with enemy hits.
+        castHits.Sort((a, b) =>
+        {
+            int comparison = a.distance.CompareTo(b.distance);
+            if (comparison != 0)
+                return comparison;
+            bool aBlocks = a.collider != null && a.collider.CompareTag(obstacleTag);
+            bool bBlocks = b.collider != null && b.collider.CompareTag(obstacleTag);
+            return bBlocks.CompareTo(aBlocks);
+        });
+
         foreach (RaycastHit2D hit in castHits)
         {
             Collider2D other = hit.collider;
             if (other == null || other.attachedRigidbody == rb)
                 continue;
-            if (!other.CompareTag(obstacleTag) && !other.CompareTag("Enemy") &&
-                other.GetComponentInParent<EnemyChase>() == null)
+
+            bool isObstacle = other.CompareTag(obstacleTag);
+            EnemyChase enemy = other.GetComponentInParent<EnemyChase>();
+            if (!isObstacle && !other.CompareTag("Enemy") && enemy == null)
                 continue;
-            if (hit.distance < impactDistance)
+
+            Vector2 impactPosition = origin + direction * hit.distance;
+            if (!isObstacle && bulletData != null && bulletData.isPiercing)
             {
-                impactCollider = other;
-                impactDistance = hit.distance;
+                if (enemy != null && enemy.isActiveAndEnabled && !hitEnemies.Contains(enemy))
+                {
+                    ApplyDirectHit(enemy);
+                    if (bulletData.isExplosive)
+                        Explode(impactPosition);
+                }
+                continue;
             }
-        }
 
-        if (impactCollider == null)
+            rb.position = impactPosition;
+            transform.position = new Vector3(impactPosition.x, impactPosition.y, transform.position.z);
+            HandleImpact(other);
             return;
-
-        Vector2 impactPosition = rb.position + direction * impactDistance;
-        rb.position = impactPosition;
-        transform.position = new Vector3(impactPosition.x, impactPosition.y, transform.position.z);
-        HandleImpact(impactCollider);
+        }
     }
 
     private void HandleImpact(Collider2D other)
@@ -170,20 +187,19 @@ public class Bullet2D : MonoBehaviour
 
         hasImpacted = true;
         if (bulletData != null && bulletData.isExplosive)
-            Explode();
+            Explode(transform.position);
 
         Deactivate();
     }
 
     public void ApplyDirectHit(EnemyChase enemy)
     {
-        if (!hasImpacted && gameObject.activeInHierarchy && enemy != null && enemy.isActiveAndEnabled)
+        if (!hasImpacted && gameObject.activeInHierarchy && enemy != null && enemy.isActiveAndEnabled && hitEnemies.Add(enemy))
             enemy.TakeBulletHit(this);
     }
 
-    private void Explode()
+    private void Explode(Vector2 origin)
     {
-        Vector2 origin = transform.position;
         Vector2 fallbackDirection = TravelDirection;
         float radius = Mathf.Max(0f, bulletData.explosionRadius);
         DrawExplosionRange(origin, radius);
@@ -208,7 +224,8 @@ public class Bullet2D : MonoBehaviour
                 KnockbackForce,
                 explosionSourceId,
                 Time.fixedDeltaTime,
-                AttackAttributes))
+                AttackAttributes,
+                EnemyDamageKind.Projectile))
                 enemy.ApplyEffects(Effects, EffectProbabilityMultiplier);
         }
     }

@@ -24,6 +24,54 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
     private float elapsedDuration;
     private float activeDamage;
     private int activeDamageSourceId;
+    private MeleeSO equippedWeapon;
+    private LineRenderer rangeRenderer;
+    private Material rangeMaterial;
+    private Vector3[] rangePoints;
+
+    public void SetEquippedWeapon(MeleeSO weapon)
+    {
+        if (equippedWeapon != weapon)
+            activeWeapon = null;
+        equippedWeapon = weapon;
+        if (weapon == null)
+            HideRange();
+    }
+
+    public void HideRange()
+    {
+        if (rangeRenderer != null)
+            rangeRenderer.enabled = false;
+    }
+
+    public void DisposeRange()
+    {
+        if (rangeRenderer != null)
+            UnityEngine.Object.Destroy(rangeRenderer.gameObject);
+        if (rangeMaterial != null)
+            UnityEngine.Object.Destroy(rangeMaterial);
+        rangeRenderer = null;
+        rangeMaterial = null;
+    }
+
+    public void UpdateRange(Vector2 origin, Vector2 direction)
+    {
+        if (equippedWeapon == null)
+        {
+            HideRange();
+            return;
+        }
+
+        bool attacking = activeWeapon != null;
+        MeleeSO weapon = attacking ? activeWeapon : equippedWeapon;
+        if (attacking)
+        {
+            origin = activeOrigin;
+            direction = activeDirection;
+        }
+        DrawAttackRange(origin, direction, Mathf.Max(0f, weapon.attackRange),
+            Mathf.Clamp(weapon.attackAngle, 0f, 360f), attacking ? 0.9f : 0.3f);
+    }
 
     public bool CanHandle(WeaponSO weapon)
     {
@@ -48,12 +96,6 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
         elapsedDuration = 0f;
         activeDamage = CriticalAttack.RollDamage(meleeWeapon.attackDamage, meleeWeapon.critRate, meleeWeapon.critMul);
         activeDamageSourceId = Interlocked.Increment(ref nextDamageSourceId);
-
-        if (meleeWeapon.drawAttackRange)
-        {
-            float attackAngle = Mathf.Clamp(meleeWeapon.attackAngle, 0f, 360f);
-            DrawAttackRange(activeOrigin, activeDirection, meleeWeapon.attackRange, attackAngle, activeDuration);
-        }
 
         ApplyAttack();
         if (activeDuration <= 0f)
@@ -102,57 +144,56 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
                 activeWeapon.knockbackForce,
                 activeDamageSourceId,
                 activeDuration + Time.fixedDeltaTime,
-                activeWeapon.attackAttributes))
+                activeWeapon.attackAttributes,
+                EnemyDamageKind.Melee))
             {
                 enemy.ApplyEffects(activeWeapon.effects);
             }
         }
     }
 
-    private static void DrawAttackRange(Vector2 origin, Vector2 direction, float range, float attackAngle, float duration)
+    private void DrawAttackRange(Vector2 origin, Vector2 direction, float range, float attackAngle, float opacity)
     {
+        if (rangeRenderer == null)
+        {
+            Shader shader = Shader.Find("Sprites/Default");
+            if (shader == null)
+                shader = Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default");
+            if (shader == null)
+                return;
+
+            GameObject rangeVisual = new GameObject("Melee Attack Range");
+            rangeRenderer = rangeVisual.AddComponent<LineRenderer>();
+            rangeMaterial = new Material(shader);
+            rangeRenderer.sharedMaterial = rangeMaterial;
+            rangeRenderer.useWorldSpace = true;
+            rangeRenderer.startWidth = 0.035f;
+            rangeRenderer.endWidth = 0.035f;
+            rangeRenderer.sortingOrder = short.MaxValue;
+            rangeRenderer.numCapVertices = 3;
+            rangeRenderer.numCornerVertices = 3;
+        }
+
+        rangeRenderer.enabled = true;
+        Color color = new Color(1f, 0.2f, 0.1f, opacity);
+        rangeRenderer.startColor = color;
+        rangeRenderer.endColor = color;
         float centerAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         float halfAngle = attackAngle * 0.5f;
-        float drawDuration = Mathf.Max(0.15f, duration);
         int segments = Mathf.Max(1, Mathf.CeilToInt(attackAngle / 10f));
-        Shader shader = Shader.Find("Sprites/Default");
-        if (shader == null)
-            shader = Shader.Find("Universal Render Pipeline/2D/Sprite-Unlit-Default");
-        if (shader == null)
-            return;
+        if (rangePoints == null || rangePoints.Length != segments + 3)
+            rangePoints = new Vector3[segments + 3];
 
-        Color color = new Color(1f, 0.75f, 0.1f, 1f);
-        GameObject rangeVisual = new GameObject("Melee Attack Range");
-        LineRenderer lineRenderer = rangeVisual.AddComponent<LineRenderer>();
-        Material material = new Material(shader);
-        lineRenderer.sharedMaterial = material;
-        lineRenderer.useWorldSpace = true;
-        lineRenderer.startWidth = 0.035f;
-        lineRenderer.endWidth = 0.035f;
-        lineRenderer.startColor = color;
-        lineRenderer.endColor = color;
-        lineRenderer.sortingOrder = short.MaxValue;
-        lineRenderer.numCapVertices = 3;
-        lineRenderer.numCornerVertices = 3;
-
-        Vector3[] points = new Vector3[segments + 3];
-        const float renderZ = 0f;
-        points[0] = new Vector3(origin.x, origin.y, renderZ);
-        Vector2 previousPoint = GetArcPoint(origin, centerAngle - halfAngle, range);
-        points[1] = new Vector3(previousPoint.x, previousPoint.y, renderZ);
-
-        for (int i = 1; i <= segments; i++)
+        rangePoints[0] = new Vector3(origin.x, origin.y, 0f);
+        for (int i = 0; i <= segments; i++)
         {
             float angle = centerAngle - halfAngle + attackAngle * i / segments;
             Vector2 arcPoint = GetArcPoint(origin, angle, range);
-            points[i + 1] = new Vector3(arcPoint.x, arcPoint.y, renderZ);
+            rangePoints[i + 1] = new Vector3(arcPoint.x, arcPoint.y, 0f);
         }
-
-        points[points.Length - 1] = points[0];
-        lineRenderer.positionCount = points.Length;
-        lineRenderer.SetPositions(points);
-        UnityEngine.Object.Destroy(rangeVisual, drawDuration);
-        UnityEngine.Object.Destroy(material, drawDuration);
+        rangePoints[rangePoints.Length - 1] = rangePoints[0];
+        rangeRenderer.positionCount = rangePoints.Length;
+        rangeRenderer.SetPositions(rangePoints);
     }
 
     private static Vector2 GetArcPoint(Vector2 origin, float angle, float range)

@@ -16,7 +16,7 @@ MonoBehaviour:
   bulletSprite: {fileID: 1015453444238932814, guid: ac00c214be6648c8390bd0f9cbdf0958, type: 3}
   tint: {r: 1, g: 1, b: 1, a: 1}
   colliderSize: {x: 0.2, y: 0.2}
-  damage: 3
+  damage: 6
   speed: 15
   lifetime: 3
   isPiercing: 0

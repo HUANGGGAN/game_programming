@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
+public enum EnemyDamageKind { Other, Projectile, Melee }
+
 [RequireComponent(typeof(NavMeshAgent))]
 public class EnemyChase : MonoBehaviour
 {
@@ -17,8 +19,20 @@ public class EnemyChase : MonoBehaviour
     [SerializeField, Min(0f)] private float enemy_difficulty = 1f;
     [SerializeField, Min(0f)] private float maxDistance = 50f;
 
+    protected virtual bool DespawnWhenFarAway => true;
+    protected NavMeshAgent Agent => agent;
+    protected Transform PlayerTarget => player;
+    protected SpriteRenderer EnemySprite => spriteRenderer;
+    protected virtual float MovementSpeed => speed;
+    protected virtual float AttackDamage => damage;
+    protected virtual float AttackKnockback => knockbackForce;
+    protected virtual bool CanReceiveKnockback => true;
+    protected virtual bool CanFlashOnHit => true;
+
     public float EnemyPoint => enemyData != null ? enemyData.enemy_point : enemy_point;
     public float EnemyDifficulty => enemyData != null ? enemyData.enemy_difficulty : enemy_difficulty;
+    public float CurrentHealth => currentHealth;
+    public float MaxHealth => maxHealth;
 
     [Header("Combat Stats")]
     [SerializeField] private float attackRange = 1.5f;
@@ -40,15 +54,24 @@ public class EnemyChase : MonoBehaviour
     private float knockbackRemaining;
     private float lastAttackTime;
     private Coroutine hitFlashRoutine;
+    private Coroutine deathRoutine;
+    private bool isDying;
+    private Collider2D[] deathColliders;
+    private bool[] deathColliderStates;
+    private bool agentEnabledBeforeDeath;
+    private Rigidbody2D deathBody;
+    private bool bodySimulatedBeforeDeath;
+    private Vector2 deathVelocity;
     private readonly HashSet<int> recentDamageSourceIds = new HashSet<int>();
     private readonly Dictionary<int, float> recentDamageSourceTimes = new Dictionary<int, float>();
     private readonly List<ActiveEffect> activeEffects = new List<ActiveEffect>();
 
     private const float KnockbackDuration = 0.12f;
     private const float HitFlashDuration = 0.08f;
+    private const float DeathBodyDuration = 0.5f;
     private static readonly Color HitColor = new Color(1f, 0.35f, 0.35f, 1f);
 
-    private void Awake()
+    protected virtual void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
@@ -62,8 +85,26 @@ public class EnemyChase : MonoBehaviour
         agent.stoppingDistance = attackRange;
     }
 
-    private void OnEnable()
+    protected virtual void OnEnable()
     {
+        if (isDying)
+        {
+            for (int i = 0; i < deathColliders.Length; i++)
+            {
+                if (deathColliders[i] != null)
+                    deathColliders[i].enabled = deathColliderStates[i];
+            }
+            agent.enabled = agentEnabledBeforeDeath;
+            if (deathBody != null)
+            {
+                deathBody.linearVelocity = Vector2.zero;
+                deathBody.angularVelocity = 0f;
+                deathBody.simulated = bodySimulatedBeforeDeath;
+            }
+        }
+        isDying = false;
+        deathVelocity = Vector2.zero;
+
         // Reset health every time the enemy is spawned/reactivated
         currentHealth = maxHealth;
         recentDamageSourceIds.Clear();
@@ -102,13 +143,16 @@ public class EnemyChase : MonoBehaviour
         enemy_difficulty = enemyData.enemy_difficulty;
     }
 
-    private void Update()
+    protected virtual void Update()
     {
+        if (isDying)
+            return;
+
         EffectRuntime.Tick(activeEffects, Time.deltaTime, amount => TakeDamage(amount));
         if (currentHealth <= 0f || !isActiveAndEnabled)
             return;
 
-        if (player != null && Vector2.Distance(transform.position, player.position) > Mathf.Max(0f, maxDistance))
+        if (DespawnWhenFarAway && player != null && Vector2.Distance(transform.position, player.position) > Mathf.Max(0f, maxDistance))
         {
             Die();
             return;
@@ -117,24 +161,21 @@ public class EnemyChase : MonoBehaviour
         if (!agent.isOnNavMesh)
             return;
 
-        agent.speed = EffectRuntime.HasEffect(activeEffects, EffectRuntime.Faint) ? 0f : speed;
-        
+        agent.speed = EffectRuntime.HasEffect(activeEffects, EffectRuntime.Faint) ? 0f : MovementSpeed;
+        UpdateMovement();
+        CleanupExpiredDamageSources();
+        UpdateSpriteFacing();
+    }
 
+    protected virtual void UpdateMovement()
+    {
         if (player != null)
         {
             float distanceToPlayer = Vector2.Distance(transform.position, player.position);
-
             if (distanceToPlayer <= attackRange)
-            {
-                if (Time.time >= lastAttackTime + attackInterval)
-                {
-                    Attack();
-                }
-            }
+                TryAttackPlayer();
             else
-            {
                 agent.SetDestination(player.position);
-            }
         }
 
         if (knockbackRemaining > 0f)
@@ -142,17 +183,42 @@ public class EnemyChase : MonoBehaviour
             agent.velocity = knockbackVelocity;
             knockbackRemaining -= Time.deltaTime;
         }
-
-        CleanupExpiredDamageSources();
-        UpdateSpriteFacing();
     }
 
-    private void UpdateSpriteFacing()
+    protected void TryAttackPlayer()
     {
-        if (spriteRenderer == null || Mathf.Abs(agent.velocity.x) <= 0.01f)
+        if (player != null && Vector2.Distance(transform.position, player.position) <= attackRange &&
+            Time.time >= lastAttackTime + attackInterval)
+            Attack();
+    }
+
+    protected void ClearKnockback()
+    {
+        knockbackVelocity = Vector2.zero;
+        knockbackRemaining = 0f;
+    }
+
+    protected void StopHitFlash()
+    {
+        if (hitFlashRoutine == null)
+            return;
+        StopCoroutine(hitFlashRoutine);
+        hitFlashRoutine = null;
+        if (spriteRenderer != null)
+            spriteRenderer.color = originalSpriteColor;
+    }
+
+    protected virtual void UpdateSpriteFacing()
+    {
+        FaceDirection(agent.velocity);
+    }
+
+    protected void FaceDirection(Vector2 direction)
+    {
+        if (spriteRenderer == null || Mathf.Abs(direction.x) <= 0.01f)
             return;
 
-        bool movingLeft = agent.velocity.x < 0f;
+        bool movingLeft = direction.x < 0f;
         spriteRenderer.flipX = movingLeft == spriteFacesRightByDefault;
     }
 
@@ -168,7 +234,7 @@ public class EnemyChase : MonoBehaviour
 
     private void PushAwayFromPlayer(Collision2D collision)
     {
-        if (currentHealth <= 0f || playerContactPushForce <= 0f || knockbackRemaining > 0f)
+        if (!CanReceiveKnockback || currentHealth <= 0f || playerContactPushForce <= 0f || knockbackRemaining > 0f)
             return;
 
         Player contactedPlayer = collision.collider.GetComponentInParent<Player>();
@@ -192,10 +258,10 @@ public class EnemyChase : MonoBehaviour
         Player playerComponent = player.GetComponent<Player>();
         if (playerComponent != null)
         {
-            if (playerComponent.TakeDamage(damage) && enemyData != null)
+            if (playerComponent.TakeDamage(AttackDamage) && enemyData != null)
                 playerComponent.ApplyEffects(enemyData.effects);
             Vector2 knockbackDirection = (Vector2)player.position - (Vector2)transform.position;
-            playerComponent.ApplyKnockback(knockbackDirection, knockbackForce);
+            playerComponent.ApplyKnockback(knockbackDirection, AttackKnockback);
         }
 
         lastAttackTime = Time.time;
@@ -209,7 +275,8 @@ public class EnemyChase : MonoBehaviour
             bullet.KnockbackForce,
             bullet.DamageSourceId,
             hitCooldownDuration,
-            bullet.AttackAttributes))
+            bullet.AttackAttributes,
+            EnemyDamageKind.Projectile))
             ApplyEffects(bullet.Effects, bullet.EffectProbabilityMultiplier);
     }
 
@@ -228,7 +295,7 @@ public class EnemyChase : MonoBehaviour
         return TakeDamage(damageAmount, knockbackDirection, knockbackForce, damageSourceId, hitCooldownDuration, null);
     }
 
-    public bool TakeDamage(float damageAmount, Vector2 knockbackDirection, float knockbackForce, int damageSourceId, float damageSourceDuration, int[] attackAttributes = null)
+    public virtual bool TakeDamage(float damageAmount, Vector2 knockbackDirection, float knockbackForce, int damageSourceId, float damageSourceDuration, int[] attackAttributes = null, EnemyDamageKind damageKind = EnemyDamageKind.Other)
     {
         if (damageAmount <= 0f || currentHealth <= 0f)
             return false;
@@ -240,6 +307,13 @@ public class EnemyChase : MonoBehaviour
         if (damageAmount <= 0f)
             return false;
 
+        // Record the lethal hit's knockback before Die captures the corpse's momentum.
+        if (CanReceiveKnockback && knockbackForce > 0f && knockbackDirection.sqrMagnitude > 0f)
+        {
+            knockbackVelocity = knockbackDirection.normalized * (knockbackForce * (1f - Mathf.Clamp01(knockbackResistance)));
+            knockbackRemaining = KnockbackDuration;
+        }
+
         currentHealth -= damageAmount;
 
         if (currentHealth <= 0f)
@@ -248,7 +322,7 @@ public class EnemyChase : MonoBehaviour
             return true;
         }
 
-        if (spriteRenderer != null)
+        if (CanFlashOnHit && spriteRenderer != null)
         {
             if (hitFlashRoutine == null)
             {
@@ -260,17 +334,13 @@ public class EnemyChase : MonoBehaviour
             hitFlashRoutine = StartCoroutine(FlashRedRoutine());
         }
 
-        if (knockbackForce > 0f && knockbackDirection.sqrMagnitude > 0f)
-        {
-            knockbackVelocity = knockbackDirection.normalized * (knockbackForce * (1f - Mathf.Clamp01(knockbackResistance)));
-            knockbackRemaining = KnockbackDuration;
-        }
-
         return true;
     }
 
     public void ApplyEffects(EffectDefinition[] effects, float probabilityMultiplier = 1f)
     {
+        if (isDying)
+            return;
         EffectRuntime.Apply(activeEffects, effects, probabilityMultiplier, enemyData != null ? enemyData.resistances : null);
     }
 
@@ -306,7 +376,7 @@ public class EnemyChase : MonoBehaviour
         return false;
     }
 
-    private bool CanTakeDamageFromSource(int sourceId, float sourceDuration)
+    protected bool CanTakeDamageFromSource(int sourceId, float sourceDuration)
     {
         if (sourceId == 0)
             return true;
@@ -353,23 +423,74 @@ public class EnemyChase : MonoBehaviour
         hitFlashRoutine = null;
     }
 
-    private void Die()
+    protected virtual void Die()
     {
-        if (hitFlashRoutine != null)
+        if (isDying)
+            return;
+        isDying = true;
+        currentHealth = 0f;
+        StopHitFlash();
+        if (spriteRenderer != null)
         {
-            StopCoroutine(hitFlashRoutine);
-            hitFlashRoutine = null;
-            if (spriteRenderer != null)
-                spriteRenderer.color = originalSpriteColor;
+            originalSpriteColor = spriteRenderer.color;
+            spriteRenderer.color = HitColor;
         }
+        deathBody = GetComponent<Rigidbody2D>();
+        deathVelocity = knockbackRemaining > 0f ? knockbackVelocity
+            : agent.enabled && agent.isOnNavMesh ? (Vector2)agent.velocity
+            : deathBody != null ? deathBody.linearVelocity : Vector2.zero;
+        ClearKnockback();
 
-        // Stop movement before deactivating
-        if (agent.isOnNavMesh)
+        // Stop AI and collisions; the death coroutine preserves the captured movement.
+        agentEnabledBeforeDeath = agent.enabled;
+        if (agent.enabled && agent.isOnNavMesh)
         {
             agent.ResetPath();
+            agent.velocity = Vector3.zero;
         }
+        agent.enabled = false;
 
-        // Deactivate instead of Destroying to support object pooling
+        deathColliders = GetComponentsInChildren<Collider2D>(true);
+        deathColliderStates = new bool[deathColliders.Length];
+        for (int i = 0; i < deathColliders.Length; i++)
+        {
+            deathColliderStates[i] = deathColliders[i].enabled;
+            deathColliders[i].enabled = false;
+        }
+        if (deathBody != null)
+        {
+            bodySimulatedBeforeDeath = deathBody.simulated;
+            deathBody.simulated = false;
+        }
+        deathRoutine = StartCoroutine(DeactivateAfterDeath());
+    }
+
+    private IEnumerator DeactivateAfterDeath()
+    {
+        float elapsed = 0f;
+        while (elapsed < DeathBodyDuration)
+        {
+            yield return null;
+            float deltaTime = Mathf.Min(Time.deltaTime, DeathBodyDuration - elapsed);
+            transform.position += (Vector3)(deathVelocity * deltaTime);
+            elapsed += deltaTime;
+        }
+        deathRoutine = null;
+        if (spriteRenderer != null)
+            spriteRenderer.color = originalSpriteColor;
         gameObject.SetActive(false);
+    }
+
+    protected virtual void OnDisable()
+    {
+        if (deathRoutine != null)
+        {
+            StopCoroutine(deathRoutine);
+            deathRoutine = null;
+        }
+        StopHitFlash();
+        // Also restore the tint if despawning interrupts the dying period.
+        if (isDying && spriteRenderer != null)
+            spriteRenderer.color = originalSpriteColor;
     }
 }

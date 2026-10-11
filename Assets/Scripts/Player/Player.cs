@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections;
 using UnityEngine;
 using UnityEngine.InputSystem; // Required for New Input System
 
@@ -20,6 +21,7 @@ public class Player : MonoBehaviour
     private float knockbackRemaining;
     private readonly List<ActiveEffect> activeEffects = new List<ActiveEffect>();
     private Camera mainCamera;
+    private Coroutine startupTutorialRoutine;
 
     private const float KnockbackDuration = 0.12f;
 
@@ -55,6 +57,24 @@ public class Player : MonoBehaviour
         }
     }
 
+    private void OnEnable()
+    {
+        startupTutorialRoutine = StartCoroutine(RequestStartupTutorials());
+    }
+
+    private IEnumerator RequestStartupTutorials()
+    {
+        // Allow scene initialization to finish, then also handle a controller enabled later.
+        yield return null;
+        while (Tutorial.Instance == null || !Tutorial.Instance.isActiveAndEnabled)
+            yield return null;
+
+        Tutorial tutorial = Tutorial.Instance;
+        tutorial.ShowTutorial("start", "Welcome to the tutorial level, don't worry about dying. Pick up various weapons and try to defeat the boss. The game will get harder over time until the boss is defeated, so keep an eye on the time.");
+        tutorial.ShowTutorial("movement", "WASD to move, left click to shoot\nF to interact with objects\n1-3 or mouse wheel to switch weapons\nE to open inventory.");
+        startupTutorialRoutine = null;
+    }
+
     private void OnDestroy()
     {
         if (playerData != null)
@@ -74,6 +94,11 @@ public class Player : MonoBehaviour
 
     private void OnDisable()
     {
+        if (startupTutorialRoutine != null)
+        {
+            StopCoroutine(startupTutorialRoutine);
+            startupTutorialRoutine = null;
+        }
         Interactable.ClearSelection();
     }
 

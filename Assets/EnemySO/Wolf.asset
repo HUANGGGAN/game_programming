@@ -21,12 +21,14 @@ MonoBehaviour:
     level: 1
   resistances: 
   weaknesses: 
-  attackRange: 1.2
+  enemy_point: 1
+  enemy_difficulty: 1
+  attackRange: 2
   damage: 5
-  knockbackForce: 4
-  knockbackResistance: 0
+  knockbackForce: 1
+  knockbackResistance: 5
   speed: 3
   attackInterval: 1
   attackDuration: 0.4
-  HP: 25
+  HP: 600
   attackAttributes: 

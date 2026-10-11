@@ -17,6 +17,8 @@ MonoBehaviour:
   effects: []
   resistances: 
   weaknesses: 01000000
+  enemy_point: 1
+  enemy_difficulty: 1
   attackRange: 1.2
   damage: 2
   knockbackForce: 4
@@ -24,5 +26,5 @@ MonoBehaviour:
   speed: 2
   attackInterval: 1.2
   attackDuration: 0.4
-  HP: 10
+  HP: 15
   attackAttributes: 

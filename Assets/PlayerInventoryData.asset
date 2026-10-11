@@ -13,12 +13,12 @@ MonoBehaviour:
   m_Name: PlayerInventoryData
   m_EditorClassIdentifier: Assembly-CSharp::InventorySO
   slots:
-  - item: {fileID: 0}
-    count: 0
-    ammoCount: 0
-  - item: {fileID: 0}
-    count: 0
-    ammoCount: 0
+  - item: {fileID: 11400000, guid: 4a0e4be5bd6bc9a669a71678f3325615, type: 2}
+    count: 1
+    ammoCount: 2
+  - item: {fileID: 11400000, guid: 60f03e8948cbdd0db8ae789ff6193da3, type: 2}
+    count: 1
+    ammoCount: 4
   - item: {fileID: 0}
     count: 0
     ammoCount: 0
@@ -70,12 +70,12 @@ MonoBehaviour:
   weaponSlots:
   - item: {fileID: 11400000, guid: a0393866853dd5754877fd435906d194, type: 2}
     count: 2
-    ammoCount: 5
-  - item: {fileID: 11400000, guid: 575ca56b8b24008ff92836333acdf11e, type: 2}
+    ammoCount: 9
+  - item: {fileID: 11400000, guid: a98a3f082313896279b8e59944d142ff, type: 2}
     count: 1
     ammoCount: 0
-  - item: {fileID: 0}
-    count: 0
+  - item: {fileID: 11400000, guid: 575ca56b8b24008ff92836333acdf11e, type: 2}
+    count: 1
     ammoCount: 0
   armorSlots:
   - item: {fileID: 0}

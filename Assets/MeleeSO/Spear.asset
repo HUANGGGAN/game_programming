@@ -18,15 +18,15 @@ MonoBehaviour:
   icon: {fileID: 3749446161351167426, guid: ef94ffc5886277c309147616d07dc375, type: 3}
   maxStackSize: 1
   description: 
-  shootInterval: 0.7
+  shootInterval: 0.5
   consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
-  attackRange: 2.5
+  attackRange: 4
   attackAngle: 20
   attackDamage: 6
   attackDuration: 0.2
-  knockbackForce: 1.2
+  knockbackForce: 2
   critRate: 0.05
   critMul: 3
   drawAttackRange: 0

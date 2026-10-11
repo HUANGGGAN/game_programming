@@ -21,9 +21,9 @@ public class PlayerShooter2D : MonoBehaviour
     private bool shootingEnabled = true;
     private float nextShotTime;
     private WeaponSO equippedWeapon;
+    private readonly MeleeAttack meleeAttack = new MeleeAttack();
     private readonly List<IWeaponAttackHandler> attackHandlers = new List<IWeaponAttackHandler>
     {
-        new MeleeAttack(),
         new ChargedAttack(),
         new ProjectileAttack()
     };
@@ -35,6 +35,7 @@ public class PlayerShooter2D : MonoBehaviour
     private void Awake()
     {
         mainCamera = Camera.main;
+        attackHandlers.Insert(0, meleeAttack);
         player = GetComponent<Player>();
         if (player == null)
             player = GetComponentInParent<Player>();
@@ -95,6 +96,37 @@ public class PlayerShooter2D : MonoBehaviour
         }
     }
 
+    private void LateUpdate()
+    {
+        if (equippedWeapon is not MeleeSO)
+            return;
+
+        Transform weaponTransform = weaponHolder != null ? weaponHolder.transform : transform;
+        Vector2 direction = weaponTransform.right;
+        if (Mouse.current != null && mainCamera != null)
+        {
+            Vector2 cursor = Mouse.current.position.ReadValue();
+            Vector3 worldPosition = mainCamera.ScreenToWorldPoint(new Vector3(
+                cursor.x, cursor.y, Mathf.Abs(mainCamera.transform.position.z)));
+            Vector2 aim = (Vector2)worldPosition - (Vector2)weaponTransform.position;
+            if (aim.sqrMagnitude > Mathf.Epsilon)
+                direction = aim.normalized;
+        }
+
+        Vector2 origin = weaponTransform.TransformPoint(equippedWeapon.firePointOffset);
+        meleeAttack.UpdateRange(origin, direction);
+    }
+
+    private void OnDisable()
+    {
+        meleeAttack.HideRange();
+    }
+
+    private void OnDestroy()
+    {
+        meleeAttack.DisposeRange();
+    }
+
     public void RefreshWeaponAmmoTexts()
     {
         if (weaponAmmoTexts == null)
@@ -117,6 +149,11 @@ public class PlayerShooter2D : MonoBehaviour
             if (item is WandSO || (item is WeaponSO weapon && !weapon.consumeAmmo))
             {
                 ammoText.text = string.Empty;
+            }
+            else if (item is GunSO gun && !gun.hasLimitedAmmo)
+            {
+                int ammo = inventoryUIController.GetWeaponAmmoCountAtSlot(i);
+                ammoText.text = $"{ammo}/{gun.capacity}";
             }
             else if (item is WeaponSO consumingWeapon && !consumingWeapon.hasLimitedAmmo)
             {
@@ -154,6 +191,7 @@ public class PlayerShooter2D : MonoBehaviour
 
         this.inventoryUIController = inventoryUIController;
         this.equippedWeapon = equippedWeapon;
+        meleeAttack.SetEquippedWeapon(equippedWeapon as MeleeSO);
         chargingBar?.SetVisible(equippedWeapon is IChargedProjectileWeapon);
         weaponHolder?.SetEquippedWeapon(equippedWeapon);
         SetShootInterval(equippedWeapon.shootInterval);
@@ -166,6 +204,7 @@ public class PlayerShooter2D : MonoBehaviour
     {
         CancelReload();
         equippedWeapon = null;
+        meleeAttack.SetEquippedWeapon(null);
         chargingBar?.SetVisible(false);
         weaponHolder?.SetEquippedWeapon(null);
         RefreshWeaponAmmoTexts();
@@ -279,6 +318,7 @@ public class PlayerShooter2D : MonoBehaviour
         if (shouldConsumeAmmo && !inventoryUIController.HasEquippedWeaponAmmo())
         {
             StartReload();
+            Tutorial.Instance?.ShowTutorial("reload", "You are out of ammo! Press R to reload your weapon. Don't worry, ammo is unlimited");
             return false;
         }
 

@@ -17,7 +17,7 @@ public class WaveManager : MonoBehaviour
     private float elapsedTime;
 
     public float CurrentDifficulty => Mathf.Lerp(Mathf.Clamp(baseDifficulty, 1f, 10f), 10f,
-        Mathf.Clamp01(elapsedTime / 300f));
+        Mathf.Clamp01(elapsedTime / 200f));
 
     private void Start()
     {

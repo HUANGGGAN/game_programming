@@ -142,6 +142,18 @@ public class EnemyPoolSpawner : MonoBehaviour, IEnemySpawner
         return false;
     }
 
+    public void DespawnAll()
+    {
+        foreach (List<GameObject> pool in pools.Values)
+        {
+            foreach (GameObject enemy in pool)
+            {
+                if (enemy != null && enemy.activeInHierarchy)
+                    Despawn(enemy);
+            }
+        }
+    }
+
     public void Despawn(GameObject enemy)
     {
         NavMeshAgent agent = enemy.GetComponent<NavMeshAgent>();

@@ -18,12 +18,12 @@ MonoBehaviour:
   icon: {fileID: 7677211468609144201, guid: 5a8beaf99369d54979413d37c7fd9990, type: 3}
   maxStackSize: 1
   description: 
-  shootInterval: 0.45
+  shootInterval: 0.25
   consumeAmmo: 1
   hasLimitedAmmo: 0
   firePointOffset: {x: 1, y: 0.3}
-  capacity: 10
-  reloadTime: 1
+  capacity: 20
+  reloadTime: 0.5
   spread: 5
   burstCount: 1
   bulletData: {fileID: 11400000, guid: d2831981d54ce33ecbd4dbb057d7ecae, type: 2}

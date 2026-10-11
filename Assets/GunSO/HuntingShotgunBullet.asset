@@ -19,9 +19,12 @@ MonoBehaviour:
   damage: 4
   speed: 15
   lifetime: 3
-  isPiercing: 0
+  isPiercing: 1
   isExplosive: 0
   explosionRadius: 0
   knockbackForce: 1.4
+  explosiveDamage: 20
+  critRate: 0.05
+  critMul: 3
   effects: []
-  attackAttribute: 0
+  attackAttributes: 

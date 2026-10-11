@@ -22,7 +22,7 @@ MonoBehaviour:
   resistances: 01000000
   weaknesses: 
   enemy_point: 2
-  enemy_difficulty: 2.5
+  enemy_difficulty: 4
   attackRange: 1.2
   damage: 5
   knockbackForce: 4

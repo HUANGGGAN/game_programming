@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::PlayerData
   currentScore: 0
   money: 0
-  currentHealth: 90
+  currentHealth: 100
   maxHealth: 100
   currentMP: 100
   maxMP: 100

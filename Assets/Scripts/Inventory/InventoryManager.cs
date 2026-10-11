@@ -12,6 +12,7 @@ public class InventoryManager : MonoBehaviour
     private InputAction toggleInventoryAction;
     private InputAction[] equipWeaponActions;
     private InputAction switchWeaponAction;
+    public bool IsInventoryOpen => inventoryMenuPanel != null && inventoryMenuPanel.activeSelf;
 
     private void Awake()
     {
@@ -98,6 +99,7 @@ public class InventoryManager : MonoBehaviour
     private void OnToggleInventoryPerformed(InputAction.CallbackContext context)
     {
         ToggleInventory();
+        Tutorial.Instance?.ShowTutorial("inventory", "In the inventory, you can view your weapons and other items.\nThe slots at the left are for your weapons. You can move them around or discard them by dragging and dropping.\n");
     }
 
     private void SelectWeaponSlot(int slotIndex)
@@ -161,11 +163,14 @@ public class InventoryManager : MonoBehaviour
             inventoryUIController.SetWeaponSlotPanelVisible(true);
         }
 
-        Time.timeScale = 1f; // Resumes gameplay physics
+        Time.timeScale = Tutorial.Instance != null && Tutorial.Instance.IsShowing ? 0f : 1f;
     }
 
     public void ToggleInventory()
     {
+        if (Tutorial.Instance != null && Tutorial.Instance.IsShowing)
+            return;
+
         if (inventoryMenuPanel.activeSelf)
         {
             CloseInventory();

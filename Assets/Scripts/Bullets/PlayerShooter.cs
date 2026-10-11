@@ -44,7 +44,7 @@ public class PlayerShooter2D : MonoBehaviour
         if (weaponHolder == null)
             weaponHolder = GetComponentInParent<WeaponHolder>();
         if (inventoryUIController == null)
-            inventoryUIController = FindObjectOfType<InventoryUIController>(true);
+            inventoryUIController = FindFirstObjectByType<InventoryUIController>();
         if (chargingBar == null)
             chargingBar = GetComponentInChildren<ChargingBar>(true);
         chargingBar?.SetVisible(false);

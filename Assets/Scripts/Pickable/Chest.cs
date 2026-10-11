@@ -1,4 +1,6 @@
 using UnityEngine;
+using UnityEngine.UI;
+//using AnnulusGames.UnityProgressBar;
 
 public class Chest : Interactable
 {

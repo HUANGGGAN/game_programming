@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
+using TMPro;
 
 public class InventorySlot : MonoBehaviour,
     IBeginDragHandler,
@@ -12,6 +13,7 @@ public class InventorySlot : MonoBehaviour,
     public InventorySlotType slotType;
 
     [SerializeField] private Image itemIconImage;
+    [SerializeField] private TMP_Text countText;
 
     private CanvasGroup iconCanvasGroup;
     private InventoryUIController uiController;
@@ -27,6 +29,7 @@ public class InventorySlot : MonoBehaviour,
     private void Awake()
     {
         uiController = GetComponentInParent<InventoryUIController>();
+        ResolveCountText();
 
         iconCanvasGroup = itemIconImage.GetComponent<CanvasGroup>();
 
@@ -34,10 +37,17 @@ public class InventorySlot : MonoBehaviour,
             iconCanvasGroup = itemIconImage.gameObject.AddComponent<CanvasGroup>();
     }
 
-    public void SetupSlot(ItemSO item, int index)
+    public void SetupSlot(ItemSO item, int index, int count = 1)
     {
         slotIndex = index;
         currentItem = item;
+        ResolveCountText();
+        if (countText != null)
+        {
+            int maxStack = item != null ? Mathf.Max(1, item.maxStackSize) : 1;
+            countText.text = item != null && maxStack > 1 && CanAccept(item) ? count.ToString() : string.Empty;
+            countText.color = item != null && count == maxStack ? Color.green : Color.black;
+        }
 
         if (item != null && item.icon != null && CanAccept(item))
         {
@@ -62,7 +72,17 @@ public class InventorySlot : MonoBehaviour,
             itemIconImage.color = Color.clear;
             isEmpty = true;
             currentItem = null;
+            if (countText != null)
+                countText.text = string.Empty;
         }
+    }
+
+    private void ResolveCountText()
+    {
+        if (countText == null)
+            countText = GetComponentInChildren<TMP_Text>(true);
+        if (countText != null)
+            countText.raycastTarget = false;
     }
 
     public bool CanAccept(ItemSO item)

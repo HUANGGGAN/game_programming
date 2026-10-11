@@ -85,6 +85,30 @@ public class InventorySO : ScriptableObject
 
         InventorySlotData slotA = slotsA[indexA];
         InventorySlotData slotB = slotsB[indexB];
+        if (slotA == slotB)
+            return false;
+
+        if (slotA.item != null && slotA.item == slotB.item)
+        {
+            int maxStack = Mathf.Max(1, slotA.item.maxStackSize);
+            int room = Mathf.Max(0, maxStack - slotB.count);
+            if (room > 0)
+            {
+                int transferred = Mathf.Min(Mathf.Max(0, slotA.count), room);
+                if (transferred == 0)
+                    return false;
+                slotB.count += transferred;
+                slotA.count -= transferred;
+                if (slotA.count == 0)
+                {
+                    slotA.item = null;
+                    slotA.ammoCount = 0;
+                }
+                return true;
+            }
+            if (slotA.count < maxStack)
+                return false;
+        }
         if (!CanPlaceItem(typeB, slotA.item) || !CanPlaceItem(typeA, slotB.item))
             return false;
 
@@ -140,7 +164,7 @@ public class InventorySO : ScriptableObject
         {
             foreach (InventorySlotData slot in GetSlotsForType(type))
             {
-                if (slot.item == item)
+                if (slot.item == item && slot.count < Mathf.Max(1, item.maxStackSize))
                     return slot;
             }
         }
@@ -172,23 +196,32 @@ public class InventorySO : ScriptableObject
 
     public bool TryGiveItem(ItemSO item, InventorySlotType preferredType, int count = 1, int ammoCount = 0)
     {
-        InventorySlotData slot = FindSlotForItem(item, preferredType, count);
-        if (slot == null)
+        return TryGiveItem(item, preferredType, out _, count, ammoCount);
+    }
+
+    public bool TryGiveItem(ItemSO item, InventorySlotType preferredType, out int givenCount, int count = 1, int ammoCount = 0)
+    {
+        givenCount = 0;
+        if (item == null || count <= 0)
             return false;
 
-        if (slot.item == item)
+        int maxStack = Mathf.Max(1, item.maxStackSize);
+        while (givenCount < count)
         {
-            slot.count += count;
-            if (ammoCount > 0)
-                slot.ammoCount = ammoCount;
-        }
-        else
-        {
+            InventorySlotData slot = FindSlotForItem(item, preferredType, count - givenCount);
+            if (slot == null)
+                break;
+
+            bool isExistingStack = slot.item == item;
+            int existingCount = isExistingStack ? Mathf.Max(0, slot.count) : 0;
+            int added = Mathf.Min(count - givenCount, maxStack - existingCount);
             slot.item = item;
-            slot.count = count;
-            slot.ammoCount = ammoCount;
+            slot.count = existingCount + added;
+            if (!isExistingStack || ammoCount > 0)
+                slot.ammoCount = ammoCount;
+            givenCount += added;
         }
-        return true;
+        return givenCount > 0;
     }
 
     public bool TryDropFromSlot(InventorySlotType slotType, int index)

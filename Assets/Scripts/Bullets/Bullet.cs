@@ -19,6 +19,7 @@ public class Bullet2D : MonoBehaviour
     private float effectProbabilityMultiplier = 1f;
     private int damageSourceId;
     private bool hasImpacted;
+    private readonly List<RaycastHit2D> castHits = new List<RaycastHit2D>();
 
     public float Damage => currentDamage;
     public float KnockbackForce => bulletData != null ? bulletData.knockbackForce : 0f;
@@ -87,6 +88,9 @@ public class Bullet2D : MonoBehaviour
         // Rotate bullet sprite to align with direction
         float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0f, 0f, angle);
+        // Synchronize pooled spawn transforms before the first physics sweep.
+        rb.position = transform.position;
+        rb.rotation = angle;
 
         // Apply velocity
         rb.linearVelocity = direction.normalized * Mathf.Max(0f, speed);
@@ -114,23 +118,61 @@ public class Bullet2D : MonoBehaviour
         }
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
+    private void FixedUpdate()
     {
         if (hasImpacted || !gameObject.activeInHierarchy)
             return;
 
-        if (other.CompareTag(obstacleTag) || other.CompareTag("Enemy"))
+        Vector2 velocity = rb.linearVelocity;
+        float distance = velocity.magnitude * Time.fixedDeltaTime;
+        if (distance <= 0f)
+            return;
+
+        Vector2 direction = velocity.normalized;
+        ContactFilter2D filter = new ContactFilter2D();
+        filter.SetLayerMask(Physics2D.GetLayerCollisionMask(gameObject.layer));
+        filter.useTriggers = true;
+        castHits.Clear();
+        rb.Cast(direction, filter, castHits, distance);
+
+        // Irrelevant colliders must not hide a valid impact farther along the sweep.
+        Collider2D impactCollider = null;
+        float impactDistance = float.PositiveInfinity;
+        foreach (RaycastHit2D hit in castHits)
         {
-            EnemyChase enemy = other.GetComponentInParent<EnemyChase>();
-            if (enemy != null)
-                ApplyDirectHit(enemy);
-
-            hasImpacted = true;
-            if (bulletData != null && bulletData.isExplosive)
-                Explode();
-
-            Deactivate();
+            Collider2D other = hit.collider;
+            if (other == null || other.attachedRigidbody == rb)
+                continue;
+            if (!other.CompareTag(obstacleTag) && !other.CompareTag("Enemy") &&
+                other.GetComponentInParent<EnemyChase>() == null)
+                continue;
+            if (hit.distance < impactDistance)
+            {
+                impactCollider = other;
+                impactDistance = hit.distance;
+            }
         }
+
+        if (impactCollider == null)
+            return;
+
+        Vector2 impactPosition = rb.position + direction * impactDistance;
+        rb.position = impactPosition;
+        transform.position = new Vector3(impactPosition.x, impactPosition.y, transform.position.z);
+        HandleImpact(impactCollider);
+    }
+
+    private void HandleImpact(Collider2D other)
+    {
+        EnemyChase enemy = other.GetComponentInParent<EnemyChase>();
+        if (enemy != null)
+            ApplyDirectHit(enemy);
+
+        hasImpacted = true;
+        if (bulletData != null && bulletData.isExplosive)
+            Explode();
+
+        Deactivate();
     }
 
     public void ApplyDirectHit(EnemyChase enemy)

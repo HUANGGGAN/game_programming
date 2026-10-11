@@ -191,8 +191,9 @@ public class InventoryUIController : MonoBehaviour
         for (int i = 0; i < universalSlots.Length; i++)
         {
             ItemSO item = i < inventoryData.slots.Length ? inventoryData.slots[i].item : null;
-            universalSlots[i].SetupSlot(item, i);
             universalSlots[i].SetSlotType(InventorySlotType.Universal);
+            int count = i < inventoryData.slots.Length ? inventoryData.slots[i].count : 0;
+            universalSlots[i].SetupSlot(item, i, count);
         }
     }
 
@@ -204,8 +205,9 @@ public class InventoryUIController : MonoBehaviour
         for (int i = 0; i < weaponSlots.Length; i++)
         {
             ItemSO item = i < inventoryData.weaponSlots.Length ? inventoryData.weaponSlots[i].item : null;
-            weaponSlots[i].SetupSlot(item, i);
             weaponSlots[i].SetSlotType(InventorySlotType.Weapon);
+            int count = i < inventoryData.weaponSlots.Length ? inventoryData.weaponSlots[i].count : 0;
+            weaponSlots[i].SetupSlot(item, i, count);
         }
 
         if (weaponGuiSlots != null)
@@ -228,8 +230,9 @@ public class InventoryUIController : MonoBehaviour
         for (int i = 0; i < armorSlots.Length; i++)
         {
             ItemSO item = i < inventoryData.armorSlots.Length ? inventoryData.armorSlots[i].item : null;
-            armorSlots[i].SetupSlot(item, i);
             armorSlots[i].SetSlotType(InventorySlotType.Armor);
+            int count = i < inventoryData.armorSlots.Length ? inventoryData.armorSlots[i].count : 0;
+            armorSlots[i].SetupSlot(item, i, count);
         }
     }
 
@@ -241,8 +244,9 @@ public class InventoryUIController : MonoBehaviour
         for (int i = 0; i < consumableSlots.Length; i++)
         {
             ItemSO item = i < inventoryData.consumableSlots.Length ? inventoryData.consumableSlots[i].item : null;
-            consumableSlots[i].SetupSlot(item, i);
             consumableSlots[i].SetSlotType(InventorySlotType.Consumable);
+            int count = i < inventoryData.consumableSlots.Length ? inventoryData.consumableSlots[i].count : 0;
+            consumableSlots[i].SetupSlot(item, i, count);
         }
     }
 
@@ -264,13 +268,19 @@ public class InventoryUIController : MonoBehaviour
 
     public bool GiveItem(ItemSO item, InventorySlotType type, int count = 1, int ammoCount = 0)
     {
+        return GiveItem(item, type, out _, count, ammoCount);
+    }
+
+    public bool GiveItem(ItemSO item, InventorySlotType type, out int givenCount, int count = 1, int ammoCount = 0)
+    {
+        givenCount = 0;
         if (inventoryData == null)
             return false;
 
         if (item == null || count <= 0)
             return false;
 
-        bool success = inventoryData.TryGiveItem(item, type, count, ammoCount);
+        bool success = inventoryData.TryGiveItem(item, type, out givenCount, count, ammoCount);
         if (success)
             RefreshUI();
 

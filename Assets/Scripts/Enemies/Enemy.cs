@@ -154,16 +154,6 @@ public class EnemyChase : MonoBehaviour
         lastAttackTime = Time.time;
     }
 
-    private void OnTriggerEnter2D(Collider2D other)
-    {
-        Bullet2D bullet = other.GetComponent<Bullet2D>();
-        if (bullet == null)
-            bullet = other.GetComponentInParent<Bullet2D>();
-
-        if (bullet != null)
-            bullet.ApplyDirectHit(this);
-    }
-
     public void TakeBulletHit(Bullet2D bullet)
     {
         if (bullet != null && TakeDamage(

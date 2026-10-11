@@ -59,8 +59,12 @@ public class PickableItem : Interactable
     public override bool TryInteract()
     {
         ResolveInventory();
-        if (inventoryUI == null || !inventoryUI.GiveItem(item, InventorySlotType.Universal, count, ammoCount))
+        if (inventoryUI == null || !inventoryUI.GiveItem(item, InventorySlotType.Universal, out int givenCount, count, ammoCount))
             return false;
+
+        count -= givenCount;
+        if (count > 0)
+            return true;
 
         gameObject.SetActive(false);
         Destroy(gameObject);

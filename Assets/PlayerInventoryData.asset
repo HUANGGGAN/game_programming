@@ -13,15 +13,15 @@ MonoBehaviour:
   m_Name: PlayerInventoryData
   m_EditorClassIdentifier: Assembly-CSharp::InventorySO
   slots:
-  - item: {fileID: 11400000, guid: a98a3f082313896279b8e59944d142ff, type: 2}
+  - item: {fileID: 11400000, guid: 60f03e8948cbdd0db8ae789ff6193da3, type: 2}
+    count: 1
+    ammoCount: 3
+  - item: {fileID: 11400000, guid: bb09c3e164adc2d1a971dde7051f026a, type: 2}
     count: 1
     ammoCount: 0
   - item: {fileID: 11400000, guid: 575ca56b8b24008ff92836333acdf11e, type: 2}
     count: 1
     ammoCount: 0
-  - item: {fileID: 11400000, guid: 60f03e8948cbdd0db8ae789ff6193da3, type: 2}
-    count: 1
-    ammoCount: 3
   - item: {fileID: 11400000, guid: a0393866853dd5754877fd435906d194, type: 2}
     count: 2
     ammoCount: 6
@@ -34,20 +34,20 @@ MonoBehaviour:
   - item: {fileID: 11400000, guid: e8ba09ae06a3c3478916365c358fd503, type: 2}
     count: 1
     ammoCount: 0
-  - item: {fileID: 0}
-    count: 0
+  - item: {fileID: 11400000, guid: 296685651f25499c6a57d0f93c3afd14, type: 2}
+    count: 10
     ammoCount: 0
-  - item: {fileID: 0}
-    count: 0
+  - item: {fileID: 11400000, guid: 296685651f25499c6a57d0f93c3afd14, type: 2}
+    count: 10
     ammoCount: 0
-  - item: {fileID: 0}
-    count: 0
+  - item: {fileID: 11400000, guid: a98a3f082313896279b8e59944d142ff, type: 2}
+    count: 1
     ammoCount: 0
-  - item: {fileID: 0}
-    count: 0
+  - item: {fileID: 11400000, guid: ba18b6115c2aea237b7a4198d3afd7f3, type: 2}
+    count: 4
     ammoCount: 0
-  - item: {fileID: 0}
-    count: 0
+  - item: {fileID: 11400000, guid: 19aa54060d9ff7133b840258a9bb6c69, type: 2}
+    count: 1
     ammoCount: 0
   - item: {fileID: 11400000, guid: 4a0e4be5bd6bc9a669a71678f3325615, type: 2}
     count: 1
@@ -74,8 +74,8 @@ MonoBehaviour:
   - item: {fileID: 0}
     count: 0
     ammoCount: 0
-  - item: {fileID: 11400000, guid: bb09c3e164adc2d1a971dde7051f026a, type: 2}
-    count: 1
+  - item: {fileID: 11400000, guid: 296685651f25499c6a57d0f93c3afd14, type: 2}
+    count: 7
     ammoCount: 0
   armorSlots:
   - item: {fileID: 0}

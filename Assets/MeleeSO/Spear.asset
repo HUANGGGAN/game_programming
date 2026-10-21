@@ -14,9 +14,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MeleeSO
   itemName: Spear
   itemID: 5
-  rarity: 2
+  rarity: 1
   icon: {fileID: 3749446161351167426, guid: ef94ffc5886277c309147616d07dc375, type: 3}
   maxStackSize: 1
+  tag: 1
   description: 
   shootInterval: 0.5
   consumeAmmo: 0

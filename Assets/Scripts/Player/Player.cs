@@ -23,6 +23,8 @@ public class Player : MonoBehaviour
     private Camera mainCamera;
     private Coroutine startupTutorialRoutine;
 
+    public PlayerData Data => playerData;
+
     private const float KnockbackDuration = 0.12f;
 
     private void Awake()
@@ -35,6 +37,9 @@ public class Player : MonoBehaviour
 
         if (playerSpriteRenderer != null)
             playerSpriteRenderer.flipX = false;
+
+        if (GetComponent<PlayerConsumables>() == null)
+            gameObject.AddComponent<PlayerConsumables>();
     }
 
     private void Start()
@@ -52,7 +57,6 @@ public class Player : MonoBehaviour
         if (playerData != null)
         {
             playerData.ResetScore();
-            playerData.OnPlayerStatsChanged += UpdatePlayerBarsFromData;
             UpdatePlayerBarsFromData();
         }
     }
@@ -73,14 +77,6 @@ public class Player : MonoBehaviour
         tutorial.ShowTutorial("start", "Welcome to the tutorial level, don't worry about dying. Pick up various weapons and try to defeat the boss. The game will get harder over time until the boss is defeated, so keep an eye on the time.");
         tutorial.ShowTutorial("movement", "WASD to move, left click to shoot\nF to interact with objects\n1-3 or mouse wheel to switch weapons\nE to open inventory.");
         startupTutorialRoutine = null;
-    }
-
-    private void OnDestroy()
-    {
-        if (playerData != null)
-        {
-            playerData.OnPlayerStatsChanged -= UpdatePlayerBarsFromData;
-        }
     }
 
     private void Update()
@@ -172,7 +168,15 @@ public class Player : MonoBehaviour
 
     public bool TryUseMP(int amount)
     {
-        return amount <= 0 || (playerData != null && playerData.TryUseMP(amount));
+        bool success = amount <= 0 || (playerData != null && playerData.TryUseMP(amount));
+        if (success)
+            UpdatePlayerBarsFromData();
+        return success;
+    }
+
+    public void ClearEffects()
+    {
+        activeEffects.Clear();
     }
 
     public void ApplyEffects(EffectDefinition[] effects)
@@ -189,7 +193,7 @@ public class Player : MonoBehaviour
         knockbackRemaining = KnockbackDuration;
     }
 
-    private void UpdatePlayerBarsFromData()
+    public void UpdatePlayerBarsFromData()
     {
         if (healthBar != null && playerData != null)
         {

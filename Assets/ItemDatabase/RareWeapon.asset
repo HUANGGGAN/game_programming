@@ -12,5 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e80cb28d02f9b1fa88a3fb0ddd1d8153, type: 3}
   m_Name: RareWeapon
   m_EditorClassIdentifier: Assembly-CSharp::ItemCategory
-  categoryName: 
-  items: []
+  categoryName: Rare Weapon
+  items:
+  - {fileID: 11400000, guid: 3e5b0d0a1936a8f7c91cf352f7df5be2, type: 2}
+  - {fileID: 11400000, guid: 19aa54060d9ff7133b840258a9bb6c69, type: 2}

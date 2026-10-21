@@ -28,7 +28,7 @@ public class InventoryUIController : MonoBehaviour
             inventoryData.EnsureDefaults();
 
         if (playerShooter == null)
-            playerShooter = FindObjectOfType<PlayerShooter2D>();
+            playerShooter = FindFirstObjectByType<PlayerShooter2D>();
 
         if (universalSlotGridTransform != null)
         {
@@ -188,6 +188,7 @@ public class InventoryUIController : MonoBehaviour
         if (universalSlots == null)
             return;
 
+
         for (int i = 0; i < universalSlots.Length; i++)
         {
             ItemSO item = i < inventoryData.slots.Length ? inventoryData.slots[i].item : null;
@@ -312,6 +313,14 @@ public class InventoryUIController : MonoBehaviour
     public int GetItemCount(ItemSO item)
     {
         return inventoryData != null ? inventoryData.GetItemCount(item) : 0;
+    }
+
+    public bool TryConsumeConsumable(int slotIndex)
+    {
+        if (inventoryData == null || !inventoryData.TryConsumeConsumable(slotIndex))
+            return false;
+        RefreshConsumableSlots();
+        return true;
     }
 
     public bool RemoveItemAmount(ItemSO item, int amount)

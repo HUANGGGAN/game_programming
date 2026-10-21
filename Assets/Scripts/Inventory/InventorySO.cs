@@ -16,13 +16,20 @@ public enum InventorySlotType
     Consumable
 }
 
+
+
+
 [CreateAssetMenu(fileName = "NewInventory", menuName = "Inventory/Inventory Storage")]
 public class InventorySO : ScriptableObject
 {
-    public InventorySlotData[] slots = new InventorySlotData[18];
-    public InventorySlotData[] weaponSlots = new InventorySlotData[3];
-    public InventorySlotData[] armorSlots = new InventorySlotData[4];
-    public InventorySlotData[] consumableSlots = new InventorySlotData[2];
+    public const int universalSlotCount = 18;
+    public const int weaponSlotCount = 3;
+    public const int armorSlotCount = 4;
+    public const int consumableSlotCount = 3;
+    public InventorySlotData[] slots = new InventorySlotData[universalSlotCount];
+    public InventorySlotData[] weaponSlots = new InventorySlotData[weaponSlotCount];
+    public InventorySlotData[] armorSlots = new InventorySlotData[armorSlotCount];
+    public InventorySlotData[] consumableSlots = new InventorySlotData[consumableSlotCount];
 
     private void OnEnable()
     {
@@ -31,10 +38,10 @@ public class InventorySO : ScriptableObject
 
     public void EnsureDefaults()
     {
-        EnsureSlotState(ref slots, 18);
-        EnsureSlotState(ref weaponSlots, 3);
-        EnsureSlotState(ref armorSlots, 4);
-        EnsureSlotState(ref consumableSlots, 2);
+        EnsureSlotState(ref slots, universalSlotCount);
+        EnsureSlotState(ref weaponSlots, weaponSlotCount);
+        EnsureSlotState(ref armorSlots, armorSlotCount);
+        EnsureSlotState(ref consumableSlots, consumableSlotCount);
     }
 
     private static void EnsureSlotState(ref InventorySlotData[] slotData, int capacity)
@@ -115,6 +122,23 @@ public class InventorySO : ScriptableObject
 
         slotsA[indexA] = slotB;
         slotsB[indexB] = slotA;
+        return true;
+    }
+
+    public bool TryConsumeConsumable(int slotIndex)
+    {
+        EnsureDefaults();
+        if (slotIndex < 0 || slotIndex >= consumableSlots.Length)
+            return false;
+        InventorySlotData slot = consumableSlots[slotIndex];
+        if (slot.item is not ConsumableSO || slot.count <= 0)
+            return false;
+        slot.count--;
+        if (slot.count == 0)
+        {
+            slot.item = null;
+            slot.ammoCount = 0;
+        }
         return true;
     }
 

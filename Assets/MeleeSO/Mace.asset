@@ -14,19 +14,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MeleeSO
   itemName: Mace
   itemID: 4
-  rarity: 3
+  rarity: 2
   icon: {fileID: 8612480020434785557, guid: d384fff777becef42b5a02482c439935, type: 3}
   maxStackSize: 1
+  tag: 1
   description: 
   shootInterval: 0.6
   consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
-  attackRange: 2.6
+  attackRange: 2.5
   attackAngle: 110
-  attackDamage: 10
+  attackDamage: 9
   attackDuration: 0.1
-  knockbackForce: 7
+  knockbackForce: 6
   critRate: 0.05
   critMul: 3
   drawAttackRange: 1

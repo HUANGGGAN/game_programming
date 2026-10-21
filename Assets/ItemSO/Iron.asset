@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemSO
   itemName: Iron
   itemID: 0
-  rarity: 1
+  rarity: 5
   icon: {fileID: 5279201860775138906, guid: c49823bfdda9d415c9419df4d3e3cbe1, type: 3}
   maxStackSize: 5
+  tag: 0
   description: 

@@ -16,7 +16,7 @@ public class InventorySlot : MonoBehaviour,
     [SerializeField] private TMP_Text countText;
 
     private CanvasGroup iconCanvasGroup;
-    private InventoryUIController uiController;
+    [SerializeField] private InventoryUIController uiController;
     private ItemSO currentItem;
 
     private Vector3 originalLocalPosition;
@@ -25,6 +25,8 @@ public class InventorySlot : MonoBehaviour,
 
     public InventoryUIController UIController => uiController;
     public bool IsDragging => isDragging;
+    public ItemSO CurrentItem => currentItem;
+    public static InventorySlot DraggedSlot { get; private set; }
 
     private void Awake()
     {
@@ -115,6 +117,7 @@ public class InventorySlot : MonoBehaviour,
             return;
 
         isDragging = true;
+        DraggedSlot = this;
 
         originalLocalPosition = itemIconImage.transform.localPosition;
 
@@ -135,6 +138,8 @@ public class InventorySlot : MonoBehaviour,
             return;
 
         isDragging = false;
+        if (DraggedSlot == this)
+            DraggedSlot = null;
         itemIconImage.transform.localPosition = originalLocalPosition;
         iconCanvasGroup.blocksRaycasts = true;
     }
@@ -146,12 +151,30 @@ public class InventorySlot : MonoBehaviour,
         if (draggedSlot == null)
             return;
 
-        if (draggedSlot.isEmpty || draggedSlot == this)
-            return;
-
-        if (uiController == null)
+        if (!CanReceiveDropFrom(draggedSlot))
             return;
 
         uiController.TrySwapItems(draggedSlot.slotType, draggedSlot.slotIndex, slotType, slotIndex);
+    }
+
+    public bool CanReceiveDropFrom(InventorySlot source)
+    {
+        return source != null && source != this && source.IsDragging && !source.isEmpty &&
+            (source.slotType != slotType || source.slotIndex != slotIndex) &&
+            source.currentItem != null && uiController != null && source.uiController == uiController &&
+            CanAccept(source.currentItem) && source.CanAccept(currentItem);
+    }
+
+    private void OnDisable()
+    {
+        if (DraggedSlot == this)
+            DraggedSlot = null;
+        if (!isDragging)
+            return;
+        isDragging = false;
+        if (itemIconImage != null)
+            itemIconImage.transform.localPosition = originalLocalPosition;
+        if (iconCanvasGroup != null)
+            iconCanvasGroup.blocksRaycasts = true;
     }
 }

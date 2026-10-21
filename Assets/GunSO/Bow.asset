@@ -17,6 +17,7 @@ MonoBehaviour:
   rarity: 1
   icon: {fileID: 1632237298157059045, guid: 55e9e4b398a2d3618929e23fb347fed2, type: 3}
   maxStackSize: 1
+  tag: 1
   description: 
   shootInterval: 0.1
   consumeAmmo: 0

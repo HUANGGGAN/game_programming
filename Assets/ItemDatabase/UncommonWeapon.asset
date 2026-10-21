@@ -12,5 +12,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e80cb28d02f9b1fa88a3fb0ddd1d8153, type: 3}
   m_Name: UncommonWeapon
   m_EditorClassIdentifier: Assembly-CSharp::ItemCategory
-  categoryName: 
-  items: []
+  categoryName: Uncommon Weapon
+  items:
+  - {fileID: 11400000, guid: 296685651f25499c6a57d0f93c3afd14, type: 2}
+  - {fileID: 11400000, guid: 60f03e8948cbdd0db8ae789ff6193da3, type: 2}
+  - {fileID: 11400000, guid: 4a0e4be5bd6bc9a669a71678f3325615, type: 2}
+  - {fileID: 11400000, guid: a98a3f082313896279b8e59944d142ff, type: 2}

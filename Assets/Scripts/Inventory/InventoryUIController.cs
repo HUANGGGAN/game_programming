@@ -370,15 +370,26 @@ public class InventoryUIController : MonoBehaviour
 
         inventoryData.EnsureDefaults();
         int slotIndex = equippedWeaponIndex;
-        return slotIndex >= 0 && slotIndex < inventoryData.weaponSlots.Length &&
-            inventoryData.weaponSlots[slotIndex].item is WeaponSO &&
-            inventoryData.weaponSlots[slotIndex].ammoCount > 0;
+        if (slotIndex < 0 || slotIndex >= inventoryData.weaponSlots.Length)
+            return false;
+        InventorySlotData slot = inventoryData.weaponSlots[slotIndex];
+        return slot.item is WeaponSO weapon && slot.count > 0 &&
+            (!weapon.consumeAmmo || (weapon.hasLimitedAmmo ? slot.count > 0 : slot.ammoCount > 0));
     }
 
-    // For PlayerShooter2D to consume ammo when shooting
+    // For PlayerShooter2D to consume magazine ammo or one limited-ammo item.
     public bool TryConsumeEquippedWeaponAmmo()
     {
-        return inventoryData != null && inventoryData.TryConsumeWeaponAmmo(equippedWeaponIndex);
+        if (inventoryData == null || !inventoryData.TryConsumeWeaponAmmo(equippedWeaponIndex))
+            return false;
+        if (!IsWeaponAtSlot(equippedWeaponIndex))
+        {
+            equippedWeaponIndex = -1;
+            playerShooter?.UnequipWeapon();
+        }
+        RefreshWeaponSlots();
+        playerShooter?.RefreshWeaponAmmoTexts();
+        return true;
     }
 
     public int GetEquippedWeaponAmmoCount()

@@ -23,7 +23,8 @@ public class BulletSO : ScriptableObject
     public float damage = 10f;
     public float speed = 15f;
     public float lifetime = 3f;
-    public bool isPiercing = false; // If true, bullet can pass through enemies
+    [Min(0)] public int isPiercing = 0; // Enemies passed through before stopping on the next hit
+    public int bulletMode = 0; // 0: normal; 1: explosive bullet detonates at the captured aim position
     public bool isExplosive = false; // If true, bullet can explode on impact
     public float explosionRadius = 2f; // Only relevant if isExplosive is true
     public float knockbackForce = 5f; // Force applied to enemies on hit

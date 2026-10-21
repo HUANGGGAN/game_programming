@@ -6,7 +6,7 @@ using UnityEngine;
 public interface IWeaponAttackHandler
 {
     bool CanHandle(WeaponSO weapon);
-    bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, Func<bool> tryConsumeAmmo);
+    bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, Func<bool> tryConsumeAmmo, Vector2? targetPosition = null);
 }
 
 public interface ITimedWeaponAttackHandler
@@ -78,7 +78,7 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
         return weapon is MeleeSO;
     }
 
-    public bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, System.Func<bool> tryConsumeAmmo)
+    public bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, System.Func<bool> tryConsumeAmmo, Vector2? targetPosition = null)
     {
         if (weapon is not MeleeSO meleeWeapon || meleeWeapon.attackRange <= 0f || meleeWeapon.attackDamage <= 0f || direction.sqrMagnitude <= Mathf.Epsilon)
             return false;

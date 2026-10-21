@@ -6,6 +6,7 @@ public class BulletPool : MonoBehaviour
     public static BulletPool Instance { get; private set; }
 
     [SerializeField] private GameObject bulletPrefab;
+    [SerializeField] private GameObject arcBulletPrefab;
     [SerializeField] private int poolSize = 10;
 
     private Dictionary<string, List<Bullet2D>> bulletPools = new Dictionary<string, List<Bullet2D>>();
@@ -56,17 +57,19 @@ public class BulletPool : MonoBehaviour
 
     private Bullet2D CreateBullet(BulletSO bulletData)
     {
-        if (bulletPrefab == null)
+        bool isArc = bulletData.bulletId == "1";
+        GameObject prefab = isArc ? arcBulletPrefab : bulletPrefab;
+        if (prefab == null)
         {
-            Debug.LogError("Bullet prefab is not assigned on BulletPool.", this);
+            Debug.LogError(isArc ? "Arc bullet prefab is not assigned on BulletPool." : "Bullet prefab is not assigned on BulletPool.", this);
             return null;
         }
 
-        GameObject obj = Instantiate(bulletPrefab, transform);
+        GameObject obj = Instantiate(prefab, transform);
         Bullet2D bullet = obj.GetComponent<Bullet2D>();
-        if (bullet == null)
+        if (bullet == null || (isArc && bullet is not ArcBullet2D))
         {
-            Debug.LogError("Bullet prefab must have a Bullet2D component.", obj);
+            Debug.LogError(isArc ? "Arc bullet prefab must have an ArcBullet2D component." : "Bullet prefab must have a Bullet2D component.", obj);
             Destroy(obj);
             return null;
         }

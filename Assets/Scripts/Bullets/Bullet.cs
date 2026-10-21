@@ -9,18 +9,24 @@ public class Bullet2D : MonoBehaviour
 
     [SerializeField] private string obstacleTag = "BulletBlocker";
 
-    private Rigidbody2D rb;
-    private SpriteRenderer spriteRenderer;
+    protected Rigidbody2D rb;
+    protected SpriteRenderer spriteRenderer;
     private Collider2D bulletCollider;
     private Camera mainCamera;
-    private BulletSO bulletData;
+    protected BulletSO bulletData;
     private float remainingLifetime;
     private float currentDamage;
     private float effectProbabilityMultiplier = 1f;
     private int damageSourceId;
     private bool hasImpacted;
+    private int remainingPierces;
+    private Vector2? explosionTarget;
+    private bool componentsInitialized;
     private readonly List<RaycastHit2D> castHits = new List<RaycastHit2D>();
     private readonly HashSet<EnemyChase> hitEnemies = new HashSet<EnemyChase>();
+
+    protected virtual bool UsesTargetExplosion => bulletData != null && bulletData.bulletMode == 1 && bulletData.isExplosive;
+    protected virtual bool ImpactsColliders => true;
 
     public float Damage => currentDamage;
     public float KnockbackForce => bulletData != null ? bulletData.knockbackForce : 0f;
@@ -32,16 +38,25 @@ public class Bullet2D : MonoBehaviour
         ? rb.linearVelocity.normalized
         : transform.right;
 
-    private void Awake()
+    protected virtual void Awake()
     {
+        EnsureComponents();
+    }
+
+    protected virtual void EnsureComponents()
+    {
+        if (componentsInitialized)
+            return;
         rb = GetComponent<Rigidbody2D>();
         spriteRenderer = GetComponent<SpriteRenderer>();
         bulletCollider = GetComponent<Collider2D>();
         mainCamera = Camera.main;
+        componentsInitialized = true;
     }
 
     public void Initialize(BulletSO data)
     {
+        EnsureComponents();
         bulletData = data;
         currentDamage = bulletData != null ? bulletData.damage : 0f;
         effectProbabilityMultiplier = 1f;
@@ -71,8 +86,9 @@ public class Bullet2D : MonoBehaviour
         Launch(direction, damage, bulletData != null ? bulletData.speed : 0f, 1f);
     }
 
-    public void Launch(Vector2 direction, float damage, float speed, float effectProbabilityMultiplier)
+    public virtual void Launch(Vector2 direction, float damage, float speed, float effectProbabilityMultiplier, Vector2? targetPosition = null)
     {
+        EnsureComponents();
         if (bulletData == null) return;
 
         currentDamage = damage;
@@ -80,6 +96,8 @@ public class Bullet2D : MonoBehaviour
         damageSourceId = Interlocked.Increment(ref nextDamageSourceId);
         hasImpacted = false;
         hitEnemies.Clear();
+        remainingPierces = Mathf.Max(0, bulletData.isPiercing);
+        explosionTarget = UsesTargetExplosion ? targetPosition : null;
 
         // Re-enable visual, collider, and GameObject state when re-firing
         gameObject.SetActive(true);
@@ -125,12 +143,32 @@ public class Bullet2D : MonoBehaviour
         if (hasImpacted || !gameObject.activeInHierarchy)
             return;
 
+        if (explosionTarget.HasValue && Vector2.Distance(rb.position, explosionTarget.Value) <= 0.001f)
+        {
+            DetonateAtTarget();
+            return;
+        }
+
         Vector2 velocity = rb.linearVelocity;
         float distance = velocity.magnitude * Time.fixedDeltaTime;
         if (distance <= 0f)
             return;
 
         Vector2 direction = velocity.normalized;
+        bool reachesTarget = false;
+        if (explosionTarget.HasValue)
+        {
+            float targetDistance = Mathf.Max(0f, Vector2.Dot(explosionTarget.Value - rb.position, direction));
+            reachesTarget = targetDistance <= distance;
+            distance = Mathf.Min(distance, targetDistance);
+        }
+        if (!ImpactsColliders)
+        {
+            if (reachesTarget)
+                DetonateAtTarget();
+            return;
+        }
+
         ContactFilter2D filter = new ContactFilter2D();
         filter.SetLayerMask(Physics2D.GetLayerCollisionMask(gameObject.layer));
         filter.useTriggers = true;
@@ -152,7 +190,7 @@ public class Bullet2D : MonoBehaviour
         foreach (RaycastHit2D hit in castHits)
         {
             Collider2D other = hit.collider;
-            if (other == null || other.attachedRigidbody == rb)
+            if (other == null || !other.enabled || !other.gameObject.activeInHierarchy || other.attachedRigidbody == rb)
                 continue;
 
             bool isObstacle = other.CompareTag(obstacleTag);
@@ -161,11 +199,14 @@ public class Bullet2D : MonoBehaviour
                 continue;
 
             Vector2 impactPosition = origin + direction * hit.distance;
-            if (!isObstacle && bulletData != null && bulletData.isPiercing)
+            if (!isObstacle && enemy != null && hitEnemies.Contains(enemy))
+                continue;
+            if (!isObstacle && enemy != null && remainingPierces > 0)
             {
-                if (enemy != null && enemy.isActiveAndEnabled && !hitEnemies.Contains(enemy))
+                if (enemy.isActiveAndEnabled)
                 {
                     ApplyDirectHit(enemy);
+                    remainingPierces--;
                     if (bulletData.isExplosive)
                         Explode(impactPosition);
                 }
@@ -177,6 +218,19 @@ public class Bullet2D : MonoBehaviour
             HandleImpact(other);
             return;
         }
+
+        if (reachesTarget)
+            DetonateAtTarget();
+    }
+
+    private void DetonateAtTarget()
+    {
+        Vector2 position = explosionTarget.Value;
+        rb.position = position;
+        transform.position = new Vector3(position.x, position.y, transform.position.z);
+        hasImpacted = true;
+        Explode(position);
+        Deactivate();
     }
 
     private void HandleImpact(Collider2D other)
@@ -270,8 +324,9 @@ public class Bullet2D : MonoBehaviour
         UnityEngine.Object.Destroy(material, drawDuration);
     }
 
-    public void Deactivate()
+    public virtual void Deactivate()
     {
+        EnsureComponents();
         hasImpacted = true;
         // Stop movement, make invisible, and set inactive
         rb.linearVelocity = Vector2.zero;

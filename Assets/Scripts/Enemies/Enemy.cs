@@ -353,7 +353,7 @@ public class EnemyChase : MonoBehaviour
         bool weakened = HasMatchingAttribute(attackAttributes, enemyData.weaknesses);
         float multiplier = 1f;
         if (resisted)
-            multiplier *= 0.3f;
+            multiplier *= 0.15f;
         if (weakened)
             multiplier *= 2f;
         return multiplier;

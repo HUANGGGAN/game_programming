@@ -25,7 +25,7 @@ MonoBehaviour:
   enemy_difficulty: 4
   attackRange: 1.2
   damage: 5
-  knockbackForce: 4
+  knockbackForce: 0
   knockbackResistance: 0
   speed: 3
   attackInterval: 1

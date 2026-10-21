@@ -121,10 +121,26 @@ public class InventorySO : ScriptableObject
     public bool TryConsumeWeaponAmmo(int slotIndex)
     {
         EnsureDefaults();
-        if (slotIndex < 0 || slotIndex >= weaponSlots.Length || weaponSlots[slotIndex].ammoCount <= 0)
+        if (slotIndex < 0 || slotIndex >= weaponSlots.Length)
             return false;
-
-        weaponSlots[slotIndex].ammoCount--;
+        InventorySlotData slot = weaponSlots[slotIndex];
+        if (slot.item is not WeaponSO weapon || slot.count <= 0)
+            return false;
+        if (!weapon.consumeAmmo)
+            return true;
+        if (weapon.hasLimitedAmmo)
+        {
+            slot.count--;
+            if (slot.count == 0)
+            {
+                slot.item = null;
+                slot.ammoCount = 0;
+            }
+            return true;
+        }
+        if (slot.ammoCount <= 0)
+            return false;
+        slot.ammoCount--;
         return true;
     }
 

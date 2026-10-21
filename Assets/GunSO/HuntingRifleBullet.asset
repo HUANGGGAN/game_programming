@@ -19,7 +19,8 @@ MonoBehaviour:
   damage: 16
   speed: 20
   lifetime: 3
-  isPiercing: 1
+  isPiercing: 5
+  bulletMode: 0
   isExplosive: 0
   explosionRadius: 2
   knockbackForce: 2

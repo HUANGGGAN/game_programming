@@ -14,7 +14,7 @@ GameObject:
   - component: {fileID: 6482728662018117036}
   - component: {fileID: 4761238981468779255}
   - component: {fileID: 5088527381271845347}
-  m_Layer: 0
+  m_Layer: 6
   m_Name: FireSprite
   m_TagString: Enemy
   m_Icon: {fileID: 0}

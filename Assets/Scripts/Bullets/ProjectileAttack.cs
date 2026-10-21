@@ -3,7 +3,7 @@ using UnityEngine;
 
 public interface IChargedAttackHandler
 {
-    bool TryPerformCharged(WeaponSO weapon, Vector2 origin, Vector2 direction, float chargeRatio, Func<bool> tryConsumeAmmo);
+    bool TryPerformCharged(WeaponSO weapon, Vector2 origin, Vector2 direction, float chargeRatio, Func<bool> tryConsumeAmmo, Vector2? targetPosition = null);
 }
 
 public sealed class ProjectileAttack : IWeaponAttackHandler
@@ -13,9 +13,9 @@ public sealed class ProjectileAttack : IWeaponAttackHandler
         return weapon is not WandSO && weapon is IProjectileWeapon projectileWeapon && projectileWeapon.ProjectileData != null;
     }
 
-    public bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, Func<bool> tryConsumeAmmo)
+    public bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, Func<bool> tryConsumeAmmo, Vector2? targetPosition = null)
     {
-        return ProjectileAttackExecutor.TryPerform(weapon, origin, direction, null, tryConsumeAmmo);
+        return ProjectileAttackExecutor.TryPerform(weapon, origin, direction, null, tryConsumeAmmo, targetPosition);
     }
 }
 
@@ -33,7 +33,7 @@ public sealed class WandProjectileAttack : IWeaponAttackHandler
         return weapon is WandSO wand && wand.attackMode == 0 && wand.bulletData != null;
     }
 
-    public bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, Func<bool> tryConsumeAmmo)
+    public bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, Func<bool> tryConsumeAmmo, Vector2? targetPosition = null)
     {
         if (!CanHandle(weapon))
             return false;
@@ -41,7 +41,7 @@ public sealed class WandProjectileAttack : IWeaponAttackHandler
         WandSO wand = (WandSO)weapon;
         Tutorial.Instance?.ShowTutorial("wand", "Fire wand will consume MP, and apply fire effect to enemies.\nSome enemies are immune to fire.");
         return ProjectileAttackExecutor.TryPerform(
-            wand, origin, direction, null, () => tryConsumeMP != null && tryConsumeMP(Mathf.Max(0, wand.MPCost)));
+            wand, origin, direction, null, () => tryConsumeMP != null && tryConsumeMP(Mathf.Max(0, wand.MPCost)), targetPosition);
     }
 }
 
@@ -53,23 +53,23 @@ public sealed class ChargedAttack : IWeaponAttackHandler, IChargedAttackHandler
             weapon is IProjectileWeapon projectileWeapon && projectileWeapon.ProjectileData != null;
     }
 
-    public bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, Func<bool> tryConsumeAmmo)
+    public bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, Func<bool> tryConsumeAmmo, Vector2? targetPosition = null)
     {
-        return TryPerformCharged(weapon, origin, direction, 0f, tryConsumeAmmo);
+        return TryPerformCharged(weapon, origin, direction, 0f, tryConsumeAmmo, targetPosition);
     }
 
-    public bool TryPerformCharged(WeaponSO weapon, Vector2 origin, Vector2 direction, float chargeRatio, Func<bool> tryConsumeAmmo)
+    public bool TryPerformCharged(WeaponSO weapon, Vector2 origin, Vector2 direction, float chargeRatio, Func<bool> tryConsumeAmmo, Vector2? targetPosition = null)
     {
         if (weapon is not IChargedProjectileWeapon)
             return false;
 
-        return ProjectileAttackExecutor.TryPerform(weapon, origin, direction, Mathf.Clamp01(chargeRatio), tryConsumeAmmo);
+        return ProjectileAttackExecutor.TryPerform(weapon, origin, direction, Mathf.Clamp01(chargeRatio), tryConsumeAmmo, targetPosition);
     }
 }
 
 internal static class ProjectileAttackExecutor
 {
-    public static bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, float? chargeRatio, Func<bool> tryConsumeResource)
+    public static bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, float? chargeRatio, Func<bool> tryConsumeResource, Vector2? targetPosition = null)
     {
         if (weapon is not IProjectileWeapon projectileWeapon || projectileWeapon.ProjectileData == null || BulletPool.Instance == null)
             return false;
@@ -114,12 +114,15 @@ internal static class ProjectileAttackExecutor
                 ? UnityEngine.Random.Range(-spread, spread)
                 : -spread + (2f * spread * i / (burstCount - 1));
             Vector2 shotDirection = Quaternion.Euler(0f, 0f, spreadOffset) * direction.normalized;
+            if (targetPosition.HasValue && ((bulletData.bulletMode == 1 && bulletData.isExplosive) ||
+                (bulletData.bulletMode == 0 && bulletData.bulletId == "1")))
+                shotDirection = (targetPosition.Value - origin).normalized;
             float shotDamage = CriticalAttack.RollDamage(
                 damage,
                 bulletData.critRate,
                 bulletData.critMul);
             bullet.transform.position = origin;
-            bullet.Launch(shotDirection, shotDamage, speed, effectProbabilityMultiplier);
+            bullet.Launch(shotDirection, shotDamage, speed, effectProbabilityMultiplier, targetPosition);
             firedAny = true;
         }
 

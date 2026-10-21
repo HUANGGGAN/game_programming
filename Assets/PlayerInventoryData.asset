@@ -13,14 +13,26 @@ MonoBehaviour:
   m_Name: PlayerInventoryData
   m_EditorClassIdentifier: Assembly-CSharp::InventorySO
   slots:
-  - item: {fileID: 11400000, guid: 4a0e4be5bd6bc9a669a71678f3325615, type: 2}
+  - item: {fileID: 11400000, guid: a98a3f082313896279b8e59944d142ff, type: 2}
     count: 1
-    ammoCount: 2
+    ammoCount: 0
+  - item: {fileID: 11400000, guid: 575ca56b8b24008ff92836333acdf11e, type: 2}
+    count: 1
+    ammoCount: 0
   - item: {fileID: 11400000, guid: 60f03e8948cbdd0db8ae789ff6193da3, type: 2}
     count: 1
-    ammoCount: 4
-  - item: {fileID: 0}
-    count: 0
+    ammoCount: 3
+  - item: {fileID: 11400000, guid: a0393866853dd5754877fd435906d194, type: 2}
+    count: 2
+    ammoCount: 6
+  - item: {fileID: 11400000, guid: a1cc362fb1cba93afaf7042e2f0f7bd7, type: 2}
+    count: 1
+    ammoCount: 0
+  - item: {fileID: 11400000, guid: 698988ad1135bdd91a9c8b7fdf0693b6, type: 2}
+    count: 3
+    ammoCount: 0
+  - item: {fileID: 11400000, guid: e8ba09ae06a3c3478916365c358fd503, type: 2}
+    count: 1
     ammoCount: 0
   - item: {fileID: 0}
     count: 0
@@ -37,21 +49,9 @@ MonoBehaviour:
   - item: {fileID: 0}
     count: 0
     ammoCount: 0
-  - item: {fileID: 0}
-    count: 0
-    ammoCount: 0
-  - item: {fileID: 0}
-    count: 0
-    ammoCount: 0
-  - item: {fileID: 0}
-    count: 0
-    ammoCount: 0
-  - item: {fileID: 0}
-    count: 0
-    ammoCount: 0
-  - item: {fileID: 0}
-    count: 0
-    ammoCount: 0
+  - item: {fileID: 11400000, guid: 4a0e4be5bd6bc9a669a71678f3325615, type: 2}
+    count: 1
+    ammoCount: 15
   - item: {fileID: 0}
     count: 0
     ammoCount: 0
@@ -68,13 +68,13 @@ MonoBehaviour:
     count: 0
     ammoCount: 0
   weaponSlots:
-  - item: {fileID: 11400000, guid: a0393866853dd5754877fd435906d194, type: 2}
-    count: 2
-    ammoCount: 9
-  - item: {fileID: 11400000, guid: a98a3f082313896279b8e59944d142ff, type: 2}
+  - item: {fileID: 11400000, guid: 3e5b0d0a1936a8f7c91cf352f7df5be2, type: 2}
     count: 1
     ammoCount: 0
-  - item: {fileID: 11400000, guid: 575ca56b8b24008ff92836333acdf11e, type: 2}
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+  - item: {fileID: 11400000, guid: bb09c3e164adc2d1a971dde7051f026a, type: 2}
     count: 1
     ammoCount: 0
   armorSlots:

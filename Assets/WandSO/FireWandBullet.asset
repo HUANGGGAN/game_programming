@@ -20,6 +20,7 @@ MonoBehaviour:
   speed: 10
   lifetime: 4
   isPiercing: 0
+  bulletMode: 1
   isExplosive: 1
   explosionRadius: 3
   knockbackForce: 4

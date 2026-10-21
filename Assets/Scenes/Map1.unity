@@ -131,7 +131,7 @@ GameObject:
   - component: {fileID: 9812870}
   - component: {fileID: 9812869}
   - component: {fileID: 9812868}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: WeaponHolder
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -291,7 +291,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -2039,7 +2039,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -3155,6 +3155,11 @@ PrefabInstance:
     m_AddedGameObjects: []
     m_AddedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: cee954b66493e1042b410ddacc032d37, type: 3}
+--- !u!4 &399347104 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 6558725340552533480, guid: cee954b66493e1042b410ddacc032d37, type: 3}
+  m_PrefabInstance: {fileID: 1833110071}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &404787409 stripped
 GameObject:
   m_CorrespondingSourceObject: {fileID: 4573374532233610394, guid: 6803267fb4e6e7e4bb8034cbff3a55fa, type: 3}
@@ -4093,7 +4098,7 @@ GameObject:
   - component: {fileID: 490076917}
   - component: {fileID: 490076921}
   - component: {fileID: 490076922}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Player
   m_TagString: Player
   m_Icon: {fileID: 0}
@@ -4227,7 +4232,7 @@ CapsuleCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 490076912}
-  m_Enabled: 1
+  m_Enabled: 0
   serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
@@ -4264,7 +4269,7 @@ CircleCollider2D:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 490076912}
-  m_Enabled: 0
+  m_Enabled: 1
   serializedVersion: 3
   m_Density: 1
   m_Material: {fileID: 0}
@@ -4273,7 +4278,7 @@ CircleCollider2D:
     m_Bits: 0
   m_ExcludeLayers:
     serializedVersion: 2
-    m_Bits: 0
+    m_Bits: 64
   m_LayerOverridePriority: 0
   m_ForceSendLayers:
     serializedVersion: 2
@@ -4843,7 +4848,7 @@ GameObject:
   m_Component:
   - component: {fileID: 563798172}
   - component: {fileID: 563798173}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: WeaponImage
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -7331,7 +7336,7 @@ PrefabInstance:
     - target: {fileID: 6754841696323916378, guid: cee954b66493e1042b410ddacc032d37, type: 3}
       propertyPath: m_Sprite
       value: 
-      objectReference: {fileID: -104293320526628631, guid: 6921d1b278467ee91aa51f7ccdb26b89, type: 3}
+      objectReference: {fileID: -104293320526628631, guid: f10f758e4595ee6a3b5dca0e33855bdb, type: 3}
     - target: {fileID: 8625458245463403604, guid: cee954b66493e1042b410ddacc032d37, type: 3}
       propertyPath: item
       value: 
@@ -7666,7 +7671,7 @@ MonoBehaviour:
   m_fontSizeMin: 18
   m_fontSizeMax: 72
   m_fontStyle: 0
-  m_HorizontalAlignment: 1
+  m_HorizontalAlignment: 2
   m_VerticalAlignment: 256
   m_textAlignment: 65535
   m_characterSpacing: 0
@@ -9991,7 +9996,7 @@ GameObject:
   - component: {fileID: 1199380680}
   - component: {fileID: 1199380679}
   - component: {fileID: 1199380681}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: ChargeBarBG
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -11072,6 +11077,7 @@ Transform:
   - {fileID: 1567243562}
   - {fileID: 1295252860}
   - {fileID: 22004661}
+  - {fileID: 399347104}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &1362491670
@@ -11912,7 +11918,7 @@ MonoBehaviour:
   maxDistance: 50
   attackRange: 1.5
   damage: 10
-  knockbackForce: 4
+  knockbackForce: 0
   knockbackResistance: 3.5
   speed: 2.5
   attackInterval: 1.2
@@ -11924,7 +11930,7 @@ MonoBehaviour:
   dashSkillCooldown: 10
   chargeDuration: 3
   dashDamage: 20
-  dashKnockback: 2
+  dashKnockback: 0
   maxShieldCount: 12
   gainShieldTime: 13
   shieldPrefab: {fileID: 2781350278378088729, guid: b5f1bdee9271addb7b1b95ed2f7832eb, type: 3}
@@ -13902,7 +13908,7 @@ GameObject:
   - component: {fileID: 1569948601}
   - component: {fileID: 1569948600}
   - component: {fileID: 1569948599}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Canvas
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -14560,7 +14566,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::BulletPool
   bulletPrefab: {fileID: 7108827000727370641, guid: 400cc874d68031927bb48cbba30f80e0, type: 3}
-  poolSize: 10
+  arcBulletPrefab: {fileID: 4479188932898599168, guid: 89aa35b9bccfd28b2a79fef10ab417f1, type: 3}
+  poolSize: 15
 --- !u!4 &1674477306
 Transform:
   m_ObjectHideFlags: 0
@@ -15901,6 +15908,79 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1828812309}
   m_CullTransparentMesh: 1
+--- !u!1001 &1833110071
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 1360846422}
+    m_Modifications:
+    - target: {fileID: 5180486773223387273, guid: cee954b66493e1042b410ddacc032d37, type: 3}
+      propertyPath: m_Name
+      value: PickableItem (9)
+      objectReference: {fileID: 0}
+    - target: {fileID: 6558725340552533480, guid: cee954b66493e1042b410ddacc032d37, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 16.997
+      objectReference: {fileID: 0}
+    - target: {fileID: 6558725340552533480, guid: cee954b66493e1042b410ddacc032d37, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 1.406
+      objectReference: {fileID: 0}
+    - target: {fileID: 6558725340552533480, guid: cee954b66493e1042b410ddacc032d37, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6558725340552533480, guid: cee954b66493e1042b410ddacc032d37, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 6558725340552533480, guid: cee954b66493e1042b410ddacc032d37, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6558725340552533480, guid: cee954b66493e1042b410ddacc032d37, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6558725340552533480, guid: cee954b66493e1042b410ddacc032d37, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: -0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6558725340552533480, guid: cee954b66493e1042b410ddacc032d37, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6558725340552533480, guid: cee954b66493e1042b410ddacc032d37, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6558725340552533480, guid: cee954b66493e1042b410ddacc032d37, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 6754841696323916378, guid: cee954b66493e1042b410ddacc032d37, type: 3}
+      propertyPath: m_Sprite
+      value: 
+      objectReference: {fileID: -2576084159183346013, guid: e310e9c720829de28ba7c35b50b9907f, type: 3}
+    - target: {fileID: 8625458245463403604, guid: cee954b66493e1042b410ddacc032d37, type: 3}
+      propertyPath: item
+      value: 
+      objectReference: {fileID: 11400000, guid: 296685651f25499c6a57d0f93c3afd14, type: 2}
+    - target: {fileID: 8625458245463403604, guid: cee954b66493e1042b410ddacc032d37, type: 3}
+      propertyPath: count
+      value: 50
+      objectReference: {fileID: 0}
+    - target: {fileID: 8625458245463403604, guid: cee954b66493e1042b410ddacc032d37, type: 3}
+      propertyPath: inventoryUI
+      value: 
+      objectReference: {fileID: 1420099678}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: cee954b66493e1042b410ddacc032d37, type: 3}
 --- !u!1 &1840247531
 GameObject:
   m_ObjectHideFlags: 0
@@ -16770,7 +16850,7 @@ GameObject:
   - component: {fileID: 1948253172}
   - component: {fileID: 1948253174}
   - component: {fileID: 1948253173}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: ChargeBarFill
   m_TagString: Untagged
   m_Icon: {fileID: 0}

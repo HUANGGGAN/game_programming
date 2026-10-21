@@ -318,7 +318,8 @@ public class PlayerShooter2D : MonoBehaviour
         if (shouldConsumeAmmo && !inventoryUIController.HasEquippedWeaponAmmo())
         {
             StartReload();
-            Tutorial.Instance?.ShowTutorial("reload", "You are out of ammo! Press R to reload your weapon. Don't worry, ammo is unlimited");
+            if (!equippedWeapon.hasLimitedAmmo)
+                Tutorial.Instance?.ShowTutorial("reload", "You are out of ammo! Press R to reload your weapon. Don't worry, ammo is unlimited");
             return false;
         }
 
@@ -349,7 +350,7 @@ public class PlayerShooter2D : MonoBehaviour
         // 3. Calculate direction vector snapshot
         Vector2 shootDirection = ((Vector2)mouseWorldPos - (Vector2)aimOrigin).normalized;
 
-        if (!TryPerformAttack(spawnPosition, shootDirection, chargeRatio))
+        if (!TryPerformAttack(spawnPosition, shootDirection, chargeRatio, mouseWorldPos))
             return false;
 
         if (shouldConsumeAmmo)
@@ -374,7 +375,7 @@ public class PlayerShooter2D : MonoBehaviour
         return null;
     }
 
-    private bool TryPerformAttack(Vector2 origin, Vector2 direction, float? chargeRatio = null)
+    private bool TryPerformAttack(Vector2 origin, Vector2 direction, float? chargeRatio = null, Vector2? targetPosition = null)
     {
         IWeaponAttackHandler handler = FindAttackHandler(equippedWeapon);
         if (handler == null)
@@ -388,9 +389,9 @@ public class PlayerShooter2D : MonoBehaviour
                 origin,
                 direction,
                 chargeRatio.Value,
-                tryConsumeAmmo);
+                tryConsumeAmmo, targetPosition);
         }
 
-        return handler.TryPerform(equippedWeapon, origin, direction, tryConsumeAmmo);
+        return handler.TryPerform(equippedWeapon, origin, direction, tryConsumeAmmo, targetPosition);
     }
 }

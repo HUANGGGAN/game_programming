@@ -32,6 +32,15 @@ Defined in EnemySO.cs
 
 - Universal: ItemSO
 - Gun: GunSO, need bullet type(BulletSO)
+- Charge: ChargedSO
 - Melee: MeleeSO
 - Wand: WandSO
 - Consumable: ConsumableSO
+
+### Wand type
+- 0: normal
+
+### Bullet ID, Mode
+- 0, 0: normal
+- 0, 1: explode on clicked position, direct
+- 1, 0: explode on clicked position, parabolic

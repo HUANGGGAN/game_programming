@@ -9,6 +9,15 @@ public class InventoryUIController : MonoBehaviour
     [SerializeField] private Transform weaponSlotPanelTransform;
     [SerializeField] private Transform armorSlotGridTransform;
     [SerializeField] private Transform consumableSlotGridTransform;
+    [SerializeField, Range(-32768, 32767)] private int draggedItemSortingOrder = 32767;
+
+    private Canvas dragCanvas;
+    private Transform draggedIcon;
+    private Transform draggedIconParent;
+    private int draggedIconSiblingIndex;
+    private Vector3 draggedIconLocalPosition;
+    private Vector3 draggedIconLocalScale;
+    private Quaternion draggedIconLocalRotation;
 
     private InventorySlot[] universalSlots;
     private InventorySlot[] weaponSlots;
@@ -60,6 +69,79 @@ public class InventoryUIController : MonoBehaviour
     private void OnEnable()
     {
         RefreshUI();
+    }
+
+    public void BeginItemDrag(Transform icon)
+    {
+        if (icon == null)
+            return;
+        Canvas parentCanvas = icon.GetComponentInParent<Canvas>();
+        if (parentCanvas == null)
+            return;
+
+        RestoreDraggedIcon();
+        Canvas rootCanvas = parentCanvas.rootCanvas;
+        if (dragCanvas == null)
+        {
+            GameObject layer = new GameObject("Inventory Drag Layer", typeof(RectTransform), typeof(Canvas), typeof(CanvasGroup));
+            RectTransform rect = layer.GetComponent<RectTransform>();
+            rect.SetParent(rootCanvas.transform, false);
+            rect.anchorMin = Vector2.zero;
+            rect.anchorMax = Vector2.one;
+            rect.sizeDelta = Vector2.zero;
+            rect.anchoredPosition = Vector2.zero;
+            dragCanvas = layer.GetComponent<Canvas>();
+            CanvasGroup group = layer.GetComponent<CanvasGroup>();
+            group.interactable = false;
+            group.blocksRaycasts = false;
+        }
+        dragCanvas.overrideSorting = true;
+        dragCanvas.sortingLayerID = rootCanvas.sortingLayerID;
+        dragCanvas.sortingOrder = draggedItemSortingOrder;
+
+        draggedIcon = icon;
+        draggedIconParent = icon.parent;
+        draggedIconSiblingIndex = icon.GetSiblingIndex();
+        draggedIconLocalPosition = icon.localPosition;
+        draggedIconLocalScale = icon.localScale;
+        draggedIconLocalRotation = icon.localRotation;
+        icon.SetParent(dragCanvas.transform, true);
+        icon.SetAsLastSibling();
+    }
+
+    public void EndItemDrag(Transform icon)
+    {
+        if (draggedIcon == icon)
+            RestoreDraggedIcon();
+    }
+
+    private void RestoreDraggedIcon()
+    {
+        Transform icon = draggedIcon;
+        Transform parent = draggedIconParent;
+        // Reparenting into a closed inventory can invoke the slot's OnDisable immediately.
+        draggedIcon = null;
+        draggedIconParent = null;
+        if (icon != null && parent != null)
+        {
+            icon.SetParent(parent, false);
+            icon.SetSiblingIndex(draggedIconSiblingIndex);
+            icon.localPosition = draggedIconLocalPosition;
+            icon.localScale = draggedIconLocalScale;
+            icon.localRotation = draggedIconLocalRotation;
+        }
+    }
+
+    private void OnDisable()
+    {
+        RestoreDraggedIcon();
+    }
+
+    private void OnDestroy()
+    {
+        RestoreDraggedIcon();
+        if (dragCanvas != null)
+            Destroy(dragCanvas.gameObject);
     }
 
     public void RefreshUI()

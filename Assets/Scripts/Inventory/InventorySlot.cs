@@ -120,6 +120,7 @@ public class InventorySlot : MonoBehaviour,
         DraggedSlot = this;
 
         originalLocalPosition = itemIconImage.transform.localPosition;
+        uiController?.BeginItemDrag(itemIconImage.transform);
 
         iconCanvasGroup.blocksRaycasts = false;
     }
@@ -140,6 +141,7 @@ public class InventorySlot : MonoBehaviour,
         isDragging = false;
         if (DraggedSlot == this)
             DraggedSlot = null;
+        uiController?.EndItemDrag(itemIconImage.transform);
         itemIconImage.transform.localPosition = originalLocalPosition;
         iconCanvasGroup.blocksRaycasts = true;
     }
@@ -173,7 +175,10 @@ public class InventorySlot : MonoBehaviour,
             return;
         isDragging = false;
         if (itemIconImage != null)
+        {
+            uiController?.EndItemDrag(itemIconImage.transform);
             itemIconImage.transform.localPosition = originalLocalPosition;
+        }
         if (iconCanvasGroup != null)
             iconCanvasGroup.blocksRaycasts = true;
     }

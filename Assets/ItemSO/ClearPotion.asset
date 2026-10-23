@@ -12,11 +12,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f22712a39be00187d950d83a05b49ea1, type: 3}
   m_Name: ClearPotion
   m_EditorClassIdentifier: Assembly-CSharp::ConsumableSO
-  itemName: HealPotion
+  itemName: ClearPotion
   itemID: 0
   rarity: 6
   icon: {fileID: -4885584719134663124, guid: c00c4a59dbe7c8a6bb9977898f40e578, type: 3}
   maxStackSize: 5
   tag: 0
   description: 
-  id: 1
+  id: 2

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ConsumableSO
   itemName: HealPotion
   itemID: 0
-  rarity: 6
+  rarity: 4
   icon: {fileID: -4885584719134663124, guid: c00c4a59dbe7c8a6bb9977898f40e578, type: 3}
   maxStackSize: 5
   tag: 0

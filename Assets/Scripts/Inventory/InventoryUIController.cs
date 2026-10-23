@@ -1,4 +1,5 @@
 using UnityEngine;
+using TMPro;
 
 public class InventoryUIController : MonoBehaviour
 {
@@ -9,7 +10,19 @@ public class InventoryUIController : MonoBehaviour
     [SerializeField] private Transform weaponSlotPanelTransform;
     [SerializeField] private Transform armorSlotGridTransform;
     [SerializeField] private Transform consumableSlotGridTransform;
+    [Header("Slot Prefabs (Frame/Slot)")]
+    [SerializeField] private GameObject SlotPrefab;
+    //[SerializeField] private GameObject weaponSlotPrefab;
+    //[SerializeField] private GameObject armorSlotPrefab;
+    //[SerializeField] private GameObject consumableSlotPrefab;
+
     [SerializeField, Range(-32768, 32767)] private int draggedItemSortingOrder = 32767;
+
+    [Header("Item Description")]
+    [SerializeField] private RectTransform descriptionPanel;
+    [SerializeField] private TMP_Text descriptionText;
+    [SerializeField] private Vector2 descriptionCursorOffset = new Vector2(16f, 0f);
+    private InventorySlot descriptionOwner;
 
     private Canvas dragCanvas;
     private Transform draggedIcon;
@@ -33,37 +46,73 @@ public class InventoryUIController : MonoBehaviour
 
     private void Awake()
     {
+        if (descriptionPanel != null)
+        {
+            if (descriptionText == null)
+                descriptionText = descriptionPanel.GetComponentInChildren<TMP_Text>(true);
+            CanvasGroup group = descriptionPanel.GetComponent<CanvasGroup>();
+            if (group == null)
+                group = descriptionPanel.gameObject.AddComponent<CanvasGroup>();
+            group.interactable = false;
+            group.blocksRaycasts = false;
+            descriptionPanel.gameObject.SetActive(false);
+        }
         if (inventoryData != null)
             inventoryData.EnsureDefaults();
 
         if (playerShooter == null)
             playerShooter = FindFirstObjectByType<PlayerShooter2D>();
 
-        if (universalSlotGridTransform != null)
-        {
-            universalSlots = universalSlotGridTransform.GetComponentsInChildren<InventorySlot>(true);
-        }
-
-        if (weaponSlotGridTransform != null)
-        {
-            weaponSlots = weaponSlotGridTransform.GetComponentsInChildren<InventorySlot>(true);
-        }
+        universalSlots = CreateSlots(universalSlotGridTransform, SlotPrefab,
+            InventorySlotType.Universal, InventorySO.universalSlotCount);
+        weaponSlots = CreateSlots(weaponSlotGridTransform, SlotPrefab,
+            InventorySlotType.Weapon, InventorySO.weaponSlotCount);
+        armorSlots = CreateSlots(armorSlotGridTransform, SlotPrefab,
+            InventorySlotType.Armor, InventorySO.armorSlotCount);
+        consumableSlots = CreateSlots(consumableSlotGridTransform, SlotPrefab,
+            InventorySlotType.Consumable, InventorySO.consumableSlotCount);
 
         if (weaponSlotPanelTransform != null)
         {
             weaponGuiSlots = weaponSlotPanelTransform.GetComponentsInChildren<WeaponSlot>(true);
             CacheWeaponSlotCanvasGroup();
         }
+    }
 
-        if (armorSlotGridTransform != null)
+    private InventorySlot[] CreateSlots(Transform grid, GameObject prefab, InventorySlotType type, int count)
+    {
+        if (grid == null || prefab == null)
         {
-            armorSlots = armorSlotGridTransform.GetComponentsInChildren<InventorySlot>(true);
+            Debug.LogError($"Assign the {type} slot grid and frame prefab on InventoryUIController.", this);
+            return System.Array.Empty<InventorySlot>();
+        }
+        if (prefab.GetComponentsInChildren<InventorySlot>(true).Length != 1)
+        {
+            Debug.LogError($"The {type} frame prefab must contain exactly one InventorySlot.", prefab);
+            return System.Array.Empty<InventorySlot>();
         }
 
-        if (consumableSlotGridTransform != null)
+        // Replace old slot frames without removing grid decorations or layout components.
+        foreach (Transform child in grid)
         {
-            consumableSlots = consumableSlotGridTransform.GetComponentsInChildren<InventorySlot>(true);
+            if (child.GetComponentInChildren<InventorySlot>(true) == null)
+                continue;
+            child.gameObject.SetActive(false);
+            Destroy(child.gameObject);
         }
+
+        InventorySlot[] createdSlots = new InventorySlot[count];
+        for (int i = 0; i < count; i++)
+        {
+            GameObject frame = Instantiate(prefab, grid, false);
+            frame.name = $"{type} Frame {i + 1}";
+            InventorySlot slot = frame.GetComponentInChildren<InventorySlot>(true);
+            slot.Initialize(this, type, i);
+            slot.gameObject.SetActive(true);
+            frame.SetActive(true);
+            createdSlots[i] = slot;
+        }
+        return createdSlots;
     }
 
     private void OnEnable()
@@ -71,8 +120,39 @@ public class InventoryUIController : MonoBehaviour
         RefreshUI();
     }
 
+    public void ShowItemDescription(InventorySlot owner, Vector2 cursor, Camera eventCamera)
+    {
+        if (descriptionPanel == null || descriptionText == null || owner == null || owner.CurrentItem == null ||
+            InventorySlot.DraggedSlot != null || !isActiveAndEnabled)
+            return;
+
+        descriptionOwner = owner;
+        descriptionText.text = owner.CurrentItem.description ?? string.Empty;
+        bool onRight = RectTransformUtility.WorldToScreenPoint(eventCamera, owner.transform.position).x < Screen.width * 0.5f;
+        bool onTop = RectTransformUtility.WorldToScreenPoint(eventCamera, owner.transform.position).y < Screen.height * 0.5f;
+        descriptionPanel.pivot = new Vector2(onRight ? 0f : 1f, onTop ? 0f : 1f);
+        Vector2 screenPosition = cursor + new Vector2((onRight ? 1f : -1f) * Mathf.Abs(descriptionCursorOffset.x), (onTop ? 1f : -1f) * Mathf.Abs(descriptionCursorOffset.y));
+        Canvas canvas = descriptionPanel.GetComponentInParent<Canvas>();
+        Camera camera = canvas != null && canvas.renderMode != RenderMode.ScreenSpaceOverlay ? canvas.worldCamera : null;
+        if (descriptionPanel.parent is RectTransform parent &&
+            RectTransformUtility.ScreenPointToWorldPointInRectangle(parent, screenPosition, camera, out Vector3 position))
+            descriptionPanel.position = position;
+        descriptionPanel.gameObject.SetActive(true);
+        descriptionPanel.SetAsLastSibling();
+    }
+
+    public void HideItemDescription(InventorySlot owner = null)
+    {
+        if (owner != null && descriptionOwner != owner)
+            return;
+        descriptionOwner = null;
+        if (descriptionPanel != null)
+            descriptionPanel.gameObject.SetActive(false);
+    }
+
     public void BeginItemDrag(Transform icon)
     {
+        HideItemDescription();
         if (icon == null)
             return;
         Canvas parentCanvas = icon.GetComponentInParent<Canvas>();
@@ -134,6 +214,8 @@ public class InventoryUIController : MonoBehaviour
 
     private void OnDisable()
     {
+        HideItemDescription();
+        Frame.ClearSelection();
         RestoreDraggedIcon();
     }
 

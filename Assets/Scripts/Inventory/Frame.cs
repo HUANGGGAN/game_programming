@@ -4,7 +4,7 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 [RequireComponent(typeof(Image))]
-public class Frame : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IDropHandler
+public class Frame : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler, IDropHandler
 {
     [Serializable]
     public struct RarityColor
@@ -23,6 +23,10 @@ public class Frame : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, I
     [SerializeField] private Image borderImage;
     [SerializeField] private InventorySlot slot;
     [SerializeField] private Color defaultColor = Color.white;
+    [SerializeField] private Color hoverColor = new Color(0.6f, 0.8f, 1f, 0.7f);
+    [SerializeField] private Color selectedColor = new Color(1f, 0.85f, 0.25f, 1f);
+    private static Frame selectedFrame;
+
     [SerializeField] private Color validDropColor = new Color(0.3f, 0.7f, 1f, 0.5f);
     [SerializeField] private Color hoveredDropColor = new Color(0.8f, 0.95f, 1f, 1f);
     [SerializeField] private RarityColor[] rarityColors =
@@ -39,6 +43,7 @@ public class Frame : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, I
 
     private void OnEnable()
     {
+        InventorySlot.DragEnded += ClearHover;
         ResolveReferences();
         RefreshColor();
     }
@@ -74,6 +79,12 @@ public class Frame : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, I
         RefreshColor();
     }
 
+    private void ClearHover()
+    {
+        pointerInside = false;
+        RefreshColor();
+    }
+
     private void RefreshColor()
     {
         Color color = defaultColor;
@@ -93,6 +104,11 @@ public class Frame : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, I
             if (!slot.IsDragging && slot.CanReceiveDropFrom(InventorySlot.DraggedSlot))
                 borderColor = pointerInside ? hoveredDropColor : validDropColor;
         }
+        if (selectedFrame == this)
+            borderColor = selectedColor;
+        else if (InventorySlot.DraggedSlot == null && pointerInside && !IsMousePressed())
+            borderColor = hoverColor;
+
         if (frameImage != null)
             frameImage.color = color;
         if (borderImage != null)
@@ -102,13 +118,46 @@ public class Frame : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, I
     public void OnPointerEnter(PointerEventData eventData)
     {
         pointerInside = true;
+        slot?.OnPointerEnter(eventData);
         RefreshColor();
     }
 
     public void OnPointerExit(PointerEventData eventData)
     {
         pointerInside = false;
+        slot?.OnPointerExit(eventData);
         RefreshColor();
+    }
+
+    private static bool IsMousePressed()
+    {
+        var mouse = UnityEngine.InputSystem.Mouse.current;
+        return mouse != null && (mouse.leftButton.isPressed || mouse.rightButton.isPressed || mouse.middleButton.isPressed);
+    }
+
+    public void Select()
+    {
+        Frame previous = selectedFrame;
+        selectedFrame = this;
+        if (previous != null && previous != this)
+            previous.RefreshColor();
+        RefreshColor();
+    }
+
+    public static void ClearSelection()
+    {
+        Frame previous = selectedFrame;
+        selectedFrame = null;
+        if (previous != null)
+            previous.RefreshColor();
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (eventData.button != PointerEventData.InputButton.Left || InventorySlot.DraggedSlot != null || eventData.dragging)
+            return;
+        Select();
+        slot?.OnPointerClick(eventData);
     }
 
     public void OnDrop(PointerEventData eventData)
@@ -120,6 +169,9 @@ public class Frame : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, I
 
     private void OnDisable()
     {
+        InventorySlot.DragEnded -= ClearHover;
+        if (selectedFrame == this)
+            selectedFrame = null;
         pointerInside = false;
         if (frameImage != null)
             frameImage.color = defaultColor;

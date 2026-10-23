@@ -7,13 +7,20 @@ public class InventorySlot : MonoBehaviour,
     IBeginDragHandler,
     IDragHandler,
     IEndDragHandler,
-    IDropHandler
+    IDropHandler,
+    IPointerEnterHandler,
+    IPointerExitHandler,
+    IPointerClickHandler
 {
     public int slotIndex;
     public InventorySlotType slotType;
 
     [SerializeField] private Image itemIconImage;
     [SerializeField] private TMP_Text countText;
+    [SerializeField, Min(0f)] private float descriptionHoverDelay = 0.5f;
+    private bool pointerInside;
+    private float hoverStartedAt;
+    private PointerEventData hoverEvent;
 
     private CanvasGroup iconCanvasGroup;
     [SerializeField] private InventoryUIController uiController;
@@ -27,16 +34,25 @@ public class InventorySlot : MonoBehaviour,
     public bool IsDragging => isDragging;
     public ItemSO CurrentItem => currentItem;
     public static InventorySlot DraggedSlot { get; private set; }
+    public static event System.Action DragEnded;
 
     private void Awake()
     {
-        uiController = GetComponentInParent<InventoryUIController>();
+        if (uiController == null)
+            uiController = GetComponentInParent<InventoryUIController>();
         ResolveCountText();
 
         iconCanvasGroup = itemIconImage.GetComponent<CanvasGroup>();
 
         if (iconCanvasGroup == null)
             iconCanvasGroup = itemIconImage.gameObject.AddComponent<CanvasGroup>();
+    }
+
+    public void Initialize(InventoryUIController controller, InventorySlotType type, int index)
+    {
+        uiController = controller;
+        SetSlotType(type);
+        SetupSlot(null, index, 0);
     }
 
     public void SetupSlot(ItemSO item, int index, int count = 1)
@@ -108,6 +124,57 @@ public class InventorySlot : MonoBehaviour,
         }
     }
 
+    private void Update()
+    {
+        if (!pointerInside)
+            return;
+        if (DraggedSlot != null)
+        {
+            hoverStartedAt = Time.unscaledTime;
+            uiController?.HideItemDescription(this);
+            return;
+        }
+        if (Time.unscaledTime - hoverStartedAt >= descriptionHoverDelay)
+            ShowDescription();
+    }
+
+    public void OnPointerEnter(PointerEventData eventData)
+    {
+        if (!pointerInside)
+            hoverStartedAt = Time.unscaledTime;
+        pointerInside = true;
+        hoverEvent = eventData;
+    }
+
+    public void OnPointerExit(PointerEventData eventData)
+    {
+        pointerInside = false;
+        hoverEvent = null;
+        uiController?.HideItemDescription(this);
+    }
+
+    public void OnPointerClick(PointerEventData eventData)
+    {
+        if (eventData.button != PointerEventData.InputButton.Left || DraggedSlot != null || eventData.dragging)
+            return;
+        GetComponentInParent<Frame>()?.Select();
+        hoverEvent = eventData;
+        hoverStartedAt = Time.unscaledTime - descriptionHoverDelay;
+        ShowDescription();
+    }
+
+    private void ShowDescription()
+    {
+        if (currentItem == null || hoverEvent == null || DraggedSlot != null)
+        {
+            uiController?.HideItemDescription(this);
+            return;
+        }
+        Vector2 cursor = UnityEngine.InputSystem.Mouse.current != null
+            ? UnityEngine.InputSystem.Mouse.current.position.ReadValue() : hoverEvent.position;
+        uiController?.ShowItemDescription(this, cursor, hoverEvent.enterEventCamera);
+    }
+
     public void OnBeginDrag(PointerEventData eventData)
     {
         if (itemIconImage.sprite == null)
@@ -144,6 +211,7 @@ public class InventorySlot : MonoBehaviour,
         uiController?.EndItemDrag(itemIconImage.transform);
         itemIconImage.transform.localPosition = originalLocalPosition;
         iconCanvasGroup.blocksRaycasts = true;
+        DragEnded?.Invoke();
     }
 
     public void OnDrop(PointerEventData eventData)
@@ -169,6 +237,9 @@ public class InventorySlot : MonoBehaviour,
 
     private void OnDisable()
     {
+        pointerInside = false;
+        hoverEvent = null;
+        uiController?.HideItemDescription(this);
         if (DraggedSlot == this)
             DraggedSlot = null;
         if (!isDragging)
@@ -181,5 +252,6 @@ public class InventorySlot : MonoBehaviour,
         }
         if (iconCanvasGroup != null)
             iconCanvasGroup.blocksRaycasts = true;
+        DragEnded?.Invoke();
     }
 }

@@ -19,6 +19,7 @@ public class Bullet2D : MonoBehaviour
     private float effectProbabilityMultiplier = 1f;
     private int damageSourceId;
     private bool hasImpacted;
+    private bool hasLaunched;
     private int remainingPierces;
     private Vector2? explosionTarget;
     private bool componentsInitialized;
@@ -95,6 +96,7 @@ public class Bullet2D : MonoBehaviour
         this.effectProbabilityMultiplier = Mathf.Max(0f, effectProbabilityMultiplier);
         damageSourceId = Interlocked.Increment(ref nextDamageSourceId);
         hasImpacted = false;
+        hasLaunched = true;
         hitEnemies.Clear();
         remainingPierces = Mathf.Max(0, bulletData.isPiercing);
         explosionTarget = UsesTargetExplosion ? targetPosition : null;
@@ -328,6 +330,11 @@ public class Bullet2D : MonoBehaviour
     {
         EnsureComponents();
         hasImpacted = true;
+        // Pool prewarming also calls Deactivate; only fired bullets should emit particles.
+        bool playParticles = hasLaunched;
+        hasLaunched = false;
+        if (playParticles && bulletData != null && bulletData.ParticleID > 0)
+            ParticlePool.Instance?.Play(bulletData.ParticleID.ToString(System.Globalization.CultureInfo.InvariantCulture), transform.position);
         // Stop movement, make invisible, and set inactive
         rb.linearVelocity = Vector2.zero;
         if (spriteRenderer != null) spriteRenderer.enabled = false;

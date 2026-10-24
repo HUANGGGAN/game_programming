@@ -5,7 +5,7 @@ using UnityEngine.AI;
 
 public enum EnemyDamageKind { Other, Projectile, Melee }
 
-[RequireComponent(typeof(NavMeshAgent))]
+[RequireComponent(typeof(NavMeshAgent), typeof(Rigidbody2D))]
 public class EnemyChase : MonoBehaviour
 {
     [Header("Target Setup")]
@@ -41,6 +41,8 @@ public class EnemyChase : MonoBehaviour
     [SerializeField] private float knockbackResistance = 0f;
     [SerializeField] private float speed = 2.5f;
     [SerializeField] private float attackInterval = 1.2f;
+    [SerializeField, Min(0f)] private float attackDuration = 0.4f;
+    [SerializeField] private AttackIndicator attackIndicator;
     [SerializeField] private float maxHealth = 35f;
     [SerializeField] private float hitCooldownDuration = 0.2f;
     [SerializeField, Min(0f)] private float playerContactPushForce = 1.5f;
@@ -50,9 +52,18 @@ public class EnemyChase : MonoBehaviour
     private bool spriteFacesRightByDefault = true;
     private Color originalSpriteColor;
     private float currentHealth;
-    private Vector2 knockbackVelocity;
-    private float knockbackRemaining;
+    [Header("Knockback")]
+    [SerializeField, Min(0f)] private float knockbackDuration = 0.12f;
+    private Rigidbody2D body;
+    private Coroutine knockbackRoutine;
+    private bool isKnockedBack;
+    private bool agentUpdatePositionBeforeKnockback;
+    private bool agentStoppedBeforeKnockback;
+    private Vector2? lethalKnockbackVelocity;
     private float lastAttackTime;
+    private bool isAttacking;
+    private float attackElapsed;
+    private bool agentStoppedBeforeAttack;
     private Coroutine hitFlashRoutine;
     private Coroutine deathRoutine;
     private bool isDying;
@@ -66,7 +77,6 @@ public class EnemyChase : MonoBehaviour
     private readonly Dictionary<int, float> recentDamageSourceTimes = new Dictionary<int, float>();
     private readonly List<ActiveEffect> activeEffects = new List<ActiveEffect>();
 
-    private const float KnockbackDuration = 0.12f;
     private const float HitFlashDuration = 0.08f;
     private const float DeathBodyDuration = 0.5f;
     private static readonly Color HitColor = new Color(1f, 0.35f, 0.35f, 1f);
@@ -74,7 +84,17 @@ public class EnemyChase : MonoBehaviour
     protected virtual void Awake()
     {
         agent = GetComponent<NavMeshAgent>();
+        body = GetComponent<Rigidbody2D>();
+        if (body == null)
+            body = gameObject.AddComponent<Rigidbody2D>();
+        body.gravityScale = 0f;
+        body.constraints |= RigidbodyConstraints2D.FreezeRotation;
+        body.bodyType = RigidbodyType2D.Kinematic;
         spriteRenderer = GetComponentInChildren<SpriteRenderer>();
+        if (attackIndicator == null)
+            attackIndicator = GetComponentInChildren<AttackIndicator>(true);
+        if (attackIndicator != null)
+            attackIndicator.Hide();
 
         ApplyEnemyData();
 
@@ -103,6 +123,7 @@ public class EnemyChase : MonoBehaviour
             }
         }
         isDying = false;
+        lastAttackTime = Time.time - Mathf.Max(0f, attackInterval);
         deathVelocity = Vector2.zero;
 
         // Reset health every time the enemy is spawned/reactivated
@@ -110,8 +131,8 @@ public class EnemyChase : MonoBehaviour
         recentDamageSourceIds.Clear();
         recentDamageSourceTimes.Clear();
         activeEffects.Clear();
-        knockbackVelocity = Vector2.zero;
-        knockbackRemaining = 0f;
+        ClearKnockback();
+        lethalKnockbackVelocity = null;
 
         // Auto-find Player if not assigned in Inspector
         if (player == null)
@@ -138,6 +159,7 @@ public class EnemyChase : MonoBehaviour
         knockbackResistance = enemyData.knockbackResistance;
         speed = enemyData.speed;
         attackInterval = enemyData.attackInterval;
+        attackDuration = enemyData.attackDuration;
         maxHealth = enemyData.HP;
         enemy_point = enemyData.enemy_point;
         enemy_difficulty = enemyData.enemy_difficulty;
@@ -158,10 +180,24 @@ public class EnemyChase : MonoBehaviour
             return;
         }
 
+        if (isKnockedBack)
+        {
+            if (agent.enabled && agent.isOnNavMesh)
+                agent.nextPosition = transform.position;
+            CleanupExpiredDamageSources();
+            return;
+        }
+
         if (!agent.isOnNavMesh)
             return;
 
         agent.speed = EffectRuntime.HasEffect(activeEffects, EffectRuntime.Faint) ? 0f : MovementSpeed;
+        if (isAttacking)
+        {
+            UpdateAttack();
+            CleanupExpiredDamageSources();
+            return;
+        }
         UpdateMovement();
         CleanupExpiredDamageSources();
         UpdateSpriteFacing();
@@ -177,25 +213,117 @@ public class EnemyChase : MonoBehaviour
             else
                 agent.SetDestination(player.position);
         }
-
-        if (knockbackRemaining > 0f)
-        {
-            agent.velocity = knockbackVelocity;
-            knockbackRemaining -= Time.deltaTime;
-        }
     }
 
     protected void TryAttackPlayer()
     {
-        if (player != null && Vector2.Distance(transform.position, player.position) <= attackRange &&
+        if (!isAttacking && !isKnockedBack && attackIndicator != null && player != null &&
+            Vector2.Distance(transform.position, player.position) <= attackRange &&
             Time.time >= lastAttackTime + attackInterval)
+            BeginAttack();
+    }
+
+    private void BeginAttack()
+    {
+        isAttacking = true;
+        attackElapsed = 0f;
+        agentStoppedBeforeAttack = agent.isStopped;
+        agent.isStopped = true;
+        agent.velocity = Vector3.zero;
+        Vector2 direction = (Vector2)player.position - (Vector2)transform.position;
+        if (direction.sqrMagnitude <= Mathf.Epsilon)
+            direction = Vector2.right;
+        FaceDirection(direction);
+        attackIndicator.Begin(direction);
+    }
+
+    private void UpdateAttack()
+    {
+        agent.velocity = Vector3.zero;
+        attackElapsed += Time.deltaTime;
+        attackIndicator.SetProgress(attackDuration > 0f ? attackElapsed / attackDuration : 1f);
+        if (attackElapsed < Mathf.Max(0f, attackDuration))
+            return;
+
+        if (player != null && attackIndicator.Contains(player.position))
             Attack();
+        CancelAttack();
+    }
+
+    private void CancelAttack()
+    {
+        if (attackIndicator != null)
+            attackIndicator.Hide();
+        if (!isAttacking)
+            return;
+        isAttacking = false;
+        lastAttackTime = Time.time;
+        if (agent.enabled && agent.isOnNavMesh)
+            agent.isStopped = agentStoppedBeforeAttack;
+    }
+
+    private void ApplyKnockback(Vector2 direction, float force)
+    {
+        if (!CanReceiveKnockback || isDying || force <= 0f || direction.sqrMagnitude <= 0f)
+            return;
+        float effectiveForce = force * (1f - Mathf.Clamp01(knockbackResistance));
+        if (effectiveForce <= 0f)
+            return;
+
+        CancelAttack();
+        if (!isKnockedBack)
+        {
+            agentUpdatePositionBeforeKnockback = agent.updatePosition;
+            agentStoppedBeforeKnockback = agent.enabled && agent.isOnNavMesh && agent.isStopped;
+            if (agent.enabled && agent.isOnNavMesh)
+            {
+                agent.isStopped = true;
+                agent.velocity = Vector3.zero;
+            }
+            agent.updatePosition = false;
+            body.bodyType = RigidbodyType2D.Dynamic;
+            body.linearVelocity = Vector2.zero;
+            isKnockedBack = true;
+        }
+        body.AddForce(direction.normalized * effectiveForce, ForceMode2D.Impulse);
+        if (knockbackRoutine != null)
+            StopCoroutine(knockbackRoutine);
+        knockbackRoutine = StartCoroutine(ResetKnockback());
+    }
+
+    private IEnumerator ResetKnockback()
+    {
+        yield return new WaitForSeconds(Mathf.Max(0f, knockbackDuration));
+        knockbackRoutine = null;
+        ClearKnockback();
     }
 
     protected void ClearKnockback()
     {
-        knockbackVelocity = Vector2.zero;
-        knockbackRemaining = 0f;
+        if (knockbackRoutine != null)
+        {
+            StopCoroutine(knockbackRoutine);
+            knockbackRoutine = null;
+        }
+        if (!isKnockedBack)
+            return;
+        body.linearVelocity = Vector2.zero;
+        body.angularVelocity = 0f;
+        body.bodyType = RigidbodyType2D.Kinematic;
+        if (agent.enabled && agent.isOnNavMesh)
+        {
+            // nextPosition remains constrained to the NavMesh while physics owns movement.
+            agent.nextPosition = transform.position;
+            if (agentUpdatePositionBeforeKnockback)
+            {
+                transform.position = agent.nextPosition;
+                body.position = transform.position;
+            }
+            agent.velocity = Vector3.zero;
+            agent.isStopped = agentStoppedBeforeKnockback;
+        }
+        agent.updatePosition = agentUpdatePositionBeforeKnockback;
+        isKnockedBack = false;
     }
 
     protected void StopHitFlash()
@@ -234,7 +362,7 @@ public class EnemyChase : MonoBehaviour
 
     private void PushAwayFromPlayer(Collision2D collision)
     {
-        if (!CanReceiveKnockback || currentHealth <= 0f || playerContactPushForce <= 0f || knockbackRemaining > 0f)
+        if (!CanReceiveKnockback || currentHealth <= 0f || playerContactPushForce <= 0f || isKnockedBack)
             return;
 
         Player contactedPlayer = collision.collider.GetComponentInParent<Player>();
@@ -245,9 +373,7 @@ public class EnemyChase : MonoBehaviour
         if (direction.sqrMagnitude <= Mathf.Epsilon)
             direction = collision.contactCount > 0 ? collision.GetContact(0).normal : Vector2.right;
 
-        // Use the agent's existing knockback movement so navigation does not cancel the push.
-        knockbackVelocity = direction.normalized * playerContactPushForce;
-        knockbackRemaining = KnockbackDuration;
+        ApplyKnockback(direction, playerContactPushForce);
     }
 
     private void Attack()
@@ -307,11 +433,17 @@ public class EnemyChase : MonoBehaviour
         if (damageAmount <= 0f)
             return false;
 
+        CancelAttack();
         // Record the lethal hit's knockback before Die captures the corpse's momentum.
         if (CanReceiveKnockback && knockbackForce > 0f && knockbackDirection.sqrMagnitude > 0f)
         {
-            knockbackVelocity = knockbackDirection.normalized * (knockbackForce * (1f - Mathf.Clamp01(knockbackResistance)));
-            knockbackRemaining = KnockbackDuration;
+            if (damageAmount >= currentHealth)
+            {
+                Vector2 impulse = knockbackDirection.normalized * knockbackForce * (1f - Mathf.Clamp01(knockbackResistance));
+                if (impulse.sqrMagnitude > 0f)
+                    lethalKnockbackVelocity = (isKnockedBack ? body.linearVelocity : Vector2.zero) + impulse / body.mass;
+            }
+            ApplyKnockback(knockbackDirection, knockbackForce);
         }
 
         currentHealth -= damageAmount;
@@ -428,6 +560,7 @@ public class EnemyChase : MonoBehaviour
         if (isDying)
             return;
         isDying = true;
+        CancelAttack();
         currentHealth = 0f;
         StopHitFlash();
         if (spriteRenderer != null)
@@ -436,9 +569,8 @@ public class EnemyChase : MonoBehaviour
             spriteRenderer.color = HitColor;
         }
         deathBody = GetComponent<Rigidbody2D>();
-        deathVelocity = knockbackRemaining > 0f ? knockbackVelocity
-            : agent.enabled && agent.isOnNavMesh ? (Vector2)agent.velocity
-            : deathBody != null ? deathBody.linearVelocity : Vector2.zero;
+        deathVelocity = lethalKnockbackVelocity ?? (isKnockedBack ? body.linearVelocity
+            : agent.enabled && agent.isOnNavMesh ? (Vector2)agent.velocity : body.linearVelocity);
         ClearKnockback();
 
         // Stop AI and collisions; the death coroutine preserves the captured movement.
@@ -483,6 +615,8 @@ public class EnemyChase : MonoBehaviour
 
     protected virtual void OnDisable()
     {
+        CancelAttack();
+        ClearKnockback();
         if (deathRoutine != null)
         {
             StopCoroutine(deathRoutine);

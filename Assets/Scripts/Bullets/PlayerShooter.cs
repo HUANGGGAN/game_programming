@@ -12,6 +12,7 @@ public class PlayerShooter2D : MonoBehaviour
     [SerializeField] private InventoryUIController inventoryUIController;
     [SerializeField] private GameObject reloadStatusText;
     [SerializeField] private ChargingBar chargingBar;
+    [SerializeField] private Animator animator;
     [SerializeField] private TMP_Text[] weaponAmmoTexts = new TMP_Text[3];
 
     private Camera mainCamera;
@@ -197,6 +198,10 @@ public class PlayerShooter2D : MonoBehaviour
         SetShootInterval(equippedWeapon.shootInterval);
         nextShotTime = Time.time + shootInterval;
         RefreshWeaponAmmoTexts();
+        if (animator != null && equippedWeapon.animatorOverrideController != null)
+        {
+            animator.runtimeAnimatorController = equippedWeapon.animatorOverrideController;
+        }
         return true;
     }
 
@@ -208,6 +213,10 @@ public class PlayerShooter2D : MonoBehaviour
         chargingBar?.SetVisible(false);
         weaponHolder?.SetEquippedWeapon(null);
         RefreshWeaponAmmoTexts();
+        if (animator != null)
+        {
+            animator.runtimeAnimatorController = null;
+        }
     }
 
     private void StartReload()
@@ -350,8 +359,12 @@ public class PlayerShooter2D : MonoBehaviour
         // 3. Calculate direction vector snapshot
         Vector2 shootDirection = ((Vector2)mouseWorldPos - (Vector2)aimOrigin).normalized;
 
+        bool isMeleeAttack = equippedWeapon is MeleeSO;
         if (!TryPerformAttack(spawnPosition, shootDirection, chargeRatio, mouseWorldPos))
             return false;
+
+        if (isMeleeAttack && animator != null)
+            animator.SetTrigger("Swipe");
 
         if (shouldConsumeAmmo)
             RefreshWeaponAmmoTexts();

@@ -16,6 +16,7 @@ public class BulletSO : ScriptableObject
     [Header("Visuals & Identification")]
     public string bulletId;       // Used by pooler to distinguish bullet pools
     public Sprite bulletSprite;
+    [Min(0)] public int ParticleID = 0; // 0: no particle effect on deactivation
     public Color tint = Color.white;
     public Vector2 colliderSize = new Vector2(0.2f, 0.2f);
 

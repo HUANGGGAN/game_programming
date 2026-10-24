@@ -27,7 +27,7 @@ MonoBehaviour:
   attackAngle: 90
   attackDamage: 5
   attackDuration: 0.15
-  knockbackForce: 1.6
+  knockbackForce: 3
   critRate: 0.05
   critMul: 3
   drawAttackRange: 1

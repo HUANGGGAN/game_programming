@@ -15,22 +15,26 @@ public class Player : MonoBehaviour
     [Header("Movement Configuration")]
     [SerializeField] private float moveSpeed = 5.0f; // Movement speed in units/sec
 
+    [Header("Knockback")]
+    [SerializeField, Min(0f)] private float knockbackDuration = 0.12f;
+
     private Rigidbody2D _rb;
     private Vector2 _inputVector;
-    private Vector2 knockbackVelocity;
-    private float knockbackRemaining;
+    private bool isKnockedBack;
+    private Coroutine knockbackRoutine;
     private readonly List<ActiveEffect> activeEffects = new List<ActiveEffect>();
     private Camera mainCamera;
     private Coroutine startupTutorialRoutine;
 
     public PlayerData Data => playerData;
 
-    private const float KnockbackDuration = 0.12f;
-
     private void Awake()
     {
         // Cache the Rigidbody2D reference
         _rb = GetComponent<Rigidbody2D>();
+        _rb.bodyType = RigidbodyType2D.Dynamic;
+        _rb.gravityScale = 0f;
+        _rb.constraints |= RigidbodyConstraints2D.FreezeRotation;
         mainCamera = Camera.main;
         if (playerSpriteRenderer == null)
             playerSpriteRenderer = GetComponent<SpriteRenderer>();
@@ -56,7 +60,7 @@ public class Player : MonoBehaviour
 
         if (playerData != null)
         {
-            playerData.ResetScore();
+            playerData.Reset();
             UpdatePlayerBarsFromData();
         }
     }
@@ -84,12 +88,13 @@ public class Player : MonoBehaviour
         Interactable.UpdateInteraction(transform);
         EffectRuntime.Tick(activeEffects, Time.deltaTime, amount => TakeDamage(amount));
         ReadMovementInput();
-        HandleScoreInput();
         FaceTowardCursor();
     }
 
     private void OnDisable()
     {
+        ClearKnockback();
+        _inputVector = Vector2.zero;
         if (startupTutorialRoutine != null)
         {
             StopCoroutine(startupTutorialRoutine);
@@ -100,15 +105,12 @@ public class Player : MonoBehaviour
 
     private void FixedUpdate()
     {
-        float effectiveMoveSpeed = EffectRuntime.HasEffect(activeEffects, EffectRuntime.Faint) ? 0f : moveSpeed;
-        _rb.linearVelocity = _inputVector * effectiveMoveSpeed + knockbackVelocity;
+        // Let physics own movement until the knockback impulse has finished.
+        if (isKnockedBack)
+            return;
 
-        if (knockbackRemaining > 0f)
-        {
-            knockbackRemaining -= Time.fixedDeltaTime;
-            if (knockbackRemaining <= 0f)
-                knockbackVelocity = Vector2.zero;
-        }
+        float effectiveMoveSpeed = EffectRuntime.HasEffect(activeEffects, EffectRuntime.Faint) ? 0f : moveSpeed;
+        _rb.linearVelocity = _inputVector * effectiveMoveSpeed;
     }
 
     private void ReadMovementInput()
@@ -144,18 +146,6 @@ public class Player : MonoBehaviour
         }
     }
 
-    private void HandleScoreInput()
-    {
-        if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
-        {
-            if (playerData != null)
-            {
-                playerData.currentScore += 10;
-                Debug.Log($"Score is now: {playerData.currentScore}");
-            }
-        }
-    }
-
     public bool TakeDamage(float amount)
     {
         if (playerData == null || amount <= 0f || playerData.currentHealth <= 0f)
@@ -186,11 +176,40 @@ public class Player : MonoBehaviour
 
     public void ApplyKnockback(Vector2 direction, float force)
     {
-        if (force <= 0f || direction.sqrMagnitude <= Mathf.Epsilon)
+        if (!isActiveAndEnabled || force <= 0f || direction.sqrMagnitude <= Mathf.Epsilon)
             return;
 
-        knockbackVelocity = direction.normalized * force;
-        knockbackRemaining = KnockbackDuration;
+        if (!isKnockedBack)
+        {
+            _rb.linearVelocity = Vector2.zero;
+            isKnockedBack = true;
+        }
+        _rb.AddForce(direction.normalized * force, ForceMode2D.Impulse);
+        if (knockbackRoutine != null)
+            StopCoroutine(knockbackRoutine);
+        knockbackRoutine = StartCoroutine(ResetKnockback());
+    }
+
+    private IEnumerator ResetKnockback()
+    {
+        yield return new WaitForSeconds(Mathf.Max(0f, knockbackDuration));
+        knockbackRoutine = null;
+        ClearKnockback();
+    }
+
+    private void ClearKnockback()
+    {
+        if (knockbackRoutine != null)
+        {
+            StopCoroutine(knockbackRoutine);
+            knockbackRoutine = null;
+        }
+        isKnockedBack = false;
+        if (_rb != null)
+        {
+            _rb.linearVelocity = Vector2.zero;
+            _rb.angularVelocity = 0f;
+        }
     }
 
     public void UpdatePlayerBarsFromData()

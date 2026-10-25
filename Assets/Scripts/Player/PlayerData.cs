@@ -12,6 +12,7 @@ public class PlayerData : ScriptableObject
     public int maxMP = 100;
 
     public event Action OnScoreChanged;
+    public event Action OnMoneyChanged;
 
     public void AddScore(int amount)
     {
@@ -19,13 +20,14 @@ public class PlayerData : ScriptableObject
         OnScoreChanged?.Invoke();
     }
 
-    public void ResetScore()
+    public void Reset()
     {
         currentScore = 0;
         money = 0;
         currentHealth = maxHealth;
         currentMP = maxMP;
         OnScoreChanged?.Invoke();
+        OnMoneyChanged?.Invoke();
     }
 
     public void SetScore(int amount)
@@ -37,11 +39,13 @@ public class PlayerData : ScriptableObject
     public void AddMoney(int amount)
     {
         money += amount;
+        OnMoneyChanged?.Invoke();
     }
 
     public void SetMoney(int amount)
     {
         money = amount;
+        OnMoneyChanged?.Invoke();
     }
 
     public void SetMaxHealth(float amount)

@@ -15,7 +15,7 @@ MonoBehaviour:
   itemName: Bow
   itemID: 11
   rarity: 1
-  icon: {fileID: 1632237298157059045, guid: 55e9e4b398a2d3618929e23fb347fed2, type: 3}
+  icon: {fileID: -5891007321772614072, guid: 1afe4df6fb66d8d2bbaf807f6d42e05e, type: 3}
   maxStackSize: 1
   tag: 1
   description: 
@@ -23,6 +23,7 @@ MonoBehaviour:
   consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
+  animatorOverrideController: {fileID: 0}
   capacity: 2
   reloadTime: 2
   spread: 5

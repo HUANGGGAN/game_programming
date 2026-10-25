@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem; // New Input System
 using TMPro;
+using UnityEngine.UI;
 
 public class PlayerShooter2D : MonoBehaviour
 {
@@ -14,6 +15,8 @@ public class PlayerShooter2D : MonoBehaviour
     [SerializeField] private ChargingBar chargingBar;
     [SerializeField] private Animator animator;
     [SerializeField] private TMP_Text[] weaponAmmoTexts = new TMP_Text[3];
+    [SerializeField] private Transform weaponFrameSlotGrid;
+    private Image[] weaponFrames = Array.Empty<Image>();
 
     private Camera mainCamera;
     private WeaponHolder weaponHolder;
@@ -30,12 +33,16 @@ public class PlayerShooter2D : MonoBehaviour
     };
     private bool isReloading;
     private float reloadFinishTime;
+    private float reloadDuration;
     private bool isChargingAttack;
     private float chargeStartTime;
 
     private void Awake()
     {
         mainCamera = Camera.main;
+        if (weaponFrameSlotGrid != null)
+            weaponFrames = weaponFrameSlotGrid.GetComponentsInChildren<Image>(true);
+        ClearWeaponFrames();
         attackHandlers.Insert(0, meleeAttack);
         player = GetComponent<Player>();
         if (player == null)
@@ -93,12 +100,12 @@ public class PlayerShooter2D : MonoBehaviour
         if (shootingEnabled && leftClickHeld && Time.time >= nextShotTime)
         {
             Shoot();
-            nextShotTime = Time.time + shootInterval;
         }
     }
 
     private void LateUpdate()
     {
+        UpdateWeaponFrames();
         if (equippedWeapon is not MeleeSO)
             return;
 
@@ -120,6 +127,9 @@ public class PlayerShooter2D : MonoBehaviour
 
     private void OnDisable()
     {
+        CancelReload();
+        nextShotTime = 0f;
+        ClearWeaponFrames();
         meleeAttack.HideRange();
     }
 
@@ -197,11 +207,8 @@ public class PlayerShooter2D : MonoBehaviour
         weaponHolder?.SetEquippedWeapon(equippedWeapon);
         SetShootInterval(equippedWeapon.shootInterval);
         nextShotTime = Time.time + shootInterval;
+        UpdateWeaponFrames();
         RefreshWeaponAmmoTexts();
-        if (animator != null && equippedWeapon.animatorOverrideController != null)
-        {
-            animator.runtimeAnimatorController = equippedWeapon.animatorOverrideController;
-        }
         return true;
     }
 
@@ -209,14 +216,12 @@ public class PlayerShooter2D : MonoBehaviour
     {
         CancelReload();
         equippedWeapon = null;
+        nextShotTime = 0f;
+        ClearWeaponFrames();
         meleeAttack.SetEquippedWeapon(null);
         chargingBar?.SetVisible(false);
         weaponHolder?.SetEquippedWeapon(null);
         RefreshWeaponAmmoTexts();
-        if (animator != null)
-        {
-            animator.runtimeAnimatorController = null;
-        }
     }
 
     private void StartReload()
@@ -230,7 +235,10 @@ public class PlayerShooter2D : MonoBehaviour
         chargeStartTime = 0f;
         chargingBar?.ResetCharge();
         isReloading = true;
-        reloadFinishTime = Time.time + Mathf.Max(0f, reloadable.ReloadDuration);
+        reloadDuration = Mathf.Max(0f, reloadable.ReloadDuration);
+        reloadFinishTime = Time.time + reloadDuration;
+        nextShotTime = Time.time;
+        UpdateWeaponFrames();
         SetReloadTextVisible(true);
     }
 
@@ -240,6 +248,7 @@ public class PlayerShooter2D : MonoBehaviour
             inventoryUIController.TryReloadEquippedWeapon(equippedWeapon, reloadable.AmmoCapacity);
 
         isReloading = false;
+        ClearWeaponFrames();
         SetReloadTextVisible(false);
         RefreshWeaponAmmoTexts();
     }
@@ -248,6 +257,8 @@ public class PlayerShooter2D : MonoBehaviour
     {
         isReloading = false;
         reloadFinishTime = 0f;
+        reloadDuration = 0f;
+        ClearWeaponFrames();
         isChargingAttack = false;
         chargeStartTime = 0f;
         chargingBar?.ResetCharge();
@@ -258,6 +269,49 @@ public class PlayerShooter2D : MonoBehaviour
     {
         if (reloadStatusText != null && reloadStatusText.activeSelf != visible)
             reloadStatusText.SetActive(visible);
+    }
+
+    private void ClearWeaponFrames()
+    {
+        foreach (Image frame in weaponFrames)
+        {
+            if (frame != null)
+            {
+                frame.type = Image.Type.Filled;
+                frame.raycastTarget = false;
+                frame.fillAmount = 0f;
+            }
+        }
+    }
+
+    private void UpdateWeaponFrames()
+    {
+        ClearWeaponFrames();
+        if (equippedWeapon == null || inventoryUIController == null)
+            return;
+
+        int index = inventoryUIController.GetEquippedWeaponIndex();
+        if (index < 0 || index >= weaponFrames.Length || weaponFrames[index] == null)
+            return;
+
+        Image frame = weaponFrames[index];
+        frame.type = Image.Type.Filled;
+        frame.raycastTarget = false;
+        if (isReloading)
+        {
+            frame.fillMethod = Image.FillMethod.Radial360;
+            frame.fillOrigin = (int)Image.Origin360.Top;
+            frame.fillClockwise = true;
+            frame.fillAmount = reloadDuration > 0f
+                ? Mathf.Clamp01((reloadFinishTime - Time.time) / reloadDuration) : 0f;
+        }
+        else
+        {
+            frame.fillMethod = Image.FillMethod.Vertical;
+            frame.fillOrigin = (int)Image.OriginVertical.Bottom;
+            frame.fillAmount = shootInterval > 0f
+                ? Mathf.Clamp01((nextShotTime - Time.time) / shootInterval) : 0f;
+        }
     }
 
     private void UpdateReloadCountdown()
@@ -312,8 +366,7 @@ public class PlayerShooter2D : MonoBehaviour
             float chargeRatio = chargedWeapon.MaxChargeTime <= 0f
                 ? 1f
                 : Mathf.Clamp01((Time.time - chargeStartTime) / chargedWeapon.MaxChargeTime);
-            if (Shoot(chargeRatio))
-                nextShotTime = Time.time + shootInterval;
+            Shoot(chargeRatio);
             chargingBar?.ResetCharge();
         }
     }
@@ -362,6 +415,12 @@ public class PlayerShooter2D : MonoBehaviour
         bool isMeleeAttack = equippedWeapon is MeleeSO;
         if (!TryPerformAttack(spawnPosition, shootDirection, chargeRatio, mouseWorldPos))
             return false;
+
+        if (equippedWeapon != null)
+        {
+            nextShotTime = Time.time + shootInterval;
+            UpdateWeaponFrames();
+        }
 
         if (isMeleeAttack && animator != null)
             animator.SetTrigger("Swipe");

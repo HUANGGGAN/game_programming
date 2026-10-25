@@ -7728,7 +7728,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::InventoryUIController
   inventoryData: {fileID: 11400000, guid: b9aecf3303d455a49933b5c93bfd3d2f, type: 2}
-  playerShooter: {fileID: 0}
+  playerShooter: {fileID: 760470567}
   universalSlotGridTransform: {fileID: 1789300600}
   weaponSlotGridTransform: {fileID: 1422875816}
   weaponSlotPanelTransform: {fileID: 1968638595}
@@ -10517,6 +10517,50 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 6558725340552533480, guid: cee954b66493e1042b410ddacc032d37, type: 3}
   m_PrefabInstance: {fileID: 2138318806}
   m_PrefabAsset: {fileID: 0}
+--- !u!1 &1905176546
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1905176547}
+  - component: {fileID: 1905176548}
+  m_Layer: 0
+  m_Name: StateManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1905176547
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1905176546}
+  serializedVersion: 2
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1905176548
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1905176546}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b84f43d406ab48dba2d3a6ba2dd5df56, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::StateManager
 --- !u!1 &1965932126
 GameObject:
   m_ObjectHideFlags: 0
@@ -11895,3 +11939,4 @@ SceneRoots:
   - {fileID: 1670734898}
   - {fileID: 1381637953}
   - {fileID: 1409559441}
+  - {fileID: 1905176547}

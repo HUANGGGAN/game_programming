@@ -23,7 +23,7 @@ public class Tutorial : MonoBehaviour
     private readonly HashSet<string> readTutorials = new HashSet<string>();
     private readonly HashSet<string> queuedIds = new HashSet<string>();
     private readonly Queue<Request> requests = new Queue<Request>();
-    private float previousTimeScale;
+    private StateManager stateManager;
     public bool IsShowing { get; private set; }
     public bool TutorialsSkipped { get; private set; }
 
@@ -65,7 +65,8 @@ public class Tutorial : MonoBehaviour
         }
         else
         {
-            previousTimeScale = Time.timeScale;
+            stateManager = StateManager.Instance;
+            stateManager.RequestState(GameState.Tutorial);
             Display(request);
         }
         return true;
@@ -84,7 +85,6 @@ public class Tutorial : MonoBehaviour
             tutorialImage.gameObject.SetActive(request.image != null);
         }
         tutorialPanel.SetActive(true);
-        Time.timeScale = 0f;
     }
 
     public void Continue()
@@ -111,20 +111,16 @@ public class Tutorial : MonoBehaviour
         Close();
     }
 
-    private void Close()
+    public void Close()
     {
         bool wasShowing = IsShowing;
         IsShowing = false;
+        requests.Clear();
+        queuedIds.Clear();
         if (tutorialPanel != null)
             tutorialPanel.SetActive(false);
         if (wasShowing)
-            Time.timeScale = previousTimeScale;
-    }
-
-    private void LateUpdate()
-    {
-        if (IsShowing)
-            Time.timeScale = 0f;
+            stateManager?.CloseState(GameState.Tutorial);
     }
 
     private void OnDisable()

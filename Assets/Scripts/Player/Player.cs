@@ -85,6 +85,11 @@ public class Player : MonoBehaviour
 
     private void Update()
     {
+        if (StateManager.Instance.CurrentState != GameState.Playing)
+        {
+            _inputVector = Vector2.zero;
+            return;
+        }
         Interactable.UpdateInteraction(transform);
         EffectRuntime.Tick(activeEffects, Time.deltaTime, amount => TakeDamage(amount));
         ReadMovementInput();

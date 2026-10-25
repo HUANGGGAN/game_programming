@@ -44,8 +44,18 @@ public class InventoryUIController : MonoBehaviour
     private bool weaponPanelBlockedRaycasts;
     private bool weaponPanelCanvasGroupStateCached;
 
+    private bool isInitialized;
+
     private void Awake()
     {
+        EnsureInitialized();
+    }
+
+    private void EnsureInitialized()
+    {
+        if (isInitialized)
+            return;
+        isInitialized = true;
         if (descriptionPanel != null)
         {
             if (descriptionText == null)
@@ -228,6 +238,8 @@ public class InventoryUIController : MonoBehaviour
 
     public void RefreshUI()
     {
+        // InventoryManager may refresh us before Unity calls Awake on this panel.
+        EnsureInitialized();
         if (inventoryData == null)
             return;
 

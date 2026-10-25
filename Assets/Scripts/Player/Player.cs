@@ -239,4 +239,12 @@ public class Player : MonoBehaviour
 
         playerSpriteRenderer.flipX = mouseWorldPosition.x < transform.position.x;
     }
+
+    public void addMoney(int amount)
+    {
+        if (playerData != null && amount > 0)
+        {
+            playerData.AddMoney(amount);
+        }
+    }
 }

@@ -141,6 +141,7 @@ public class EnemySO : ScriptableObject
     [Header("Spawn Settings")]
     [Min(0.01f)] public float enemy_point = 1f;
     [Min(0f)] public float enemy_difficulty = 1f;
+    [Min(0)] public int money = 1;
 
     [Header("Combat Stats")]
     public float attackRange = 1.5f;

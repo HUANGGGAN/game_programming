@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-public enum EnemyDamageKind { Other, Projectile, Melee }
+public enum EnemyDamageKind { Other, Projectile, Melee, Effect }
 
 [RequireComponent(typeof(NavMeshAgent), typeof(Rigidbody2D))]
 public class EnemyChase : MonoBehaviour
@@ -170,13 +170,14 @@ public class EnemyChase : MonoBehaviour
         if (isDying)
             return;
 
-        EffectRuntime.Tick(activeEffects, Time.deltaTime, amount => TakeDamage(amount));
+        EffectRuntime.Tick(activeEffects, Time.deltaTime, amount => TakeDamage(
+            amount, Vector2.zero, 0f, 0, hitCooldownDuration, null, EnemyDamageKind.Effect));
         if (currentHealth <= 0f || !isActiveAndEnabled)
             return;
 
         if (DespawnWhenFarAway && player != null && Vector2.Distance(transform.position, player.position) > Mathf.Max(0f, maxDistance))
         {
-            Die();
+            Despawn();
             return;
         }
 
@@ -454,7 +455,7 @@ public class EnemyChase : MonoBehaviour
             return true;
         }
 
-        if (CanFlashOnHit && spriteRenderer != null)
+        if (damageKind != EnemyDamageKind.Effect && CanFlashOnHit && spriteRenderer != null)
         {
             if (hitFlashRoutine == null)
             {
@@ -555,11 +556,36 @@ public class EnemyChase : MonoBehaviour
         hitFlashRoutine = null;
     }
 
+    public virtual void Despawn()
+    {
+        CancelAttack();
+        ClearKnockback();
+        StopHitFlash();
+        activeEffects.Clear();
+        recentDamageSourceIds.Clear();
+        recentDamageSourceTimes.Clear();
+        lethalKnockbackVelocity = null;
+        if (agent.enabled && agent.isOnNavMesh)
+        {
+            agent.ResetPath();
+            agent.velocity = Vector3.zero;
+        }
+        if (body != null)
+        {
+            body.linearVelocity = Vector2.zero;
+            body.angularVelocity = 0f;
+        }
+        // OnDisable also cancels a pending corpse coroutine and restores its tint.
+        gameObject.SetActive(false);
+    }
+
     protected virtual void Die()
     {
         if (isDying)
             return;
         isDying = true;
+        Player playerComponent = player != null ? player.GetComponentInParent<Player>() : null;
+        playerComponent?.addMoney(enemyData != null ? enemyData.money : 1);
         CancelAttack();
         currentHealth = 0f;
         StopHitFlash();

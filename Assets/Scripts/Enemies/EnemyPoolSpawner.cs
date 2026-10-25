@@ -156,6 +156,15 @@ public class EnemyPoolSpawner : MonoBehaviour, IEnemySpawner
 
     public void Despawn(GameObject enemy)
     {
+        if (enemy == null)
+            return;
+        EnemyChase enemyComponent = enemy.GetComponent<EnemyChase>();
+        if (enemyComponent != null)
+        {
+            enemyComponent.Despawn();
+            return;
+        }
+
         NavMeshAgent agent = enemy.GetComponent<NavMeshAgent>();
         if (agent != null && agent.isOnNavMesh)
         {

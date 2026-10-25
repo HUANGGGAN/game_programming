@@ -142,7 +142,7 @@ MonoBehaviour:
   speed: 2.5
   attackInterval: 1.2
   attackDuration: 0.4
-  attackIndicator: {fileID: 0}
+  attackIndicator: {fileID: 5009360705757147356}
   maxHealth: 20
   hitCooldownDuration: 0.2
   playerContactPushForce: 1.5
@@ -273,3 +273,14 @@ Transform:
   m_CorrespondingSourceObject: {fileID: 8909067254897142899, guid: be4bf463aa8f80a4da862e2efbe49f99, type: 3}
   m_PrefabInstance: {fileID: 5195579516256305820}
   m_PrefabAsset: {fileID: 0}
+--- !u!114 &5009360705757147356 stripped
+MonoBehaviour:
+  m_CorrespondingSourceObject: {fileID: 981427444172239424, guid: be4bf463aa8f80a4da862e2efbe49f99, type: 3}
+  m_PrefabInstance: {fileID: 5195579516256305820}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c0e4c21ead19e60198405103743d9291, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::AttackIndicator

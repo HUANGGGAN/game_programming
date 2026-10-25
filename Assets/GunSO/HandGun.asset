@@ -18,7 +18,7 @@ MonoBehaviour:
   icon: {fileID: 7677211468609144201, guid: 5a8beaf99369d54979413d37c7fd9990, type: 3}
   maxStackSize: 1
   tag: 0
-  description: 
+  description: Your basic weapon
   shootInterval: 0.25
   consumeAmmo: 1
   hasLimitedAmmo: 0

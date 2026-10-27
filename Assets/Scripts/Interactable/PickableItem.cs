@@ -15,11 +15,6 @@ public class PickableItem : Interactable
         UpdateItemSprite();
     }
 
-    private void OnValidate()
-    {
-        UpdateItemSprite();
-    }
-
     private void UpdateItemSprite()
     {
         if (itemSpriteRenderer != null &&

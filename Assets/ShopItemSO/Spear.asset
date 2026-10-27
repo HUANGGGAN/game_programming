@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed0fe66b425b4d738d88e97d14d4058b, type: 3}
+  m_Name: Spear
+  m_EditorClassIdentifier: Assembly-CSharp::SellingObjectSO
+  type: 1
+  currency: {fileID: 11400000, guid: 296685651f25499c6a57d0f93c3afd14, type: 2}
+  currencyIcon: {fileID: 0}
+  price: 5
+  object: {fileID: 11400000, guid: 4b27838c02f5b35e28dc2c829d028563, type: 2}
+  objectIcon: {fileID: 0}
+  objectName: spear
+  buyOneAtOnce: 1
+  description: shooo
+  randomItemGroupID: 0

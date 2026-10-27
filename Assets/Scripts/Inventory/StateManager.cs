@@ -72,8 +72,10 @@ public class StateManager : MonoBehaviour
 
     private void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.escapeKey.wasPressedThisFrame &&
-            (CurrentState == GameState.Inventory || CurrentState == GameState.Merchant))
+        if (Keyboard.current != null &&
+            ((Keyboard.current.escapeKey.wasPressedThisFrame &&
+              (CurrentState == GameState.Inventory || CurrentState == GameState.Merchant)) ||
+             (Keyboard.current.eKey.wasPressedThisFrame && CurrentState == GameState.Merchant)))
             CloseState(CurrentState);
     }
 

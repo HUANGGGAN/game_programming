@@ -265,6 +265,49 @@ public class InventorySO : ScriptableObject
         return givenCount > 0;
     }
 
+    // Validate payment and the entire delivery on a separate inventory before committing.
+    public bool TryExchangeItems(ItemSO currency, int currencyCount, ItemSO purchasedItem, int purchasedCount)
+    {
+        if (currencyCount < 0 || purchasedCount <= 0 || (currency == null && currencyCount > 0))
+            return false;
+        EnsureDefaults();
+        InventorySO preview = CreateInstance<InventorySO>();
+        try
+        {
+            preview.EnsureDefaults();
+            CopySlotContents(slots, preview.slots);
+            CopySlotContents(weaponSlots, preview.weaponSlots);
+            CopySlotContents(armorSlots, preview.armorSlots);
+            CopySlotContents(consumableSlots, preview.consumableSlots);
+            if (currency != null && currencyCount > 0 && !preview.TryRemoveItemAmount(currency, currencyCount))
+                return false;
+            if (purchasedItem != null &&
+                (!preview.TryGiveItem(purchasedItem, InventorySlotType.Universal, out int givenCount, purchasedCount) ||
+                 givenCount != purchasedCount))
+                return false;
+
+            CopySlotContents(preview.slots, slots);
+            CopySlotContents(preview.weaponSlots, weaponSlots);
+            CopySlotContents(preview.armorSlots, armorSlots);
+            CopySlotContents(preview.consumableSlots, consumableSlots);
+            return true;
+        }
+        finally
+        {
+            Destroy(preview);
+        }
+    }
+
+    private static void CopySlotContents(InventorySlotData[] source, InventorySlotData[] destination)
+    {
+        for (int i = 0; i < source.Length; i++)
+        {
+            destination[i].item = source[i].item;
+            destination[i].count = source[i].count;
+            destination[i].ammoCount = source[i].ammoCount;
+        }
+    }
+
     public bool TryDropFromSlot(InventorySlotType slotType, int index)
     {
         EnsureDefaults();

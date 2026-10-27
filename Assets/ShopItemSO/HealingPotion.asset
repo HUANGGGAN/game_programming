@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ed0fe66b425b4d738d88e97d14d4058b, type: 3}
+  m_Name: HealingPotion
+  m_EditorClassIdentifier: Assembly-CSharp::SellingObjectSO
+  type: 2
+  currency: {fileID: 0}
+  currencyIcon: {fileID: 8486161389605743706, guid: 52f57f18ca5a5d6ac9917afd465db94a, type: 3}
+  price: 1
+  object: {fileID: 11400000, guid: ba18b6115c2aea237b7a4198d3afd7f3, type: 2}
+  objectIcon: {fileID: 0}
+  objectName: Heal
+  buyOneAtOnce: 1
+  description: Heal!!
+  randomItemGroupID: 0

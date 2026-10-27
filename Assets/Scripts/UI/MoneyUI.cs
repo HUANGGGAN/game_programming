@@ -38,7 +38,7 @@ public class MoneyUI : MonoBehaviour
     {
         if (playerData != null && moneyText != null)
         {
-            moneyText.text = $"{prefix}{playerData.money}";
+            moneyText.text = $"{prefix}{CountDisplayFormatter.Format(playerData.money)}";
         }
     }
 }

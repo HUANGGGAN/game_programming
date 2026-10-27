@@ -4,6 +4,7 @@ using TMPro;
 public class InventoryUIController : MonoBehaviour
 {
     [SerializeField] private InventorySO inventoryData;
+    public InventorySO InventoryData => inventoryData;
     [SerializeField] private PlayerShooter2D playerShooter;
     [SerializeField] private Transform universalSlotGridTransform;
     [SerializeField] private Transform weaponSlotGridTransform;

@@ -10,7 +10,7 @@ public static class CriticalAttack
     }
 }
 
-[CreateAssetMenu(fileName = "NewBulletData", menuName = "Weapons/Bullet Data")]
+[CreateAssetMenu(fileName = "NewBulletData", menuName = "Weapon/Bullet Data")]
 public class BulletSO : ScriptableObject
 {
     [Header("Visuals & Identification")]

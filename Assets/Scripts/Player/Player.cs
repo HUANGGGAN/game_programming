@@ -4,7 +4,7 @@ using UnityEngine;
 using UnityEngine.InputSystem; // Required for New Input System
 
 [RequireComponent(typeof(Rigidbody2D))] // Automatically adds Rigidbody2D if missing
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour, IEffectSource
 {
     [Header("Data References")]
     [SerializeField] private PlayerData playerData;
@@ -23,6 +23,8 @@ public class Player : MonoBehaviour
     private bool isKnockedBack;
     private Coroutine knockbackRoutine;
     private readonly List<ActiveEffect> activeEffects = new List<ActiveEffect>();
+    public IReadOnlyList<ActiveEffect> ActiveEffects => activeEffects;
+    public event System.Action EffectsChanged;
     private Camera mainCamera;
     private Coroutine startupTutorialRoutine;
 
@@ -91,7 +93,8 @@ public class Player : MonoBehaviour
             return;
         }
         Interactable.UpdateInteraction(transform);
-        EffectRuntime.Tick(activeEffects, Time.deltaTime, amount => TakeDamage(amount));
+        if (EffectRuntime.Tick(activeEffects, Time.deltaTime, amount => TakeDamage(amount)))
+            EffectsChanged?.Invoke();
         ReadMovementInput();
         FaceTowardCursor();
     }
@@ -171,12 +174,22 @@ public class Player : MonoBehaviour
 
     public void ClearEffects()
     {
-        activeEffects.Clear();
+        if (EffectRuntime.Clear(activeEffects))
+            EffectsChanged?.Invoke();
+    }
+
+    public bool RemoveEffect(int effectID)
+    {
+        bool removed = EffectRuntime.Remove(activeEffects, effectID);
+        if (removed)
+            EffectsChanged?.Invoke();
+        return removed;
     }
 
     public void ApplyEffects(EffectDefinition[] effects)
     {
-        EffectRuntime.Apply(activeEffects, effects);
+        if (EffectRuntime.Apply(activeEffects, effects))
+            EffectsChanged?.Invoke();
     }
 
     public void ApplyKnockback(Vector2 direction, float force)

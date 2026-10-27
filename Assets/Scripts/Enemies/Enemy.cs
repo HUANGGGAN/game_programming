@@ -6,7 +6,7 @@ using UnityEngine.AI;
 public enum EnemyDamageKind { Other, Projectile, Melee, Effect }
 
 [RequireComponent(typeof(NavMeshAgent), typeof(Rigidbody2D))]
-public class EnemyChase : MonoBehaviour
+public class EnemyChase : MonoBehaviour, IEffectSource
 {
     [Header("Target Setup")]
     [SerializeField] private Transform player;
@@ -76,6 +76,8 @@ public class EnemyChase : MonoBehaviour
     private readonly HashSet<int> recentDamageSourceIds = new HashSet<int>();
     private readonly Dictionary<int, float> recentDamageSourceTimes = new Dictionary<int, float>();
     private readonly List<ActiveEffect> activeEffects = new List<ActiveEffect>();
+    public IReadOnlyList<ActiveEffect> ActiveEffects => activeEffects;
+    public event System.Action EffectsChanged;
 
     private const float HitFlashDuration = 0.08f;
     private const float DeathBodyDuration = 0.5f;
@@ -130,7 +132,7 @@ public class EnemyChase : MonoBehaviour
         currentHealth = maxHealth;
         recentDamageSourceIds.Clear();
         recentDamageSourceTimes.Clear();
-        activeEffects.Clear();
+        ClearEffects();
         ClearKnockback();
         lethalKnockbackVelocity = null;
 
@@ -170,8 +172,9 @@ public class EnemyChase : MonoBehaviour
         if (isDying)
             return;
 
-        EffectRuntime.Tick(activeEffects, Time.deltaTime, amount => TakeDamage(
-            amount, Vector2.zero, 0f, 0, hitCooldownDuration, null, EnemyDamageKind.Effect));
+        if (EffectRuntime.Tick(activeEffects, Time.deltaTime, amount => TakeDamage(
+            amount, Vector2.zero, 0f, 0, hitCooldownDuration, null, EnemyDamageKind.Effect)))
+            EffectsChanged?.Invoke();
         if (currentHealth <= 0f || !isActiveAndEnabled)
             return;
 
@@ -474,7 +477,22 @@ public class EnemyChase : MonoBehaviour
     {
         if (isDying)
             return;
-        EffectRuntime.Apply(activeEffects, effects, probabilityMultiplier, enemyData != null ? enemyData.resistances : null);
+        if (EffectRuntime.Apply(activeEffects, effects, probabilityMultiplier, enemyData != null ? enemyData.resistances : null))
+            EffectsChanged?.Invoke();
+    }
+
+    public bool RemoveEffect(int effectID)
+    {
+        bool removed = EffectRuntime.Remove(activeEffects, effectID);
+        if (removed)
+            EffectsChanged?.Invoke();
+        return removed;
+    }
+
+    public void ClearEffects()
+    {
+        if (EffectRuntime.Clear(activeEffects))
+            EffectsChanged?.Invoke();
     }
 
     private float GetAttackDamageMultiplier(int[] attackAttributes)
@@ -561,7 +579,7 @@ public class EnemyChase : MonoBehaviour
         CancelAttack();
         ClearKnockback();
         StopHitFlash();
-        activeEffects.Clear();
+        ClearEffects();
         recentDamageSourceIds.Clear();
         recentDamageSourceTimes.Clear();
         lethalKnockbackVelocity = null;
@@ -584,6 +602,7 @@ public class EnemyChase : MonoBehaviour
         if (isDying)
             return;
         isDying = true;
+        ClearEffects();
         Player playerComponent = player != null ? player.GetComponentInParent<Player>() : null;
         playerComponent?.addMoney(enemyData != null ? enemyData.money : 1);
         CancelAttack();

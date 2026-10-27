@@ -266,9 +266,9 @@ public class InventorySO : ScriptableObject
     }
 
     // Validate payment and the entire delivery on a separate inventory before committing.
-    public bool TryExchangeItems(ItemSO currency, int currencyCount, ItemSO purchasedItem, int purchasedCount)
+    public bool TryExchangeItems(ItemSO currency, int currencyCount, ItemSO purchasedItem, int purchasedCount, int purchasedAmmoCount = 0)
     {
-        if (currencyCount < 0 || purchasedCount <= 0 || (currency == null && currencyCount > 0))
+        if (currencyCount < 0 || purchasedCount <= 0 || purchasedAmmoCount < 0 || (currency == null && currencyCount > 0))
             return false;
         EnsureDefaults();
         InventorySO preview = CreateInstance<InventorySO>();
@@ -282,7 +282,7 @@ public class InventorySO : ScriptableObject
             if (currency != null && currencyCount > 0 && !preview.TryRemoveItemAmount(currency, currencyCount))
                 return false;
             if (purchasedItem != null &&
-                (!preview.TryGiveItem(purchasedItem, InventorySlotType.Universal, out int givenCount, purchasedCount) ||
+                (!preview.TryGiveItem(purchasedItem, InventorySlotType.Universal, out int givenCount, purchasedCount, purchasedAmmoCount) ||
                  givenCount != purchasedCount))
                 return false;
 

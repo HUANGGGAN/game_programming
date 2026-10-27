@@ -7,7 +7,7 @@ public class SellingObjectSO : ScriptableObject
     public ItemSO currency;
     public Sprite currencyIcon;
     [Min(0)] public int price;
-    public ItemSO @object;
+    public InventorySlotData @object = new InventorySlotData { count = 1 };
     public Sprite objectIcon;
     public string objectName;
     public bool buyOneAtOnce = true;

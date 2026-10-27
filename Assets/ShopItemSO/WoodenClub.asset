@@ -16,7 +16,10 @@ MonoBehaviour:
   currency: {fileID: 0}
   currencyIcon: {fileID: 8486161389605743706, guid: 52f57f18ca5a5d6ac9917afd465db94a, type: 3}
   price: 10
-  object: {fileID: 11400000, guid: bb09c3e164adc2d1a971dde7051f026a, type: 2}
+  object:
+    item: {fileID: 11400000, guid: bb09c3e164adc2d1a971dde7051f026a, type: 2}
+    count: 1
+    ammoCount: 0
   objectIcon: {fileID: 0}
   objectName: Club
   buyOneAtOnce: 1

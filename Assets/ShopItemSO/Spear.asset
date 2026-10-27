@@ -16,7 +16,10 @@ MonoBehaviour:
   currency: {fileID: 11400000, guid: 296685651f25499c6a57d0f93c3afd14, type: 2}
   currencyIcon: {fileID: 0}
   price: 5
-  object: {fileID: 11400000, guid: 4b27838c02f5b35e28dc2c829d028563, type: 2}
+  object:
+    item: {fileID: 11400000, guid: 4b27838c02f5b35e28dc2c829d028563, type: 2}
+    count: 1
+    ammoCount: 0
   objectIcon: {fileID: 0}
   objectName: spear
   buyOneAtOnce: 1

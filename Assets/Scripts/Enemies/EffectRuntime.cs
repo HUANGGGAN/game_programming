@@ -32,8 +32,13 @@ public static class EffectRuntime
     public const int Fire = 1;
     public const int Faint = 2;
     public const int Bleed = 3;
+    public const int Freeze = 5;
+    public const int Shock = 6;
+    public const int HPStealing = 7;
+    public const int MPStealing = 8;
 
-    public static bool Apply(List<ActiveEffect> activeEffects, EffectDefinition[] definitions, float probabilityMultiplier = 1f, int[] blockedEffectIDs = null)
+    public static bool Apply(List<ActiveEffect> activeEffects, EffectDefinition[] definitions, float probabilityMultiplier = 1f, int[] blockedEffectIDs = null,
+        Action<int, int> restoreAttacker = null, bool allowTimedEffects = true)
     {
         if (activeEffects == null || definitions == null)
             return false;
@@ -42,7 +47,10 @@ public static class EffectRuntime
 
         foreach (EffectDefinition definition in definitions)
         {
-            if (definition == null || definition.duration <= 0f || definition.level <= 0)
+            if (definition == null || definition.level <= 0)
+                continue;
+            bool stealing = definition.effectID == HPStealing || definition.effectID == MPStealing;
+            if (!stealing && (!allowTimedEffects || definition.duration <= 0f))
                 continue;
             if (Contains(blockedEffectIDs, definition.effectID))
                 continue;
@@ -50,6 +58,16 @@ public static class EffectRuntime
             float probability = Mathf.Clamp01(definition.probability * Mathf.Max(0f, probabilityMultiplier));
             if (probability <= 0f || (probability < 1f && UnityEngine.Random.value >= probability))
                 continue;
+
+            if (stealing)
+            {
+                restoreAttacker?.Invoke(definition.effectID, (int)Math.Min(int.MaxValue, (long)definition.level * 5));
+                continue;
+            }
+            if (definition.effectID == Fire)
+                changed |= Remove(activeEffects, Freeze);
+            else if (definition.effectID == Freeze)
+                changed |= Remove(activeEffects, Fire);
 
             ActiveEffect current = null;
             for (int i = 0; i < activeEffects.Count; i++)
@@ -133,7 +151,7 @@ public static class EffectRuntime
             if (!activeEffects.Contains(effect))
                 continue;
             float activeDelta = Mathf.Min(deltaTime, Mathf.Max(0f, effect.remainTime));
-            if ((effect.effectID == Fire || effect.effectID == Bleed) && activeDelta > 0f)
+            if ((effect.effectID == Fire || effect.effectID == Bleed || effect.effectID == Freeze || effect.effectID == Shock) && activeDelta > 0f)
                 applyDamage?.Invoke(Mathf.Max(0, effect.level) * activeDelta);
 
             if (!activeEffects.Contains(effect))
@@ -143,6 +161,25 @@ public static class EffectRuntime
                 changed |= Remove(activeEffects, effect.effectID);
         }
         return changed;
+    }
+
+    public static float GetMovementMultiplier(IReadOnlyList<ActiveEffect> activeEffects)
+    {
+        float multiplier = 1f;
+        if (activeEffects == null)
+            return multiplier;
+        foreach (ActiveEffect effect in activeEffects)
+        {
+            if (effect == null || effect.remainTime <= 0f || effect.level <= 0)
+                continue;
+            if (effect.effectID == Faint || (effect.effectID == Freeze && effect.level >= 4))
+                return 0f;
+            if (effect.effectID == Freeze)
+                multiplier *= 2f / (2f + effect.level);
+            else if (effect.effectID == Shock)
+                multiplier *= 3f / (3f + effect.level);
+        }
+        return multiplier;
     }
 
     public static bool HasEffect(List<ActiveEffect> activeEffects, int effectID)

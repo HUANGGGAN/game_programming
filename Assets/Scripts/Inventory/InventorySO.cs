@@ -22,7 +22,7 @@ public enum InventorySlotType
 [CreateAssetMenu(fileName = "NewInventory", menuName = "Inventory/Inventory Storage")]
 public class InventorySO : ScriptableObject
 {
-    public const int universalSlotCount = 18;
+    public const int universalSlotCount = 12;
     public const int weaponSlotCount = 3;
     public const int armorSlotCount = 4;
     public const int consumableSlotCount = 3;

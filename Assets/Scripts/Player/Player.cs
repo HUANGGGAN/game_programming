@@ -117,7 +117,7 @@ public class Player : MonoBehaviour, IEffectSource
         if (isKnockedBack)
             return;
 
-        float effectiveMoveSpeed = EffectRuntime.HasEffect(activeEffects, EffectRuntime.Faint) ? 0f : moveSpeed;
+        float effectiveMoveSpeed = moveSpeed * EffectRuntime.GetMovementMultiplier(activeEffects);
         _rb.linearVelocity = _inputVector * effectiveMoveSpeed;
     }
 
@@ -186,10 +186,21 @@ public class Player : MonoBehaviour, IEffectSource
         return removed;
     }
 
-    public void ApplyEffects(EffectDefinition[] effects)
+    public void ApplyEffects(EffectDefinition[] effects, System.Action<int, int> restoreAttacker = null)
     {
-        if (EffectRuntime.Apply(activeEffects, effects))
+        if (EffectRuntime.Apply(activeEffects, effects, restoreAttacker: restoreAttacker))
             EffectsChanged?.Invoke();
+    }
+
+    public void RestoreEffectResource(int effectID, int amount)
+    {
+        if (playerData == null || amount <= 0 || playerData.currentHealth <= 0f)
+            return;
+        if (effectID == EffectRuntime.HPStealing)
+            playerData.Heal(amount);
+        else if (effectID == EffectRuntime.MPStealing)
+            playerData.RestoreMP(Mathf.Min(amount, Mathf.Max(0, playerData.maxMP - playerData.currentMP)));
+        UpdatePlayerBarsFromData();
     }
 
     public void ApplyKnockback(Vector2 direction, float force)

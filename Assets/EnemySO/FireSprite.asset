@@ -15,17 +15,18 @@ MonoBehaviour:
   sprite: {fileID: 21300000, guid: 2f18eef0799a9411fbdb612a292c147c, type: 3}
   spriteFacesRightByDefault: 1
   effects:
-  - effectID: 3
+  - effectID: 1
     duration: 2
     probability: 0.5
     level: 1
   resistances: 01000000
-  weaknesses: 
+  weaknesses: 05000000
   enemy_point: 2
   enemy_difficulty: 4
+  money: 1
   attackRange: 1.2
   damage: 5
-  knockbackForce: 0
+  knockbackForce: 4
   knockbackResistance: 0
   speed: 3
   attackInterval: 1

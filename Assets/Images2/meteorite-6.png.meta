@@ -1,0 +1,884 @@
+fileFormatVersion: 2
+guid: abbeea1936d56a74c8049dfd7383a7f1
+TextureImporter:
+  internalIDToNameTable:
+  - first:
+      213: -6290779172358847120
+    second: meteorite-6_0
+  - first:
+      213: -470930434985521761
+    second: meteorite-6_1
+  - first:
+      213: -6470469481673222657
+    second: meteorite-6_2
+  - first:
+      213: -5211495086889780216
+    second: meteorite-6_3
+  - first:
+      213: -1405383777419237986
+    second: meteorite-6_4
+  - first:
+      213: -7960352281480489217
+    second: meteorite-6_5
+  - first:
+      213: 7881911917998978394
+    second: meteorite-6_6
+  - first:
+      213: 2317981559377140063
+    second: meteorite-6_7
+  - first:
+      213: -3465686168485251274
+    second: meteorite-6_8
+  - first:
+      213: -8108345884347503749
+    second: meteorite-6_9
+  - first:
+      213: -3383553662626735328
+    second: meteorite-6_10
+  - first:
+      213: -3867237860433424362
+    second: meteorite-6_11
+  - first:
+      213: 8484456031434834103
+    second: meteorite-6_12
+  - first:
+      213: -7676343918226104926
+    second: meteorite-6_13
+  - first:
+      213: 369086304373988826
+    second: meteorite-6_14
+  - first:
+      213: -4972262326461989846
+    second: meteorite-6_15
+  - first:
+      213: -1943432630864429664
+    second: meteorite-6_16
+  - first:
+      213: -3790882119471098406
+    second: meteorite-6_17
+  - first:
+      213: -7496512152482762068
+    second: meteorite-6_18
+  - first:
+      213: 1673475159355934188
+    second: meteorite-6_19
+  - first:
+      213: -4803086571218959941
+    second: meteorite-6_20
+  - first:
+      213: -2126417764186661903
+    second: meteorite-6_21
+  - first:
+      213: 2599840909269483946
+    second: meteorite-6_22
+  - first:
+      213: -3631914719960193647
+    second: meteorite-6_23
+  - first:
+      213: -5880696643097799579
+    second: meteorite-6_24
+  - first:
+      213: -4934362409588370252
+    second: meteorite-6_25
+  - first:
+      213: 5694396122849814741
+    second: meteorite-6_26
+  - first:
+      213: -7928423164954080228
+    second: meteorite-6_27
+  - first:
+      213: 9103505427343175662
+    second: meteorite-6_28
+  externalObjects: {}
+  serializedVersion: 13
+  mipmaps:
+    mipMapMode: 0
+    enableMipMap: 0
+    sRGBTexture: 1
+    linearTexture: 0
+    fadeOut: 0
+    borderMipMap: 0
+    mipMapsPreserveCoverage: 0
+    alphaTestReferenceValue: 0.5
+    mipMapFadeDistanceStart: 1
+    mipMapFadeDistanceEnd: 3
+  bumpmap:
+    convertToNormalMap: 0
+    externalNormalMap: 0
+    heightScale: 0.25
+    normalMapFilter: 0
+    flipGreenChannel: 0
+  isReadable: 0
+  streamingMipmaps: 0
+  streamingMipmapsPriority: 0
+  vTOnly: 0
+  ignoreMipmapLimit: 0
+  grayScaleToAlpha: 0
+  generateCubemap: 6
+  cubemapConvolution: 0
+  seamlessCubemap: 0
+  textureFormat: 1
+  maxTextureSize: 2048
+  textureSettings:
+    serializedVersion: 2
+    filterMode: 1
+    aniso: 1
+    mipBias: 0
+    wrapU: 1
+    wrapV: 1
+    wrapW: 1
+  nPOTScale: 0
+  lightmap: 0
+  compressionQuality: 50
+  spriteMode: 2
+  spriteExtrude: 1
+  spriteMeshType: 1
+  alignment: 0
+  spritePivot: {x: 0.5, y: 0.5}
+  spritePixelsToUnits: 100
+  spriteBorder: {x: 0, y: 0, z: 0, w: 0}
+  spriteGenerateFallbackPhysicsShape: 1
+  alphaUsage: 1
+  alphaIsTransparency: 1
+  spriteTessellationDetail: -1
+  textureType: 8
+  textureShape: 1
+  singleChannelComponent: 0
+  flipbookRows: 1
+  flipbookColumns: 1
+  maxTextureSizeSet: 0
+  compressionQualitySet: 0
+  textureFormatSet: 0
+  ignorePngGamma: 0
+  applyGammaDecoding: 0
+  swizzle: 50462976
+  cookieLightType: 0
+  platformSettings:
+  - serializedVersion: 4
+    buildTarget: DefaultTexturePlatform
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: Standalone
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  - serializedVersion: 4
+    buildTarget: WebGL
+    maxTextureSize: 2048
+    resizeAlgorithm: 0
+    textureFormat: -1
+    textureCompression: 1
+    compressionQuality: 50
+    crunchedCompression: 0
+    allowsAlphaSplitting: 0
+    overridden: 0
+    ignorePlatformSupport: 0
+    androidETC2FallbackOverride: 0
+    forceMaximumCompressionQuality_BC6H_BC7: 0
+  spriteSheet:
+    serializedVersion: 2
+    sprites:
+    - serializedVersion: 2
+      name: meteorite-6_0
+      rect:
+        serializedVersion: 2
+        x: 127
+        y: 399
+        width: 50
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 07500273ca9a2b8a0800000000000000
+      internalID: -6290779172358847120
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_1
+      rect:
+        serializedVersion: 2
+        x: 223
+        y: 415
+        width: 50
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f9d84c4b34be679f0800000000000000
+      internalID: -470930434985521761
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_2
+      rect:
+        serializedVersion: 2
+        x: 383
+        y: 383
+        width: 50
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff59cd6d9464436a0800000000000000
+      internalID: -6470469481673222657
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_3
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 351
+        width: 50
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 80cbd3584dc0da7b0800000000000000
+      internalID: -5211495086889780216
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_4
+      rect:
+        serializedVersion: 2
+        x: 223
+        y: 351
+        width: 82
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: e9564d586e21f7ce0800000000000000
+      internalID: -1405383777419237986
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_5
+      rect:
+        serializedVersion: 2
+        x: 319
+        y: 351
+        width: 66
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ff6926796c5278190800000000000000
+      internalID: -7960352281480489217
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_6
+      rect:
+        serializedVersion: 2
+        x: 431
+        y: 271
+        width: 66
+        height: 114
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a553f37112d226d60800000000000000
+      internalID: 7881911917998978394
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_7
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 175
+        width: 130
+        height: 146
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: f59949272ff1b2020800000000000000
+      internalID: 2317981559377140063
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_8
+      rect:
+        serializedVersion: 2
+        x: 367
+        y: 287
+        width: 18
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 637b370bac867efc0800000000000000
+      internalID: -3465686168485251274
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_9
+      rect:
+        serializedVersion: 2
+        x: 0
+        y: 175
+        width: 33
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: b7b6777c06e597f80800000000000000
+      internalID: -8108345884347503749
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_10
+      rect:
+        serializedVersion: 2
+        x: 143
+        y: 207
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 02b59a4eed33b01d0800000000000000
+      internalID: -3383553662626735328
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_11
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 207
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 6109ceac7afc45ac0800000000000000
+      internalID: -3867237860433424362
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_12
+      rect:
+        serializedVersion: 2
+        x: 335
+        y: 207
+        width: 50
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 7b0081adec7deb570800000000000000
+      internalID: 8484456031434834103
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_13
+      rect:
+        serializedVersion: 2
+        x: 367
+        y: 191
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 2ad176c90e5287590800000000000000
+      internalID: -7676343918226104926
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_14
+      rect:
+        serializedVersion: 2
+        x: 431
+        y: 207
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: add5cafc9024f1500800000000000000
+      internalID: 369086304373988826
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_15
+      rect:
+        serializedVersion: 2
+        x: 479
+        y: 175
+        width: 33
+        height: 82
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: a2cfc2d12c9fefab0800000000000000
+      internalID: -4972262326461989846
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_16
+      rect:
+        serializedVersion: 2
+        x: 191
+        y: 175
+        width: 50
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 0ad3c68a15a8705e0800000000000000
+      internalID: -1943432630864429664
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_17
+      rect:
+        serializedVersion: 2
+        x: 319
+        y: 159
+        width: 34
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ad59b8b1cc4146bc0800000000000000
+      internalID: -3790882119471098406
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_18
+      rect:
+        serializedVersion: 2
+        x: 431
+        y: 175
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ca2bdd06ae907f790800000000000000
+      internalID: -7496512152482762068
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_19
+      rect:
+        serializedVersion: 2
+        x: 15
+        y: 95
+        width: 50
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: ce5c9dd7ac0693710800000000000000
+      internalID: 1673475159355934188
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_20
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 79
+        width: 114
+        height: 66
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: bb18b091632085db0800000000000000
+      internalID: -4803086571218959941
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_21
+      rect:
+        serializedVersion: 2
+        x: 111
+        y: 143
+        width: 18
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 1fbd2994f427d72e0800000000000000
+      internalID: -2126417764186661903
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_22
+      rect:
+        serializedVersion: 2
+        x: 159
+        y: 95
+        width: 114
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: aa1498d488d741420800000000000000
+      internalID: 2599840909269483946
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_23
+      rect:
+        serializedVersion: 2
+        x: 351
+        y: 127
+        width: 98
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 195a24e0ec8d89dc0800000000000000
+      internalID: -3631914719960193647
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_24
+      rect:
+        serializedVersion: 2
+        x: 463
+        y: 111
+        width: 18
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 564d2547f81936ea0800000000000000
+      internalID: -5880696643097799579
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_25
+      rect:
+        serializedVersion: 2
+        x: 63
+        y: 47
+        width: 34
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 4b4d177288f958bb0800000000000000
+      internalID: -4934362409588370252
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_26
+      rect:
+        serializedVersion: 2
+        x: 271
+        y: 47
+        width: 50
+        height: 50
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: 5d823d08a1f860f40800000000000000
+      internalID: 5694396122849814741
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_27
+      rect:
+        serializedVersion: 2
+        x: 351
+        y: 79
+        width: 82
+        height: 34
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: c1c0fe7532598f190800000000000000
+      internalID: -7928423164954080228
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    - serializedVersion: 2
+      name: meteorite-6_28
+      rect:
+        serializedVersion: 2
+        x: 159
+        y: 31
+        width: 50
+        height: 18
+      alignment: 0
+      pivot: {x: 0, y: 0}
+      border: {x: 0, y: 0, z: 0, w: 0}
+      customData: 
+      outline: []
+      physicsShape: []
+      tessellationDetail: -1
+      bones: []
+      spriteID: eef61a724f5265e70800000000000000
+      internalID: 9103505427343175662
+      vertices: []
+      indices: 
+      edges: []
+      weights: []
+    outline: []
+    customData: 
+    physicsShape: []
+    bones: []
+    spriteID: 
+    internalID: 0
+    vertices: []
+    indices: 
+    edges: []
+    weights: []
+    secondaryTextures: []
+    spriteCustomMetadata:
+      entries: []
+    nameFileIdTable:
+      meteorite-6_0: -6290779172358847120
+      meteorite-6_1: -470930434985521761
+      meteorite-6_10: -3383553662626735328
+      meteorite-6_11: -3867237860433424362
+      meteorite-6_12: 8484456031434834103
+      meteorite-6_13: -7676343918226104926
+      meteorite-6_14: 369086304373988826
+      meteorite-6_15: -4972262326461989846
+      meteorite-6_16: -1943432630864429664
+      meteorite-6_17: -3790882119471098406
+      meteorite-6_18: -7496512152482762068
+      meteorite-6_19: 1673475159355934188
+      meteorite-6_2: -6470469481673222657
+      meteorite-6_20: -4803086571218959941
+      meteorite-6_21: -2126417764186661903
+      meteorite-6_22: 2599840909269483946
+      meteorite-6_23: -3631914719960193647
+      meteorite-6_24: -5880696643097799579
+      meteorite-6_25: -4934362409588370252
+      meteorite-6_26: 5694396122849814741
+      meteorite-6_27: -7928423164954080228
+      meteorite-6_28: 9103505427343175662
+      meteorite-6_3: -5211495086889780216
+      meteorite-6_4: -1405383777419237986
+      meteorite-6_5: -7960352281480489217
+      meteorite-6_6: 7881911917998978394
+      meteorite-6_7: 2317981559377140063
+      meteorite-6_8: -3465686168485251274
+      meteorite-6_9: -8108345884347503749
+  mipmapLimitGroupName: 
+  pSDRemoveMatte: 0
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

@@ -3,7 +3,7 @@ using UnityEngine;
 
 public interface IChargedAttackHandler
 {
-    bool TryPerformCharged(WeaponSO weapon, Vector2 origin, Vector2 direction, float chargeRatio, Func<bool> tryConsumeAmmo, Vector2? targetPosition = null);
+    bool TryPerformCharged(WeaponSO weapon, Vector2 origin, Vector2 direction, float chargeRatio, Func<bool> tryConsumeAmmo, Vector2? targetPosition = null, Player attacker = null);
 }
 
 public sealed class ProjectileAttack : IWeaponAttackHandler
@@ -13,9 +13,9 @@ public sealed class ProjectileAttack : IWeaponAttackHandler
         return weapon is not WandSO && weapon is IProjectileWeapon projectileWeapon && projectileWeapon.ProjectileData != null;
     }
 
-    public bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, Func<bool> tryConsumeAmmo, Vector2? targetPosition = null)
+    public bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, Func<bool> tryConsumeAmmo, Vector2? targetPosition = null, Player attacker = null)
     {
-        return ProjectileAttackExecutor.TryPerform(weapon, origin, direction, null, tryConsumeAmmo, targetPosition);
+        return ProjectileAttackExecutor.TryPerform(weapon, origin, direction, null, tryConsumeAmmo, targetPosition, attacker);
     }
 }
 
@@ -33,7 +33,7 @@ public sealed class WandProjectileAttack : IWeaponAttackHandler
         return weapon is WandSO wand && wand.attackMode == 0 && wand.bulletData != null;
     }
 
-    public bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, Func<bool> tryConsumeAmmo, Vector2? targetPosition = null)
+    public bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, Func<bool> tryConsumeAmmo, Vector2? targetPosition = null, Player attacker = null)
     {
         if (!CanHandle(weapon))
             return false;
@@ -41,7 +41,7 @@ public sealed class WandProjectileAttack : IWeaponAttackHandler
         WandSO wand = (WandSO)weapon;
         Tutorial.Instance?.ShowTutorial("wand", "Fire wand will consume MP, and apply fire effect to enemies.\nSome enemies are immune to fire.");
         return ProjectileAttackExecutor.TryPerform(
-            wand, origin, direction, null, () => tryConsumeMP != null && tryConsumeMP(Mathf.Max(0, wand.MPCost)), targetPosition);
+            wand, origin, direction, null, () => tryConsumeMP != null && tryConsumeMP(Mathf.Max(0, wand.MPCost)), targetPosition, attacker);
     }
 }
 
@@ -53,23 +53,23 @@ public sealed class ChargedAttack : IWeaponAttackHandler, IChargedAttackHandler
             weapon is IProjectileWeapon projectileWeapon && projectileWeapon.ProjectileData != null;
     }
 
-    public bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, Func<bool> tryConsumeAmmo, Vector2? targetPosition = null)
+    public bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, Func<bool> tryConsumeAmmo, Vector2? targetPosition = null, Player attacker = null)
     {
-        return TryPerformCharged(weapon, origin, direction, 0f, tryConsumeAmmo, targetPosition);
+        return TryPerformCharged(weapon, origin, direction, 0f, tryConsumeAmmo, targetPosition, attacker);
     }
 
-    public bool TryPerformCharged(WeaponSO weapon, Vector2 origin, Vector2 direction, float chargeRatio, Func<bool> tryConsumeAmmo, Vector2? targetPosition = null)
+    public bool TryPerformCharged(WeaponSO weapon, Vector2 origin, Vector2 direction, float chargeRatio, Func<bool> tryConsumeAmmo, Vector2? targetPosition = null, Player attacker = null)
     {
         if (weapon is not IChargedProjectileWeapon)
             return false;
 
-        return ProjectileAttackExecutor.TryPerform(weapon, origin, direction, Mathf.Clamp01(chargeRatio), tryConsumeAmmo, targetPosition);
+        return ProjectileAttackExecutor.TryPerform(weapon, origin, direction, Mathf.Clamp01(chargeRatio), tryConsumeAmmo, targetPosition, attacker);
     }
 }
 
 internal static class ProjectileAttackExecutor
 {
-    public static bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, float? chargeRatio, Func<bool> tryConsumeResource, Vector2? targetPosition = null)
+    public static bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, float? chargeRatio, Func<bool> tryConsumeResource, Vector2? targetPosition = null, Player attacker = null)
     {
         if (weapon is not IProjectileWeapon projectileWeapon || projectileWeapon.ProjectileData == null || BulletPool.Instance == null)
             return false;
@@ -122,6 +122,7 @@ internal static class ProjectileAttackExecutor
                 bulletData.critRate,
                 bulletData.critMul);
             bullet.transform.position = origin;
+            bullet.Attacker = attacker;
             bullet.Launch(shotDirection, shotDamage, speed, effectProbabilityMultiplier, targetPosition);
             firedAny = true;
         }

@@ -28,6 +28,7 @@ public class Bullet2D : MonoBehaviour
 
     protected virtual bool UsesTargetExplosion => bulletData != null && bulletData.bulletMode == 1 && bulletData.isExplosive;
     protected virtual bool ImpactsColliders => true;
+    protected virtual bool DespawnOffScreen => true;
 
     public float Damage => currentDamage;
     public float KnockbackForce => bulletData != null ? bulletData.knockbackForce : 0f;
@@ -35,7 +36,8 @@ public class Bullet2D : MonoBehaviour
     public int[] AttackAttributes => bulletData != null ? bulletData.attackAttributes : null;
     public float EffectProbabilityMultiplier => effectProbabilityMultiplier;
     public int DamageSourceId => damageSourceId;
-    public Vector2 TravelDirection => rb != null && rb.linearVelocity.sqrMagnitude > 0f
+    public Player Attacker { get; set; }
+    public virtual Vector2 TravelDirection => rb != null && rb.linearVelocity.sqrMagnitude > 0f
         ? rb.linearVelocity.normalized
         : transform.right;
 
@@ -57,6 +59,7 @@ public class Bullet2D : MonoBehaviour
 
     public void Initialize(BulletSO data)
     {
+        Attacker = null;
         EnsureComponents();
         bulletData = data;
         currentDamage = bulletData != null ? bulletData.damage : 0f;
@@ -94,10 +97,9 @@ public class Bullet2D : MonoBehaviour
 
         currentDamage = damage;
         this.effectProbabilityMultiplier = Mathf.Max(0f, effectProbabilityMultiplier);
-        damageSourceId = Interlocked.Increment(ref nextDamageSourceId);
+        BeginDamageSource();
         hasImpacted = false;
         hasLaunched = true;
-        hitEnemies.Clear();
         remainingPierces = Mathf.Max(0, bulletData.isPiercing);
         explosionTarget = UsesTargetExplosion ? targetPosition : null;
 
@@ -128,7 +130,7 @@ public class Bullet2D : MonoBehaviour
         }
 
         // Check if bullet flew off-screen
-        if (mainCamera != null)
+        if (DespawnOffScreen && mainCamera != null)
         {
             Vector3 screenPoint = mainCamera.WorldToViewportPoint(transform.position);
             bool isOffScreen = screenPoint.x < 0 || screenPoint.x > 1 || screenPoint.y < 0 || screenPoint.y > 1;
@@ -140,7 +142,7 @@ public class Bullet2D : MonoBehaviour
         }
     }
 
-    private void FixedUpdate()
+    protected virtual void FixedUpdate()
     {
         if (hasImpacted || !gameObject.activeInHierarchy)
             return;
@@ -171,6 +173,22 @@ public class Bullet2D : MonoBehaviour
             return;
         }
 
+        if (!SweepForImpacts(direction * distance))
+            return;
+        if (reachesTarget)
+            DetonateAtTarget();
+    }
+
+    // Returns false when an impact deactivates the bullet. Curved projectiles
+    // call this for each segment rather than sweeping across the curve's chord.
+    protected bool SweepForImpacts(Vector2 displacement)
+    {
+        if (hasImpacted || !gameObject.activeInHierarchy)
+            return false;
+        float distance = displacement.magnitude;
+        if (!ImpactsColliders || distance <= Mathf.Epsilon)
+            return true;
+        Vector2 direction = displacement / distance;
         ContactFilter2D filter = new ContactFilter2D();
         filter.SetLayerMask(Physics2D.GetLayerCollisionMask(gameObject.layer));
         filter.useTriggers = true;
@@ -218,11 +236,10 @@ public class Bullet2D : MonoBehaviour
             rb.position = impactPosition;
             transform.position = new Vector3(impactPosition.x, impactPosition.y, transform.position.z);
             HandleImpact(other);
-            return;
+            return false;
         }
 
-        if (reachesTarget)
-            DetonateAtTarget();
+        return true;
     }
 
     private void DetonateAtTarget()
@@ -246,6 +263,12 @@ public class Bullet2D : MonoBehaviour
             Explode(transform.position);
 
         Deactivate();
+    }
+
+    protected void BeginDamageSource()
+    {
+        damageSourceId = Interlocked.Increment(ref nextDamageSourceId);
+        hitEnemies.Clear();
     }
 
     public void ApplyDirectHit(EnemyChase enemy)
@@ -282,7 +305,8 @@ public class Bullet2D : MonoBehaviour
                 Time.fixedDeltaTime,
                 AttackAttributes,
                 EnemyDamageKind.Projectile))
-                enemy.ApplyEffects(Effects, EffectProbabilityMultiplier);
+                enemy.ApplyEffects(Effects, EffectProbabilityMultiplier,
+                    Attacker != null ? Attacker.RestoreEffectResource : null);
         }
     }
 

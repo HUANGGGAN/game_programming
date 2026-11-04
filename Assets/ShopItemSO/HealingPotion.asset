@@ -15,13 +15,13 @@ MonoBehaviour:
   type: 2
   currency: {fileID: 0}
   currencyIcon: {fileID: 8486161389605743706, guid: 52f57f18ca5a5d6ac9917afd465db94a, type: 3}
-  price: 1
+  price: 2
   object:
     item: {fileID: 11400000, guid: ba18b6115c2aea237b7a4198d3afd7f3, type: 2}
-    count: 1
+    count: 5
     ammoCount: 0
   objectIcon: {fileID: 0}
   objectName: Heal
-  buyOneAtOnce: 1
+  buyOneAtOnce: 0
   description: Heal!!
   randomItemGroupID: 0

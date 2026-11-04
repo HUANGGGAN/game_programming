@@ -461,9 +461,9 @@ public class PlayerShooter2D : MonoBehaviour
                 origin,
                 direction,
                 chargeRatio.Value,
-                tryConsumeAmmo, targetPosition);
+                tryConsumeAmmo, targetPosition, player);
         }
 
-        return handler.TryPerform(equippedWeapon, origin, direction, tryConsumeAmmo, targetPosition);
+        return handler.TryPerform(equippedWeapon, origin, direction, tryConsumeAmmo, targetPosition, player);
     }
 }

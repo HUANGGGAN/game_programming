@@ -195,7 +195,7 @@ public class EnemyChase : MonoBehaviour, IEffectSource
         if (!agent.isOnNavMesh)
             return;
 
-        agent.speed = EffectRuntime.HasEffect(activeEffects, EffectRuntime.Faint) ? 0f : MovementSpeed;
+        agent.speed = MovementSpeed * EffectRuntime.GetMovementMultiplier(activeEffects);
         if (isAttacking)
         {
             UpdateAttack();
@@ -389,7 +389,7 @@ public class EnemyChase : MonoBehaviour, IEffectSource
         if (playerComponent != null)
         {
             if (playerComponent.TakeDamage(AttackDamage) && enemyData != null)
-                playerComponent.ApplyEffects(enemyData.effects);
+                playerComponent.ApplyEffects(enemyData.effects, RestoreEffectResource);
             Vector2 knockbackDirection = (Vector2)player.position - (Vector2)transform.position;
             playerComponent.ApplyKnockback(knockbackDirection, AttackKnockback);
         }
@@ -407,7 +407,8 @@ public class EnemyChase : MonoBehaviour, IEffectSource
             hitCooldownDuration,
             bullet.AttackAttributes,
             EnemyDamageKind.Projectile))
-            ApplyEffects(bullet.Effects, bullet.EffectProbabilityMultiplier);
+            ApplyEffects(bullet.Effects, bullet.EffectProbabilityMultiplier,
+                bullet.Attacker != null ? bullet.Attacker.RestoreEffectResource : null);
     }
 
     public bool TakeDamage(float damageAmount)
@@ -473,12 +474,18 @@ public class EnemyChase : MonoBehaviour, IEffectSource
         return true;
     }
 
-    public void ApplyEffects(EffectDefinition[] effects, float probabilityMultiplier = 1f)
+    public void ApplyEffects(EffectDefinition[] effects, float probabilityMultiplier = 1f, System.Action<int, int> restoreAttacker = null)
     {
-        if (isDying)
-            return;
-        if (EffectRuntime.Apply(activeEffects, effects, probabilityMultiplier, enemyData != null ? enemyData.resistances : null))
+        if (EffectRuntime.Apply(activeEffects, effects, probabilityMultiplier, enemyData != null ? enemyData.resistances : null,
+            restoreAttacker, !isDying))
             EffectsChanged?.Invoke();
+    }
+
+    private void RestoreEffectResource(int effectID, int amount)
+    {
+        if (!isDying && effectID == EffectRuntime.HPStealing && amount > 0)
+            currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
+        // Enemies currently have no MP resource to restore.
     }
 
     public bool RemoveEffect(int effectID)
@@ -504,9 +511,9 @@ public class EnemyChase : MonoBehaviour, IEffectSource
         bool weakened = HasMatchingAttribute(attackAttributes, enemyData.weaknesses);
         float multiplier = 1f;
         if (resisted)
-            multiplier *= 0.15f;
+            multiplier *= 0.25f;
         if (weakened)
-            multiplier *= 2f;
+            multiplier *= 2.5f;
         return multiplier;
     }
 

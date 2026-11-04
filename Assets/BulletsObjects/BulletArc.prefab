@@ -172,6 +172,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ArcBullet2D
   obstacleTag: BulletBlocker
   arcRatio: 1
+  returnTarget: {fileID: 0}
+  curveRatio: 0.21
+  spinSpeed: 360
+  catchDistance: 0.15
+  curveSegments: 16
 --- !u!1 &4859490139022620280
 GameObject:
   m_ObjectHideFlags: 0

@@ -4,21 +4,38 @@ using UnityEngine;
 public class ArcBullet2D : Bullet2D
 {
     [SerializeField, Min(0f)] private float arcRatio = 1f;
+    [Header("Boomerang (Mode 1)")]
+    [SerializeField] private Transform returnTarget;
+    [SerializeField, Min(0f)] private float curveRatio = 0.3f;
+    [SerializeField] private float spinSpeed = 720f;
+    [SerializeField, Min(0f)] private float catchDistance = 0.15f;
+    [SerializeField, Range(4, 128)] private int curveSegments = 32;
+    private bool isBoomerang;
+    private bool isReturning;
+    private float boomerangSpeed;
+    private Vector2 legStart;
+    private Vector2 outboundTarget;
+    private int nextWaypoint;
+    private int segmentCount;
     private Transform visualSprite;
     private Vector2 startPosition;
     private float flightDistance;
     private bool isArcing;
-    protected override bool ImpactsColliders => false;
+    private Vector2 boomerangDirection;
+    protected override bool ImpactsColliders => bulletData != null && bulletData.bulletMode == 1;
+    public override Vector2 TravelDirection => isBoomerang && boomerangDirection.sqrMagnitude > 0f
+        ? boomerangDirection : base.TravelDirection;
+    protected override bool DespawnOffScreen => !isBoomerang;
 
-    protected override bool UsesTargetExplosion => base.UsesTargetExplosion ||
-        (bulletData != null && bulletData.bulletMode == 0 && bulletData.bulletId == "1" && bulletData.isExplosive);
+    protected override bool UsesTargetExplosion =>
+        bulletData != null && bulletData.bulletMode == 0 && bulletData.bulletId == "1" && bulletData.isExplosive;
 
     protected override void EnsureComponents()
     {
         base.EnsureComponents();
         if (visualSprite != null)
             return;
-        // Fly over enemies and obstacles without physical collision responses.
+        // Use cast-based hits rather than physical collision responses.
         foreach (Collider2D collider in GetComponentsInChildren<Collider2D>(true))
             collider.isTrigger = true;
         // Lift only the image, so height never changes casts, explosion positions, or the shadow.
@@ -47,10 +64,103 @@ public class ArcBullet2D : Bullet2D
         isArcing = bulletData != null && bulletData.bulletMode == 0 && bulletData.bulletId == "1" &&
             targetPosition.HasValue && flightDistance > Mathf.Epsilon;
         visualSprite.localPosition = Vector3.zero;
+        visualSprite.localRotation = Quaternion.identity;
+        isBoomerang = bulletData != null && bulletData.bulletMode == 1 && bulletData.bulletId == "1" && targetPosition.HasValue;
+        isReturning = false;
+        if (isBoomerang)
+        {
+            if (returnTarget == null)
+            {
+                GameObject player = GameObject.FindGameObjectWithTag("Player");
+                if (player != null)
+                    returnTarget = player.transform;
+            }
+            boomerangSpeed = Mathf.Max(0f, speed);
+            boomerangDirection = direction.normalized;
+            legStart = rb.position;
+            outboundTarget = targetPosition.Value;
+            nextWaypoint = 1;
+            segmentCount = Mathf.Clamp(curveSegments, 4, 128);
+            rb.linearVelocity = Vector2.zero;
+        }
+    }
+
+    protected override void FixedUpdate()
+    {
+        if (!isBoomerang)
+        {
+            base.FixedUpdate();
+            return;
+        }
+        if (returnTarget == null || !returnTarget.gameObject.activeInHierarchy)
+        {
+            Deactivate();
+            return;
+        }
+
+        Vector2 position = rb.position;
+        Vector2 target = isReturning ? (Vector2)returnTarget.position : outboundTarget;
+        float remainingStep = boomerangSpeed * Time.fixedDeltaTime;
+        if (isReturning && Vector2.Distance(position, target) <= catchDistance)
+        {
+            Deactivate();
+            return;
+        }
+
+        // Spend a fixed distance along sampled quadratic curves. Updating the
+        // return endpoint changes the route without teleporting the bullet.
+        while (remainingStep > 0f && nextWaypoint <= segmentCount)
+        {
+            float t = (float)nextWaypoint / segmentCount;
+            Vector2 delta = target - legStart;
+            Vector2 control = (legStart + target) * 0.5f +
+                new Vector2(-delta.y, delta.x) * curveRatio;
+            Vector2 waypoint = (1f - t) * (1f - t) * legStart +
+                2f * (1f - t) * t * control + t * t * target;
+            float distance = Vector2.Distance(position, waypoint);
+            Vector2 nextPosition;
+            if (distance > remainingStep)
+            {
+                nextPosition = Vector2.MoveTowards(position, waypoint, remainingStep);
+                remainingStep = 0f;
+            }
+            else
+            {
+                nextPosition = waypoint;
+                remainingStep -= distance;
+                nextWaypoint++;
+            }
+            Vector2 movement = nextPosition - position;
+            if (movement.sqrMagnitude > 0f)
+                boomerangDirection = movement.normalized;
+            if (!SweepForImpacts(movement))
+                return;
+            position = nextPosition;
+            // Advance the cast origin before processing the next curved segment.
+            rb.position = position;
+        }
+        rb.linearVelocity = Vector2.zero;
+        if (nextWaypoint > segmentCount)
+        {
+            if (isReturning)
+            {
+                Deactivate();
+                return;
+            }
+            isReturning = true;
+            BeginDamageSource();
+            legStart = position;
+            nextWaypoint = 1;
+        }
     }
 
     private void LateUpdate()
     {
+        if (isBoomerang)
+        {
+            visualSprite.Rotate(0f, 0f, spinSpeed * Time.deltaTime, Space.Self);
+            return;
+        }
         if (!isArcing)
             return;
         float t = Mathf.Clamp01(Vector2.Distance(startPosition, rb.position) / flightDistance);
@@ -62,8 +172,13 @@ public class ArcBullet2D : Bullet2D
     {
         EnsureComponents();
         isArcing = false;
+        isBoomerang = false;
+        isReturning = false;
         if (visualSprite != null)
+        {
             visualSprite.localPosition = Vector3.zero;
+            visualSprite.localRotation = Quaternion.identity;
+        }
         base.Deactivate();
     }
 }

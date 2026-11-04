@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ec186d1a765adae3aa6d3343c7dd524, type: 3}
+  m_Name: CrossBow
+  m_EditorClassIdentifier: Assembly-CSharp::GunSO
+  itemName: CrossBow
+  itemID: 0
+  rarity: 2
+  icon: {fileID: 5583272366953621293, guid: 47c701683b0cf21ee9ad153a45a5c2f5, type: 3}
+  maxStackSize: 1
+  tag: 1
+  description: 
+  shootInterval: 0.1
+  consumeAmmo: 1
+  hasLimitedAmmo: 0
+  firePointOffset: {x: 0.5, y: 0}
+  animatorOverrideController: {fileID: 0}
+  capacity: 1
+  reloadTime: 0.6
+  spread: 3
+  burstCount: 1
+  bulletData: {fileID: 11400000, guid: 48f6761f42aec5f6db36a946bbfa7fd5, type: 2}

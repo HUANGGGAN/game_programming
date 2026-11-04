@@ -31,32 +31,32 @@ MonoBehaviour:
   - item: {fileID: 11400000, guid: 698988ad1135bdd91a9c8b7fdf0693b6, type: 2}
     count: 3
     ammoCount: 0
-  - item: {fileID: 11400000, guid: e8ba09ae06a3c3478916365c358fd503, type: 2}
-    count: 1
-    ammoCount: 0
-  - item: {fileID: 11400000, guid: 296685651f25499c6a57d0f93c3afd14, type: 2}
-    count: 10
-    ammoCount: 0
-  - item: {fileID: 11400000, guid: 296685651f25499c6a57d0f93c3afd14, type: 2}
-    count: 10
-    ammoCount: 0
-  - item: {fileID: 11400000, guid: a98a3f082313896279b8e59944d142ff, type: 2}
-    count: 1
-    ammoCount: 0
-  - item: {fileID: 11400000, guid: ba18b6115c2aea237b7a4198d3afd7f3, type: 2}
-    count: 4
-    ammoCount: 0
-  - item: {fileID: 11400000, guid: 19aa54060d9ff7133b840258a9bb6c69, type: 2}
+  - item: {fileID: 11400000, guid: 4b27838c02f5b35e28dc2c829d028563, type: 2}
     count: 1
     ammoCount: 0
   - item: {fileID: 11400000, guid: 4a0e4be5bd6bc9a669a71678f3325615, type: 2}
     count: 1
-    ammoCount: 15
-  - item: {fileID: 0}
-    count: 0
+    ammoCount: 11
+  - item: {fileID: 11400000, guid: a98a3f082313896279b8e59944d142ff, type: 2}
+    count: 1
     ammoCount: 0
   - item: {fileID: 0}
     count: 0
+    ammoCount: 0
+  - item: {fileID: 11400000, guid: e8ba09ae06a3c3478916365c358fd503, type: 2}
+    count: 1
+    ammoCount: 0
+  - item: {fileID: 11400000, guid: 19aa54060d9ff7133b840258a9bb6c69, type: 2}
+    count: 1
+    ammoCount: 0
+  - item: {fileID: 11400000, guid: 46aead4a94bf5c364a5564e5557d00d3, type: 2}
+    count: 1
+    ammoCount: 0
+  - item: {fileID: 11400000, guid: 4b27838c02f5b35e28dc2c829d028563, type: 2}
+    count: 1
+    ammoCount: 0
+  - item: {fileID: 11400000, guid: e8ba09ae06a3c3478916365c358fd503, type: 2}
+    count: 1
     ammoCount: 0
   - item: {fileID: 0}
     count: 0
@@ -71,11 +71,11 @@ MonoBehaviour:
   - item: {fileID: 11400000, guid: 3e5b0d0a1936a8f7c91cf352f7df5be2, type: 2}
     count: 1
     ammoCount: 0
-  - item: {fileID: 0}
-    count: 0
+  - item: {fileID: 11400000, guid: 4b8352b2bd1c597faa29eb1624add3cb, type: 2}
+    count: 1
     ammoCount: 0
-  - item: {fileID: 11400000, guid: 296685651f25499c6a57d0f93c3afd14, type: 2}
-    count: 7
+  - item: {fileID: 11400000, guid: 9339e003eb432e605ba49d5bc4458ea4, type: 2}
+    count: 1
     ammoCount: 0
   armorSlots:
   - item: {fileID: 0}
@@ -91,8 +91,11 @@ MonoBehaviour:
     count: 0
     ammoCount: 0
   consumableSlots:
-  - item: {fileID: 0}
-    count: 0
+  - item: {fileID: 11400000, guid: ba18b6115c2aea237b7a4198d3afd7f3, type: 2}
+    count: 5
+    ammoCount: 0
+  - item: {fileID: 11400000, guid: ba18b6115c2aea237b7a4198d3afd7f3, type: 2}
+    count: 5
     ammoCount: 0
   - item: {fileID: 0}
     count: 0

@@ -1,0 +1,40 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a9defc2eb230c20ce96051b757e77152, type: 3}
+  m_Name: StunStick
+  m_EditorClassIdentifier: Assembly-CSharp::MeleeSO
+  itemName: StunStick
+  itemID: 0
+  rarity: 3
+  icon: {fileID: 8709464355741663429, guid: 84dd1bca7d9df69028ca25a125fcca3d, type: 3}
+  maxStackSize: 1
+  tag: 1
+  description: 
+  shootInterval: 1
+  consumeAmmo: 0
+  hasLimitedAmmo: 0
+  firePointOffset: {x: 0.5, y: 0.1}
+  animatorOverrideController: {fileID: 0}
+  attackRange: 2
+  attackAngle: 90
+  attackDamage: 10
+  attackDuration: 0.1
+  knockbackForce: 1
+  critRate: 0.1
+  critMul: 3
+  drawAttackRange: 0
+  effects:
+  - effectID: 6
+    duration: 5
+    probability: 1
+    level: 1
+  attackAttributes: 

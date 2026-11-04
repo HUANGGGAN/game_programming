@@ -6,7 +6,7 @@ using UnityEngine;
 public interface IWeaponAttackHandler
 {
     bool CanHandle(WeaponSO weapon);
-    bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, Func<bool> tryConsumeAmmo, Vector2? targetPosition = null);
+    bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, Func<bool> tryConsumeAmmo, Vector2? targetPosition = null, Player attacker = null);
 }
 
 public interface ITimedWeaponAttackHandler
@@ -18,6 +18,7 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
 {
     private static int nextDamageSourceId;
     private MeleeSO activeWeapon;
+    private Player activeAttacker;
     private Vector2 activeOrigin;
     private Vector2 activeDirection;
     private float activeDuration;
@@ -78,7 +79,7 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
         return weapon is MeleeSO;
     }
 
-    public bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, System.Func<bool> tryConsumeAmmo, Vector2? targetPosition = null)
+    public bool TryPerform(WeaponSO weapon, Vector2 origin, Vector2 direction, System.Func<bool> tryConsumeAmmo, Vector2? targetPosition = null, Player attacker = null)
     {
         if (weapon is not MeleeSO meleeWeapon || meleeWeapon.attackRange <= 0f || meleeWeapon.attackDamage <= 0f || direction.sqrMagnitude <= Mathf.Epsilon)
             return false;
@@ -90,6 +91,7 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
             return false;
 
         activeWeapon = meleeWeapon;
+        activeAttacker = attacker;
         activeOrigin = origin;
         activeDirection = direction.normalized;
         activeDuration = Mathf.Max(0f, meleeWeapon.attackDuration);
@@ -147,7 +149,7 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
                 activeWeapon.attackAttributes,
                 EnemyDamageKind.Melee))
             {
-                enemy.ApplyEffects(activeWeapon.effects);
+                enemy.ApplyEffects(activeWeapon.effects, restoreAttacker: activeAttacker != null ? activeAttacker.RestoreEffectResource : null);
             }
         }
     }

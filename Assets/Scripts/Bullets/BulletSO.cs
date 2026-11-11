@@ -24,8 +24,10 @@ public class BulletSO : ScriptableObject
     public float damage = 10f;
     public float speed = 15f;
     public float lifetime = 3f;
-    [Min(0)] public int isPiercing = 0; // Enemies passed through before stopping on the next hit
-    public int bulletMode = 0; // 0: normal; 1: explosive bullet detonates at the captured aim position
+    [Tooltip("Enemies pierced in normal modes. In type 0 mode 3, total enemy/obstacle hits before deactivation (minimum 1).")]
+    [Min(0)] public int isPiercing = 0;
+    [Tooltip("Type 0: 0 normal, 1 target explosion, 2 reflect off enemies/obstacles/screen edges, 3 random direction on hits.")]
+    public int bulletMode = 0;
     public bool isExplosive = false; // If true, bullet can explode on impact
     public float explosionRadius = 2f; // Only relevant if isExplosive is true
     public float knockbackForce = 5f; // Force applied to enemies on hit

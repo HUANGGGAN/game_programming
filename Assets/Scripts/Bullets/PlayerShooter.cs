@@ -429,7 +429,7 @@ public class PlayerShooter2D : MonoBehaviour
         // 3. Calculate direction vector snapshot
         Vector2 shootDirection = ((Vector2)mouseWorldPos - (Vector2)aimOrigin).normalized;
 
-        bool isMeleeAttack = equippedWeapon is MeleeSO;
+        MeleeSO meleeWeapon = equippedWeapon as MeleeSO;
         if (!TryPerformAttack(spawnPosition, shootDirection, chargeRatio, mouseWorldPos))
         {
             lazerAttack.Hide();
@@ -442,8 +442,18 @@ public class PlayerShooter2D : MonoBehaviour
             UpdateWeaponFrames();
         }
 
-        if (isMeleeAttack && animator != null)
-            animator.SetTrigger("Swipe");
+        if (meleeWeapon != null && animator != null)
+        {
+            switch (meleeWeapon.attackAnimation)
+            {
+                case MeleeAttackAnimation.SwingAttack:
+                    animator.SetTrigger("Swing");
+                    break;
+                case MeleeAttackAnimation.PokeAttack:
+                    animator.SetTrigger("Poke");
+                    break;
+            }
+        }
 
         if (shouldConsumeAmmo)
             RefreshWeaponAmmoTexts();

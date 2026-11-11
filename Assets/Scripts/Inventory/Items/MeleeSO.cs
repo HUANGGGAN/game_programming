@@ -1,9 +1,17 @@
 using UnityEngine;
 
+public enum MeleeAttackAnimation
+{
+    NoAttack = -1,
+    SwingAttack = 0,
+    PokeAttack = 1
+}
+
 [CreateAssetMenu(fileName = "NewMelee", menuName = "Weapon/Melee")]
 public class MeleeSO : WeaponSO
 {
     [Header("Melee Stats")]
+    public MeleeAttackAnimation attackAnimation = MeleeAttackAnimation.SwingAttack;
     public float attackRange = 2.0f; // Range of the melee attack
     public float attackAngle = 90.0f; // Angle of the melee attack in degrees
     public float attackDamage = 10.0f; // Damage value for the melee attack

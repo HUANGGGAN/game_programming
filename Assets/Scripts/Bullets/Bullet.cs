@@ -25,10 +25,15 @@ public class Bullet2D : MonoBehaviour
     private bool componentsInitialized;
     private readonly List<RaycastHit2D> castHits = new List<RaycastHit2D>();
     private readonly HashSet<EnemyChase> hitEnemies = new HashSet<EnemyChase>();
+    private readonly HashSet<Collider2D> ricochetContacts = new HashSet<Collider2D>();
+    private int remainingRicochetHits;
+    private const float RicochetSkin = 0.005f;
+    private bool IsRicochet => bulletData != null && bulletData.bulletId != "1" &&
+        (bulletData.bulletMode == 2 || bulletData.bulletMode == 3);
 
     protected virtual bool UsesTargetExplosion => bulletData != null && bulletData.bulletMode == 1 && bulletData.isExplosive;
     protected virtual bool ImpactsColliders => true;
-    protected virtual bool DespawnOffScreen => true;
+    protected virtual bool DespawnOffScreen => !IsRicochet || bulletData.bulletMode != 2;
 
     public float Damage => currentDamage;
     public float KnockbackForce => bulletData != null ? bulletData.knockbackForce : 0f;
@@ -37,7 +42,8 @@ public class Bullet2D : MonoBehaviour
     public float EffectProbabilityMultiplier => effectProbabilityMultiplier;
     public int DamageSourceId => damageSourceId;
     public Player Attacker { get; set; }
-    public virtual Vector2 TravelDirection => rb != null && rb.linearVelocity.sqrMagnitude > 0f
+    public virtual Vector2 TravelDirection => IsRicochet && ricochetVelocity.sqrMagnitude > 0f
+        ? ricochetVelocity.normalized : rb != null && rb.linearVelocity.sqrMagnitude > 0f
         ? rb.linearVelocity.normalized
         : transform.right;
 
@@ -101,6 +107,8 @@ public class Bullet2D : MonoBehaviour
         hasImpacted = false;
         hasLaunched = true;
         remainingPierces = Mathf.Max(0, bulletData.isPiercing);
+        remainingRicochetHits = Mathf.Max(1, bulletData.isPiercing);
+        ricochetContacts.Clear();
         explosionTarget = UsesTargetExplosion ? targetPosition : null;
 
         // Re-enable visual, collider, and GameObject state when re-firing
@@ -118,6 +126,7 @@ public class Bullet2D : MonoBehaviour
 
         // Apply velocity
         rb.linearVelocity = direction.normalized * Mathf.Max(0f, speed);
+        ricochetVelocity = rb.linearVelocity;
     }
 
     private void Update()
@@ -146,6 +155,12 @@ public class Bullet2D : MonoBehaviour
     {
         if (hasImpacted || !gameObject.activeInHierarchy)
             return;
+
+        if (IsRicochet)
+        {
+            UpdateRicochet();
+            return;
+        }
 
         if (explosionTarget.HasValue && Vector2.Distance(rb.position, explosionTarget.Value) <= 0.001f)
         {
@@ -177,6 +192,148 @@ public class Bullet2D : MonoBehaviour
             return;
         if (reachesTarget)
             DetonateAtTarget();
+    }
+
+    private void UpdateRicochet()
+    {
+        float speed = ricochetVelocity.magnitude;
+        if (speed <= Mathf.Epsilon)
+            return;
+        Vector2 direction = ricochetVelocity / speed;
+        Vector2 position = rb.position;
+        float remainingDistance = speed * Time.fixedDeltaTime;
+        bool screenBounce = bulletData.bulletMode == 2 && mainCamera != null;
+        Vector2 screenMin = Vector2.zero;
+        Vector2 screenMax = Vector2.zero;
+        if (screenBounce)
+        {
+            float depth = mainCamera.WorldToViewportPoint(transform.position).z;
+            Vector2 a = mainCamera.ViewportToWorldPoint(new Vector3(0f, 0f, depth));
+            Vector2 b = mainCamera.ViewportToWorldPoint(new Vector3(1f, 1f, depth));
+            Vector2 extents = bulletCollider != null ? (Vector2)bulletCollider.bounds.extents : Vector2.zero;
+            screenMin = Vector2.Min(a, b) + extents;
+            screenMax = Vector2.Max(a, b) - extents;
+            if (screenMin.x >= screenMax.x || screenMin.y >= screenMax.y)
+                screenBounce = false;
+            else
+            {
+                // Camera movement can leave a previously valid bullet outside its bounds.
+                position = new Vector2(Mathf.Clamp(position.x, screenMin.x, screenMax.x),
+                    Mathf.Clamp(position.y, screenMin.y, screenMax.y));
+                rb.position = position;
+            }
+        }
+
+        // Consume the step in segments so a fast bullet can bounce more than once.
+        // Bound the loop for overlapping colliders and tight corners.
+        for (int bounce = 0; bounce < 16 && remainingDistance > Mathf.Epsilon; bounce++)
+        {
+            ricochetContacts.RemoveWhere(HasLeftRicochetContact);
+            float hitDistance = remainingDistance;
+            Vector2 normal = Vector2.zero;
+            Collider2D hitCollider = null;
+            EnemyChase hitEnemy = null;
+            bool hitScreen = false;
+            if (screenBounce)
+            {
+                float xDistance = direction.x > 0f ? (screenMax.x - position.x) / direction.x :
+                    direction.x < 0f ? (screenMin.x - position.x) / direction.x : float.PositiveInfinity;
+                float yDistance = direction.y > 0f ? (screenMax.y - position.y) / direction.y :
+                    direction.y < 0f ? (screenMin.y - position.y) / direction.y : float.PositiveInfinity;
+                float edgeDistance = Mathf.Max(0f, Mathf.Min(xDistance, yDistance));
+                if (edgeDistance <= hitDistance)
+                {
+                    hitDistance = edgeDistance;
+                    normal = Vector2.zero;
+                    if (Mathf.Abs(xDistance - edgeDistance) <= RicochetSkin)
+                        normal.x = -Mathf.Sign(direction.x);
+                    if (Mathf.Abs(yDistance - edgeDistance) <= RicochetSkin)
+                        normal.y = -Mathf.Sign(direction.y);
+                    normal.Normalize();
+                    hitScreen = true;
+                }
+            }
+            ContactFilter2D filter = new ContactFilter2D();
+            filter.SetLayerMask(Physics2D.GetLayerCollisionMask(gameObject.layer));
+            filter.useTriggers = true;
+            castHits.Clear();
+            rb.Cast(direction, filter, castHits, hitDistance);
+            foreach (RaycastHit2D hit in castHits)
+            {
+                Collider2D other = hit.collider;
+                if (other == null || !other.enabled || !other.gameObject.activeInHierarchy ||
+                    other.attachedRigidbody == rb || ricochetContacts.Contains(other))
+                    continue;
+                bool obstacle = other.CompareTag(obstacleTag);
+                EnemyChase enemy = other.GetComponentInParent<EnemyChase>();
+                if (!obstacle && (enemy == null || !enemy.isActiveAndEnabled || enemy.CurrentHealth <= 0f))
+                    continue;
+                if (hit.distance > hitDistance || (hit.distance == hitDistance && hitCollider != null && !obstacle))
+                    continue;
+                hitDistance = hit.distance;
+                hitCollider = other;
+                hitEnemy = obstacle ? null : enemy;
+                normal = hit.normal.sqrMagnitude > Mathf.Epsilon ? hit.normal.normalized : -direction;
+                hitScreen = false;
+            }
+            position += direction * hitDistance;
+            rb.position = position;
+            transform.position = new Vector3(position.x, position.y, transform.position.z);
+            remainingDistance -= hitDistance;
+            if (!hitScreen && hitCollider == null)
+                break;
+
+            if (hitCollider != null)
+            {
+                // Each distinct contact can damage the same enemy again after separation.
+                BeginDamageSource();
+                ricochetVelocity = direction * speed;
+                rb.linearVelocity = direction * speed;
+                if (hitEnemy != null)
+                {
+                    ApplyDirectHit(hitEnemy);
+                    foreach (Collider2D collider in hitEnemy.GetComponentsInChildren<Collider2D>())
+                        ricochetContacts.Add(collider);
+                }
+                ricochetContacts.Add(hitCollider);
+                if (bulletData.isExplosive)
+                    Explode(position);
+                if (bulletData.bulletMode == 3 && --remainingRicochetHits <= 0)
+                {
+                    Deactivate();
+                    return;
+                }
+            }
+            if (bulletData.bulletMode == 2)
+                direction = hitScreen && normal.x != 0f && normal.y != 0f
+                    ? -direction : Vector2.Reflect(direction, normal).normalized;
+            else
+                direction = (Quaternion.Euler(0f, 0f, UnityEngine.Random.Range(-85f, 85f)) * normal).normalized;
+            // Start the next sweep just outside the contact surface.
+            float separation = Mathf.Min(RicochetSkin, remainingDistance);
+            position += normal * separation;
+            remainingDistance -= separation;
+            rb.position = position;
+        }
+        transform.position = new Vector3(position.x, position.y, transform.position.z);
+        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        rb.rotation = angle;
+        transform.rotation = Quaternion.Euler(0f, 0f, angle);
+        // Position was advanced manually using casts; resume its velocity next step.
+        ricochetVelocity = direction * speed;
+        rb.linearVelocity = Vector2.zero;
+    }
+
+    private Vector2 ricochetVelocity;
+
+    private bool HasLeftRicochetContact(Collider2D other)
+    {
+        if (other == null || !other.enabled || !other.gameObject.activeInHierarchy)
+            return true;
+        if (bulletCollider == null)
+            return false;
+        ColliderDistance2D separation = Physics2D.Distance(bulletCollider, other);
+        return !separation.isOverlapped && separation.distance > RicochetSkin * 2f;
     }
 
     // Returns false when an impact deactivates the bullet. Curved projectiles

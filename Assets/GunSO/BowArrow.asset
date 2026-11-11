@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 60cb8d2a654d011e49bd6b6c11263e2a, type: 3}
-  m_Name: Arrow
+  m_Name: BowArrow
   m_EditorClassIdentifier: Assembly-CSharp::BulletSO
   bulletId: 0
   bulletSprite: {fileID: 3744615129089574730, guid: 021fafd787b603129a37a232a33a16ec, type: 3}

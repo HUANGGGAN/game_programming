@@ -14,6 +14,10 @@ public class LazerSO : WeaponSO
     [Min(0.001f)] public float maxThickness = 0.1f;
     [Min(0f)] public float growDuration = 0.15f;
     [Min(0f)] public float shrinkDuration = 0.15f;
+    [Tooltip("Thickness variation as a fraction of maxThickness. Set to 0 to disable.")]
+    [Range(0f, 1f)] public float pulseAmount = 0.05f;
+    [Tooltip("Thickness pulse cycles per second.")]
+    [Min(0f)] public float pulseSpeed = 3f;
     [Min(0f)] public float maxRange = 50f;
     [Min(0)] public int endpointParticleID;
     [Tooltip("Persistent endpoint glow. Use a looping particle system with Local simulation space.")]

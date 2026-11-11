@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ec186d1a765adae3aa6d3343c7dd524, type: 3}
+  m_Name: Shuriken
+  m_EditorClassIdentifier: Assembly-CSharp::GunSO
+  itemName: Shuriken
+  itemID: 0
+  rarity: 1
+  icon: {fileID: 6348385188075547880, guid: 6b5a14228c74602439b8ad92bc82fb01, type: 3}
+  maxStackSize: 1
+  tag: 1
+  description: 
+  shootInterval: 0.4
+  MPCost: 0
+  consumeAmmo: 0
+  hasLimitedAmmo: 0
+  firePointOffset: {x: 0.5, y: 0.1}
+  capacity: 30
+  reloadTime: 2
+  spread: 5
+  burstCount: 1
+  bulletData: {fileID: 11400000, guid: 6c8ffe4ac9f38c7ed960303f590d376a, type: 2}

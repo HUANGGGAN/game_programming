@@ -179,8 +179,12 @@ public sealed class LazerAttack : IWeaponAttackHandler
 
     private void ApplyThickness()
     {
+        float envelope = Mathf.SmoothStep(0f, 1f, visibility);
+        float pulse = visualWeapon != null
+            ? 1f + Mathf.Sin(Time.time * Mathf.Max(0f, visualWeapon.pulseSpeed) * Mathf.PI * 2f) *
+                Mathf.Clamp01(visualWeapon.pulseAmount) * envelope : 1f;
         beam.startWidth = beam.endWidth = visualWeapon != null
-            ? Mathf.Max(0f, visualWeapon.maxThickness) * Mathf.SmoothStep(0f, 1f, visibility) : 0f;
+            ? Mathf.Max(0f, visualWeapon.maxThickness) * envelope * pulse : 0f;
     }
 
     public void HideImmediate()

@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5ec186d1a765adae3aa6d3343c7dd524, type: 3}
+  m_Name: SawBlade
+  m_EditorClassIdentifier: Assembly-CSharp::GunSO
+  itemName: Saw Blade
+  itemID: 0
+  rarity: 2
+  icon: {fileID: -796026350450157388, guid: f19411663e09f8816bd679f3a821c17b, type: 3}
+  maxStackSize: 1
+  tag: 1
+  description: 
+  shootInterval: 0.8
+  MPCost: 0
+  consumeAmmo: 0
+  hasLimitedAmmo: 0
+  firePointOffset: {x: 0.5, y: 0.1}
+  capacity: 30
+  reloadTime: 2
+  spread: 5
+  burstCount: 1
+  bulletData: {fileID: 11400000, guid: 4a7b0bceb7db38455a7efe88d6e3593b, type: 2}

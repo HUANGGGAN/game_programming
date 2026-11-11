@@ -20,9 +20,12 @@ MonoBehaviour:
   tag: 1
   description: 
   shootInterval: 0.2
+  MPCost: 0
   consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
+  animatorOverrideController: {fileID: 0}
+  attackAnimation: -1
   attackRange: 2.5
   attackAngle: 50
   attackDamage: 8

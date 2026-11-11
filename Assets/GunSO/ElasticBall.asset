@@ -1,0 +1,37 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 22158abc0389a8a258f5648f6980295c, type: 3}
+  m_Name: ElasticBall
+  m_EditorClassIdentifier: Assembly-CSharp::ChargedSO
+  itemName: Elastic Ball
+  itemID: 0
+  rarity: 2
+  icon: {fileID: -3427126441530014940, guid: dd724e59f370685f8a495b28ef69a6e7, type: 3}
+  maxStackSize: 1
+  tag: 1
+  description: 
+  shootInterval: 0.2
+  MPCost: 0
+  consumeAmmo: 0
+  hasLimitedAmmo: 0
+  firePointOffset: {x: 0.5, y: 0.1}
+  capacity: 30
+  reloadTime: 2
+  spread: 5
+  burstCount: 1
+  bulletData: {fileID: 11400000, guid: 270d279d091cd3b6491e6d073065a359, type: 2}
+  baseDamage: 2
+  baseSpeed: 6
+  maxChargeTime: 0.3
+  attackMul: 3
+  speedMul: 2.5
+  probMul: 2

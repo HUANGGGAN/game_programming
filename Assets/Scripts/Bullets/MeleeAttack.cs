@@ -87,7 +87,7 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
         if (activeWeapon != null)
             return false;
 
-        if (meleeWeapon.consumeAmmo && !tryConsumeAmmo())
+        if (!tryConsumeAmmo())
             return false;
 
         activeWeapon = meleeWeapon;

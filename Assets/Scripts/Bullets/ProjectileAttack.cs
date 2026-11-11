@@ -21,13 +21,6 @@ public sealed class ProjectileAttack : IWeaponAttackHandler
 
 public sealed class WandProjectileAttack : IWeaponAttackHandler
 {
-    private readonly Func<int, bool> tryConsumeMP;
-
-    public WandProjectileAttack(Func<int, bool> tryConsumeMP)
-    {
-        this.tryConsumeMP = tryConsumeMP;
-    }
-
     public bool CanHandle(WeaponSO weapon)
     {
         return weapon is WandSO wand && wand.attackMode == 0 && wand.bulletData != null;
@@ -39,9 +32,8 @@ public sealed class WandProjectileAttack : IWeaponAttackHandler
             return false;
 
         WandSO wand = (WandSO)weapon;
-        Tutorial.Instance?.ShowTutorial("wand", "Fire wand will consume MP, and apply fire effect to enemies.\nSome enemies are immune to fire.");
         return ProjectileAttackExecutor.TryPerform(
-            wand, origin, direction, null, () => tryConsumeMP != null && tryConsumeMP(Mathf.Max(0, wand.MPCost)), targetPosition, attacker);
+            wand, origin, direction, null, tryConsumeAmmo, targetPosition, attacker);
     }
 }
 
@@ -102,8 +94,8 @@ internal static class ProjectileAttackExecutor
             if (bullet == null)
                 break;
 
-            // Wand handlers supply mana consumption here instead of inventory ammo.
-            if ((weapon is WandSO || weapon.consumeAmmo) && !resourceConsumed)
+            // Pay the attack's MP/ammo cost once, even for a multi-projectile burst.
+            if (!resourceConsumed)
             {
                 if (!tryConsumeResource())
                     return false;

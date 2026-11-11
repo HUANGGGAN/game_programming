@@ -1,13 +1,25 @@
-## Target
+# Goal
+
+Add more bullet mode/type
 
 ### Bullet Mode
 
-- Add int bulletMode; in BulletSO.cs, default 0.
+#### Type 0
 
-- Bullets with bulletMode == 0 are same as usual.
+Usually straight
 
-- For bulletMode == 1, if bulletData.isExplosive is true, the bullet should explode at the position where mouse click to launch this bullet(may need to get it from PlayerShooter.cs) if it is still alive.
+Mode:
+- 0: Fly directly until timeout or collision(done)
+- 1: Fly directly to clicked target(done)
+- 2: Bounce on screen, when hit enemies/obstacles/edge-of-screen, make the bullet reflect(not yet)
+- 3: Change the direction randomly after hitting enemies/obstacles(not yet)
 
-### Piercing
 
-- Currently BulletSO has bool isPiercing. Change it to int type to detect how many target it can pierce through(for example, 0 will only hit the target, pierce=2 may pierce through 2 enemies and hit the third one), but the bullet still stop at obstacles.
+#### Type 1
+
+Usually curve
+
+Mode:
+- 0: Parabolic trail to clicked target, ignore obstacles(done)
+- 1: Boomer rang(done)
+

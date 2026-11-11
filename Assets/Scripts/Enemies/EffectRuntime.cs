@@ -69,37 +69,27 @@ public static class EffectRuntime
             else if (definition.effectID == Freeze)
                 changed |= Remove(activeEffects, Fire);
 
-            ActiveEffect current = null;
-            for (int i = 0; i < activeEffects.Count; i++)
+            int level = definition.level;
+            float duration = definition.duration;
+            // Carry matching levels upward until the resulting level is unique.
+            while (true)
             {
-                if (activeEffects[i] != null && activeEffects[i].effectID == definition.effectID)
-                {
-                    current = activeEffects[i];
+                ActiveEffect matching = activeEffects.Find(effect => effect != null &&
+                    effect.effectID == definition.effectID && effect.level == level && effect.remainTime > 0f);
+                if (matching == null)
                     break;
-                }
+                duration = Mathf.Max(duration, matching.remainTime);
+                activeEffects.Remove(matching);
+                if (level < int.MaxValue)
+                    level++;
             }
-
-            if (current == null)
+            activeEffects.Add(new ActiveEffect
             {
-                changed = true;
-                activeEffects.Add(new ActiveEffect
-                {
-                    effectID = definition.effectID,
-                    remainTime = definition.duration,
-                    level = definition.level
-                });
-            }
-            else if (definition.level > current.level)
-            {
-                changed = true;
-                current.level = definition.level;
-                current.remainTime = definition.duration;
-            }
-            else if (definition.level == current.level)
-            {
-                changed |= definition.duration > current.remainTime;
-                current.remainTime = Mathf.Max(current.remainTime, definition.duration);
-            }
+                effectID = definition.effectID,
+                remainTime = duration,
+                level = level
+            });
+            changed = true;
         }
         return changed;
     }
@@ -133,15 +123,41 @@ public static class EffectRuntime
         return true;
     }
 
-    public static bool Tick(List<ActiveEffect> activeEffects, float deltaTime, Action<float> applyDamage)
+    public const float TickInterval = 0.5f;
+
+    public static bool Tick(List<ActiveEffect> activeEffects, float deltaTime, Action<float> applyDamage, ref float elapsed)
     {
         if (activeEffects == null || activeEffects.Count == 0)
+        {
+            elapsed = 0f;
             return false;
-
+        }
+        elapsed += Mathf.Max(0f, deltaTime);
         bool changed = false;
-        deltaTime = Mathf.Max(0f, deltaTime);
-        // Damage callbacks can clear effects (for example, when an enemy dies).
-        foreach (ActiveEffect effect in activeEffects.ToArray())
+        while (elapsed >= TickInterval && activeEffects.Count > 0)
+        {
+            elapsed -= TickInterval;
+            changed |= TickStep(activeEffects, applyDamage);
+        }
+        if (activeEffects.Count == 0)
+            elapsed = 0f;
+        return changed;
+    }
+
+    private static bool TickStep(List<ActiveEffect> activeEffects, Action<float> applyDamage)
+    {
+        bool changed = false;
+        var highestLevels = new Dictionary<int, ActiveEffect>();
+        // Snapshot because damage callbacks can remove effects or kill the entity.
+        ActiveEffect[] snapshot = activeEffects.ToArray();
+        foreach (ActiveEffect effect in snapshot)
+        {
+            if (effect == null || effect.remainTime <= 0f || effect.level <= 0)
+                continue;
+            if (!highestLevels.TryGetValue(effect.effectID, out ActiveEffect highest) || effect.level > highest.level)
+                highestLevels[effect.effectID] = effect;
+        }
+        foreach (ActiveEffect effect in snapshot)
         {
             if (effect == null)
             {
@@ -150,36 +166,46 @@ public static class EffectRuntime
             }
             if (!activeEffects.Contains(effect))
                 continue;
-            float activeDelta = Mathf.Min(deltaTime, Mathf.Max(0f, effect.remainTime));
-            if ((effect.effectID == Fire || effect.effectID == Bleed || effect.effectID == Freeze || effect.effectID == Shock) && activeDelta > 0f)
-                applyDamage?.Invoke(Mathf.Max(0, effect.level) * activeDelta);
+            float activeDelta = Mathf.Min(TickInterval, Mathf.Max(0f, effect.remainTime));
+            if (highestLevels.TryGetValue(effect.effectID, out ActiveEffect highest) && highest == effect && activeDelta > 0f)
+            {
+                if (effect.effectID == Fire || effect.effectID == Bleed || effect.effectID == Shock)
+                    applyDamage?.Invoke(effect.level * activeDelta);
+                if (effect.effectID == Freeze)
+                    applyDamage?.Invoke(effect.level * activeDelta * 0.5f);
+            }
+                
 
             if (!activeEffects.Contains(effect))
                 continue;
-            effect.remainTime -= deltaTime;
+            effect.remainTime -= TickInterval;
             if (effect.remainTime <= 0f)
-                changed |= Remove(activeEffects, effect.effectID);
+                changed |= activeEffects.Remove(effect);
         }
         return changed;
     }
 
     public static float GetMovementMultiplier(IReadOnlyList<ActiveEffect> activeEffects)
     {
-        float multiplier = 1f;
+        int freezeLevel = 0;
+        int shockLevel = 0;
         if (activeEffects == null)
-            return multiplier;
+            return 1f;
         foreach (ActiveEffect effect in activeEffects)
         {
             if (effect == null || effect.remainTime <= 0f || effect.level <= 0)
                 continue;
-            if (effect.effectID == Faint || (effect.effectID == Freeze && effect.level >= 4))
+            if (effect.effectID == Faint)
                 return 0f;
             if (effect.effectID == Freeze)
-                multiplier *= 2f / (2f + effect.level);
+                freezeLevel = Mathf.Max(freezeLevel, effect.level);
             else if (effect.effectID == Shock)
-                multiplier *= 3f / (3f + effect.level);
+                shockLevel = Mathf.Max(shockLevel, effect.level);
         }
-        return multiplier;
+        if (freezeLevel >= 4)
+            return 0f;
+        return (freezeLevel > 0 ? 2f / (2f + freezeLevel) : 1f) *
+            (shockLevel > 0 ? 3f / (3f + shockLevel) : 1f);
     }
 
     public static bool HasEffect(List<ActiveEffect> activeEffects, int effectID)

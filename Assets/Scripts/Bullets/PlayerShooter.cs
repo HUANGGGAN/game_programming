@@ -47,8 +47,7 @@ public class PlayerShooter2D : MonoBehaviour
         player = GetComponent<Player>();
         if (player == null)
             player = GetComponentInParent<Player>();
-        attackHandlers.Insert(0, new WandProjectileAttack(
-            amount => amount <= 0 || (player != null && player.TryUseMP(amount))));
+        attackHandlers.Insert(0, new WandProjectileAttack());
         weaponHolder = GetComponent<WeaponHolder>();
         if (weaponHolder == null)
             weaponHolder = GetComponentInParent<WeaponHolder>();
@@ -341,7 +340,7 @@ public class PlayerShooter2D : MonoBehaviour
         var leftButton = Mouse.current.leftButton;
         if (!isChargingAttack && leftButton.wasPressedThisFrame && Time.time >= nextShotTime)
         {
-            if (equippedWeapon.consumeAmmo && !inventoryUIController.HasEquippedWeaponAmmo())
+            if (equippedWeapon is not WandSO && equippedWeapon.consumeAmmo && !inventoryUIController.HasEquippedWeaponAmmo())
             {
                 StartReload();
                 return;
@@ -453,7 +452,18 @@ public class PlayerShooter2D : MonoBehaviour
         if (handler == null)
             return false;
 
-        Func<bool> tryConsumeAmmo = () => inventoryUIController.TryConsumeEquippedWeaponAmmo();
+        // Consuming a limited-ammo item can unequip it, so capture its costs first.
+        WeaponSO attackingWeapon = equippedWeapon;
+        Func<bool> tryConsumeAmmo = () =>
+        {
+            int mpCost = Mathf.Max(0, attackingWeapon.MPCost);
+            if (mpCost > 0 && (player == null || player.Data == null || player.Data.currentMP < mpCost))
+                return false;
+            bool usesAmmo = attackingWeapon is not WandSO && attackingWeapon.consumeAmmo;
+            if (usesAmmo && !inventoryUIController.TryConsumeEquippedWeaponAmmo())
+                return false;
+            return mpCost == 0 || player.TryUseMP(mpCost);
+        };
         if (chargeRatio.HasValue)
         {
             return handler is IChargedAttackHandler chargedHandler && chargedHandler.TryPerformCharged(

@@ -76,6 +76,7 @@ public class EnemyChase : MonoBehaviour, IEffectSource
     private readonly HashSet<int> recentDamageSourceIds = new HashSet<int>();
     private readonly Dictionary<int, float> recentDamageSourceTimes = new Dictionary<int, float>();
     private readonly List<ActiveEffect> activeEffects = new List<ActiveEffect>();
+    private float effectTickElapsed;
     public IReadOnlyList<ActiveEffect> ActiveEffects => activeEffects;
     public event System.Action EffectsChanged;
 
@@ -173,7 +174,7 @@ public class EnemyChase : MonoBehaviour, IEffectSource
             return;
 
         if (EffectRuntime.Tick(activeEffects, Time.deltaTime, amount => TakeDamage(
-            amount, Vector2.zero, 0f, 0, hitCooldownDuration, null, EnemyDamageKind.Effect)))
+            amount, Vector2.zero, 0f, 0, hitCooldownDuration, null, EnemyDamageKind.Effect), ref effectTickElapsed))
             EffectsChanged?.Invoke();
         if (currentHealth <= 0f || !isActiveAndEnabled)
             return;
@@ -491,6 +492,8 @@ public class EnemyChase : MonoBehaviour, IEffectSource
     public bool RemoveEffect(int effectID)
     {
         bool removed = EffectRuntime.Remove(activeEffects, effectID);
+        if (activeEffects.Count == 0)
+            effectTickElapsed = 0f;
         if (removed)
             EffectsChanged?.Invoke();
         return removed;
@@ -498,6 +501,7 @@ public class EnemyChase : MonoBehaviour, IEffectSource
 
     public void ClearEffects()
     {
+        effectTickElapsed = 0f;
         if (EffectRuntime.Clear(activeEffects))
             EffectsChanged?.Invoke();
     }

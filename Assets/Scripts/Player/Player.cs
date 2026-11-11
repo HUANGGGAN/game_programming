@@ -23,6 +23,7 @@ public class Player : MonoBehaviour, IEffectSource
     private bool isKnockedBack;
     private Coroutine knockbackRoutine;
     private readonly List<ActiveEffect> activeEffects = new List<ActiveEffect>();
+    private float effectTickElapsed;
     public IReadOnlyList<ActiveEffect> ActiveEffects => activeEffects;
     public event System.Action EffectsChanged;
     private Camera mainCamera;
@@ -93,7 +94,7 @@ public class Player : MonoBehaviour, IEffectSource
             return;
         }
         Interactable.UpdateInteraction(transform);
-        if (EffectRuntime.Tick(activeEffects, Time.deltaTime, amount => TakeDamage(amount)))
+        if (EffectRuntime.Tick(activeEffects, Time.deltaTime, amount => TakeDamage(amount), ref effectTickElapsed))
             EffectsChanged?.Invoke();
         ReadMovementInput();
         FaceTowardCursor();
@@ -174,6 +175,7 @@ public class Player : MonoBehaviour, IEffectSource
 
     public void ClearEffects()
     {
+        effectTickElapsed = 0f;
         if (EffectRuntime.Clear(activeEffects))
             EffectsChanged?.Invoke();
     }
@@ -181,6 +183,8 @@ public class Player : MonoBehaviour, IEffectSource
     public bool RemoveEffect(int effectID)
     {
         bool removed = EffectRuntime.Remove(activeEffects, effectID);
+        if (activeEffects.Count == 0)
+            effectTickElapsed = 0f;
         if (removed)
             EffectsChanged?.Invoke();
         return removed;

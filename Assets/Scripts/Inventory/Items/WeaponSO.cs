@@ -31,6 +31,7 @@ public class WeaponSO : ItemSO
 {
     [Header("Weapon Stats")]
     public float shootInterval = 1.0f; // Time between shots
+    [Min(0)] public int MPCost = 0;
     public bool consumeAmmo = true; // Whether the weapon consumes ammo
     public bool hasLimitedAmmo = false; // Whether the weapon has limited ammo
     public Vector2 firePointOffset = new Vector2(0.5f, 0.1f); // Offset for the fire point relative to the weapon's position

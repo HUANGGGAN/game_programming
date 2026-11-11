@@ -20,6 +20,7 @@ MonoBehaviour:
   tag: 1
   description: 
   shootInterval: 1
+  MPCost: 1
   consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}

@@ -26,6 +26,7 @@ public class PlayerShooter2D : MonoBehaviour
     private float nextShotTime;
     private WeaponSO equippedWeapon;
     private readonly MeleeAttack meleeAttack = new MeleeAttack();
+    private readonly LazerAttack lazerAttack = new LazerAttack();
     private readonly List<IWeaponAttackHandler> attackHandlers = new List<IWeaponAttackHandler>
     {
         new ChargedAttack(),
@@ -44,6 +45,7 @@ public class PlayerShooter2D : MonoBehaviour
             weaponFrames = weaponFrameSlotGrid.GetComponentsInChildren<Image>(true);
         ClearWeaponFrames();
         attackHandlers.Insert(0, meleeAttack);
+        attackHandlers.Insert(0, lazerAttack);
         player = GetComponent<Player>();
         if (player == null)
             player = GetComponentInParent<Player>();
@@ -105,23 +107,35 @@ public class PlayerShooter2D : MonoBehaviour
     private void LateUpdate()
     {
         UpdateWeaponFrames();
-        if (equippedWeapon is not MeleeSO)
+        bool firingLazer = equippedWeapon is LazerSO && shootingEnabled && !isReloading && Time.timeScale > 0f &&
+            Mouse.current != null && Mouse.current.leftButton.isPressed;
+        if (!firingLazer)
+            lazerAttack.Hide();
+        if (Time.timeScale <= 0f)
+            lazerAttack.HideImmediate();
+        lazerAttack.TickVisual(Time.deltaTime);
+        if (equippedWeapon is not MeleeSO && !firingLazer)
             return;
 
         Transform weaponTransform = weaponHolder != null ? weaponHolder.transform : transform;
         Vector2 direction = weaponTransform.right;
+        Vector2? aimPosition = null;
         if (Mouse.current != null && mainCamera != null)
         {
             Vector2 cursor = Mouse.current.position.ReadValue();
             Vector3 worldPosition = mainCamera.ScreenToWorldPoint(new Vector3(
                 cursor.x, cursor.y, Mathf.Abs(mainCamera.transform.position.z)));
             Vector2 aim = (Vector2)worldPosition - (Vector2)weaponTransform.position;
+            aimPosition = worldPosition;
             if (aim.sqrMagnitude > Mathf.Epsilon)
                 direction = aim.normalized;
         }
 
         Vector2 origin = weaponTransform.TransformPoint(equippedWeapon.firePointOffset);
-        meleeAttack.UpdateRange(origin, direction);
+        if (firingLazer)
+            lazerAttack.UpdateBeam((LazerSO)equippedWeapon, origin, direction, aimPosition);
+        else
+            meleeAttack.UpdateRange(origin, direction);
     }
 
     private void OnDisable()
@@ -130,11 +144,13 @@ public class PlayerShooter2D : MonoBehaviour
         nextShotTime = 0f;
         ClearWeaponFrames();
         meleeAttack.HideRange();
+        lazerAttack.HideImmediate();
     }
 
     private void OnDestroy()
     {
         meleeAttack.DisposeRange();
+        lazerAttack.Dispose();
     }
 
     public void RefreshWeaponAmmoTexts()
@@ -185,6 +201,7 @@ public class PlayerShooter2D : MonoBehaviour
 
     public bool EquipWeapon(WeaponSO equippedWeapon, InventoryUIController inventoryUIController)
     {
+        lazerAttack.Hide();
         CancelReload();
 
         if (equippedWeapon == null || inventoryUIController == null)
@@ -213,6 +230,7 @@ public class PlayerShooter2D : MonoBehaviour
 
     public void UnequipWeapon()
     {
+        lazerAttack.Hide();
         CancelReload();
         equippedWeapon = null;
         nextShotTime = 0f;
@@ -413,7 +431,10 @@ public class PlayerShooter2D : MonoBehaviour
 
         bool isMeleeAttack = equippedWeapon is MeleeSO;
         if (!TryPerformAttack(spawnPosition, shootDirection, chargeRatio, mouseWorldPos))
+        {
+            lazerAttack.Hide();
             return false;
+        }
 
         if (equippedWeapon != null)
         {

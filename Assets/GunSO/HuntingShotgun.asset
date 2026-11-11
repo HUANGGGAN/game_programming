@@ -17,11 +17,14 @@ MonoBehaviour:
   rarity: 2
   icon: {fileID: -4880596957545370123, guid: 5ebfc126d4cfa8d96b707ba17f6efac4, type: 3}
   maxStackSize: 1
+  tag: 0
   description: 
   shootInterval: 0.35
+  MPCost: 1
   consumeAmmo: 1
   hasLimitedAmmo: 0
   firePointOffset: {x: 3, y: 0}
+  animatorOverrideController: {fileID: 0}
   capacity: 15
   reloadTime: 1
   spread: 25

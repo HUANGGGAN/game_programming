@@ -19,6 +19,7 @@ public class ShopManager : MonoBehaviour
     [SerializeField] private Transform buttonSlotGrid;
     [SerializeField] private Button buttonPrefab;
     [SerializeField] private Transform tabSlotGrid;
+    [SerializeField] private DecompositionManager decompositionManager;
     [SerializeField] private TMP_Text statusText;
 
     [Header("Purchase UI")]
@@ -186,7 +187,8 @@ public class ShopManager : MonoBehaviour
     private void ApplyState(GameState state)
     {
         bool purchasing = state == GameState.Purchase;
-        bool shopping = state == GameState.Merchant || purchasing;
+        bool decomposing = state == GameState.Decomposition;
+        bool shopping = state == GameState.Merchant || purchasing || decomposing;
         if (state == GameState.Playing)
         {
             gainItemVisible = false;
@@ -194,7 +196,7 @@ public class ShopManager : MonoBehaviour
         }
         if (shopGroup != null)
         {
-            shopGroup.alpha = purchasing ? purchaseShopAlpha : normalShopAlpha;
+            shopGroup.alpha = purchasing || decomposing ? purchaseShopAlpha : normalShopAlpha;
             shopGroup.interactable = state == GameState.Merchant && !gainItemVisible;
             shopGroup.blocksRaycasts = shopGroup.interactable;
         }
@@ -207,6 +209,13 @@ public class ShopManager : MonoBehaviour
 
     public void SelectTab(int tab)
     {
+        if (tab == 3)
+        {
+            if (decompositionManager == null)
+                decompositionManager = FindFirstObjectByType<DecompositionManager>(FindObjectsInactive.Include);
+            decompositionManager?.Open();
+            return;
+        }
         for (int i = 0; i < offers.Count; i++)
             offerButtons[i].SetActive(tab == 0 || offers[i].type == tab);
     }

@@ -17,6 +17,7 @@ public class InventorySlot : MonoBehaviour,
 
     [SerializeField] private Image itemIconImage;
     [SerializeField] private TMP_Text countText;
+    [SerializeField] private Color maxStackCountColor = Color.green;
     [SerializeField, Min(0f)] private float descriptionHoverDelay = 0.5f;
     private bool pointerInside;
     private float hoverStartedAt;
@@ -64,7 +65,7 @@ public class InventorySlot : MonoBehaviour,
         {
             int maxStack = item != null ? Mathf.Max(1, item.maxStackSize) : 1;
             countText.text = item != null && maxStack > 1 && CanAccept(item) ? count.ToString() : string.Empty;
-            countText.color = item != null && count == maxStack ? Color.green : Color.black;
+            countText.color = item != null && count == maxStack ? maxStackCountColor : Color.black;
         }
 
         if (item != null && item.icon != null && CanAccept(item))

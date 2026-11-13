@@ -22,6 +22,7 @@ public class Frame : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, I
     [SerializeField] private Image frameImage;
     [SerializeField] private Image borderImage;
     [SerializeField] private InventorySlot slot;
+    private DecompositionSlot decompositionSlot;
     [SerializeField] private Color defaultColor = Color.white;
     [SerializeField] private Color hoverColor = new Color(0.6f, 0.8f, 1f, 0.7f);
     [SerializeField] private Color selectedColor = new Color(1f, 0.85f, 0.25f, 1f);
@@ -44,6 +45,7 @@ public class Frame : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, I
     private void OnEnable()
     {
         InventorySlot.DragEnded += ClearHover;
+        DecompositionSlot.DragEnded += ClearHover;
         ResolveReferences();
         RefreshColor();
     }
@@ -72,6 +74,8 @@ public class Frame : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, I
             borderImage.raycastTarget = false;
         if (slot == null)
             slot = GetComponentInChildren<InventorySlot>(true);
+        if (decompositionSlot == null)
+            decompositionSlot = GetComponentInChildren<DecompositionSlot>(true);
     }
 
     private void LateUpdate()
@@ -89,24 +93,29 @@ public class Frame : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, I
     {
         Color color = defaultColor;
         Color borderColor = Color.clear;
-        if (slot != null && slot.isActiveAndEnabled)
+        bool slotActive = slot != null && slot.isActiveAndEnabled;
+        bool decompositionActive = decompositionSlot != null && decompositionSlot.isActiveAndEnabled;
+        ItemSO item = slotActive ? slot.CurrentItem : decompositionActive ? decompositionSlot.CurrentItem : null;
+        bool dragging = slotActive ? slot.IsDragging : decompositionActive && decompositionSlot.IsDragging;
+        if (slotActive || decompositionActive)
         {
-            if (!slot.IsDragging && slot.CurrentItem != null && rarityColors != null)
+            if (!dragging && item != null && rarityColors != null)
             {
                 foreach (RarityColor entry in rarityColors)
                 {
-                    if (entry.rarity != slot.CurrentItem.rarity)
+                    if (entry.rarity != item.rarity)
                         continue;
                     color = entry.color;
                     break;
                 }
             }
-            if (!slot.IsDragging && slot.CanReceiveDropFrom(InventorySlot.DraggedSlot))
+            if (!dragging && (slotActive ? slot.CanReceiveDropFrom(InventorySlot.DraggedSlot) :
+                decompositionSlot.CanReceiveDropFrom(DecompositionSlot.DraggedSlot)))
                 borderColor = pointerInside ? hoveredDropColor : validDropColor;
         }
         if (selectedFrame == this)
             borderColor = selectedColor;
-        else if (InventorySlot.DraggedSlot == null && pointerInside && !IsMousePressed())
+        else if (InventorySlot.DraggedSlot == null && DecompositionSlot.DraggedSlot == null && pointerInside && !IsMousePressed())
             borderColor = hoverColor;
 
         if (frameImage != null)
@@ -119,6 +128,7 @@ public class Frame : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, I
     {
         pointerInside = true;
         slot?.OnPointerEnter(eventData);
+        decompositionSlot?.OnPointerEnter(eventData);
         RefreshColor();
     }
 
@@ -126,6 +136,7 @@ public class Frame : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, I
     {
         pointerInside = false;
         slot?.OnPointerExit(eventData);
+        decompositionSlot?.OnPointerExit(eventData);
         RefreshColor();
     }
 
@@ -154,10 +165,12 @@ public class Frame : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, I
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (eventData.button != PointerEventData.InputButton.Left || InventorySlot.DraggedSlot != null || eventData.dragging)
+        if (eventData.button != PointerEventData.InputButton.Left || InventorySlot.DraggedSlot != null ||
+            DecompositionSlot.DraggedSlot != null || eventData.dragging)
             return;
         Select();
         slot?.OnPointerClick(eventData);
+        decompositionSlot?.OnPointerClick(eventData);
     }
 
     public void OnDrop(PointerEventData eventData)
@@ -165,11 +178,14 @@ public class Frame : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, I
         // Accept drops on the frame border as well as on the child slot.
         if (slot != null && slot.isActiveAndEnabled)
             slot.OnDrop(eventData);
+        if (decompositionSlot != null && decompositionSlot.isActiveAndEnabled)
+            decompositionSlot.OnDrop(eventData);
     }
 
     private void OnDisable()
     {
         InventorySlot.DragEnded -= ClearHover;
+        DecompositionSlot.DragEnded -= ClearHover;
         if (selectedFrame == this)
             selectedFrame = null;
         pointerInside = false;

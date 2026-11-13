@@ -32,4 +32,7 @@ public class ItemSO : ScriptableObject
     [Min(1)] public int maxStackSize = 1; // Maximum number of this item that can be stacked in one inventory slot
     public ItemTag tag; // Tag for categorizing the item
     [TextArea] public string description;
+    [Header("Decomposition")]
+    [Min(0)] public int minPiece;
+    [Min(0)] public int maxPiece;
 }

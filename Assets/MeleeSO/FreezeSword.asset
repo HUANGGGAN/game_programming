@@ -15,16 +15,18 @@ MonoBehaviour:
   itemName: Freeze Sword
   itemID: 0
   rarity: 2
-  icon: {fileID: -3013204342149644046, guid: c20798708e8dbf17a93521c5e7d6c712, type: 3}
+  icon: {fileID: 6293742469751685422, guid: 5b0218c41d4d23727815c1bc586037f1, type: 3}
   maxStackSize: 1
   tag: 1
   description: 
+  minPiece: 0
+  maxPiece: 0
   shootInterval: 0.5
   MPCost: 1
   consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
-  animatorOverrideController: {fileID: 0}
+  attackAnimation: 0
   attackRange: 2
   attackAngle: 90
   attackDamage: 10
@@ -32,7 +34,7 @@ MonoBehaviour:
   knockbackForce: 1
   critRate: 0.05
   critMul: 3
-  drawAttackRange: 0
+  drawAttackRange: 1
   effects:
   - effectID: 5
     duration: 3

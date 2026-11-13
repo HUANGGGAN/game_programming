@@ -66,17 +66,7 @@ internal static class ProjectileAttackExecutor
         if (weapon is not IProjectileWeapon projectileWeapon || projectileWeapon.ProjectileData == null || BulletPool.Instance == null)
             return false;
 
-        BulletSO bulletData = projectileWeapon.ProjectileData;
-        float damage = bulletData.damage;
-        float speed = bulletData.speed;
-        float effectProbabilityMultiplier = 1f;
-        if (chargeRatio.HasValue && weapon is IChargedProjectileWeapon chargedWeapon)
-        {
-            float charge = chargeRatio.Value;
-            damage = chargedWeapon.BaseDamage * Mathf.Lerp(1f, chargedWeapon.AttackMultiplier, charge);
-            speed = chargedWeapon.BaseSpeed * Mathf.Lerp(1f, chargedWeapon.SpeedMultiplier, charge);
-            effectProbabilityMultiplier = Mathf.Lerp(1f, chargedWeapon.ProbabilityMultiplier, charge);
-        }
+        BulletSO configuredBullet = projectileWeapon.ProjectileData;
 
         int burstCount = 1;
         float spread = 0f;
@@ -90,6 +80,19 @@ internal static class ProjectileAttackExecutor
         bool firedAny = false;
         for (int i = 0; i < burstCount; i++)
         {
+            BulletSO bulletData = configuredBullet;
+            if (configuredBullet is RandomBulletSO random && !random.TryPickBullet(out bulletData))
+                break;
+            float damage = bulletData.damage;
+            float speed = bulletData.speed;
+            float effectProbabilityMultiplier = 1f;
+            if (chargeRatio.HasValue && weapon is IChargedProjectileWeapon chargedWeapon)
+            {
+                float charge = chargeRatio.Value;
+                damage = chargedWeapon.BaseDamage * Mathf.Lerp(1f, chargedWeapon.AttackMultiplier, charge);
+                speed = chargedWeapon.BaseSpeed * Mathf.Lerp(1f, chargedWeapon.SpeedMultiplier, charge);
+                effectProbabilityMultiplier = Mathf.Lerp(1f, chargedWeapon.ProbabilityMultiplier, charge);
+            }
             Bullet2D bullet = BulletPool.Instance.GetBullet(bulletData);
             if (bullet == null)
                 break;

@@ -19,10 +19,14 @@ MonoBehaviour:
   maxStackSize: 1
   tag: 1
   description: 
+  minPiece: 0
+  maxPiece: 0
   shootInterval: 0.5
+  MPCost: 0
   consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
+  attackAnimation: 0
   attackRange: 2.3
   attackAngle: 110
   attackDamage: 5
@@ -30,6 +34,6 @@ MonoBehaviour:
   knockbackForce: 10
   critRate: 0.05
   critMul: 3
-  drawAttackRange: 0
+  drawAttackRange: 1
   effects: []
   attackAttributes: 

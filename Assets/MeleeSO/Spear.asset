@@ -34,6 +34,6 @@ MonoBehaviour:
   knockbackForce: 2
   critRate: 0.05
   critMul: 3
-  drawAttackRange: 0
+  drawAttackRange: 1
   effects: []
   attackAttributes: 

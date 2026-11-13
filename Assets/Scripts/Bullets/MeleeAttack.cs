@@ -35,7 +35,7 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
         if (equippedWeapon != weapon)
             activeWeapon = null;
         equippedWeapon = weapon;
-        if (weapon == null)
+        if (weapon == null || !weapon.drawAttackRange)
             HideRange();
     }
 
@@ -65,6 +65,11 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
 
         bool attacking = activeWeapon != null;
         MeleeSO weapon = attacking ? activeWeapon : equippedWeapon;
+        if (!weapon.drawAttackRange)
+        {
+            HideRange();
+            return;
+        }
         if (attacking)
         {
             origin = activeOrigin;
@@ -98,6 +103,14 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
         elapsedDuration = 0f;
         activeDamage = CriticalAttack.RollDamage(meleeWeapon.attackDamage, meleeWeapon.critRate, meleeWeapon.critMul);
         activeDamageSourceId = Interlocked.Increment(ref nextDamageSourceId);
+
+        if (meleeWeapon.ParticleID > 0)
+        {
+            float angle = Mathf.Atan2(activeDirection.y, activeDirection.x) * Mathf.Rad2Deg - 90f;
+            ParticlePool.Instance?.Play(
+                meleeWeapon.ParticleID.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                activeOrigin, Quaternion.Euler(0f, 0f, angle) * Quaternion.Euler(-90f, 0f, 0f));
+        }
 
         ApplyAttack();
         if (activeDuration <= 0f)

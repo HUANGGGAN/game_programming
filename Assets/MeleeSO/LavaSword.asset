@@ -15,16 +15,18 @@ MonoBehaviour:
   itemName: Lava Sword
   itemID: 0
   rarity: 3
-  icon: {fileID: -5730241831117805936, guid: c4cec4b89ae239d1494fa3133018982e, type: 3}
+  icon: {fileID: 4501683250418446551, guid: 4d5bc4d044675a379be38b28404a0c79, type: 3}
   maxStackSize: 1
   tag: 1
   description: 
+  minPiece: 0
+  maxPiece: 0
   shootInterval: 0.5
   MPCost: 2
   consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
-  animatorOverrideController: {fileID: 0}
+  attackAnimation: 0
   attackRange: 2
   attackAngle: 90
   attackDamage: 10
@@ -32,7 +34,7 @@ MonoBehaviour:
   knockbackForce: 1
   critRate: 0.1
   critMul: 3
-  drawAttackRange: 0
+  drawAttackRange: 1
   effects:
   - effectID: 1
     duration: 5

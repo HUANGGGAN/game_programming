@@ -217,6 +217,13 @@ public class PlayerShooter2D : MonoBehaviour
             return false;
         }
 
+        if (equippedWeapon is IProjectileWeapon projectileWeapon && projectileWeapon.ProjectileData is RandomBulletSO random &&
+            !random.HasValidBullets)
+        {
+            Debug.LogWarning($"Configure at least one bullet with a positive finite weight on {random.name}.", this);
+            return false;
+        }
+
         if (FindAttackHandler(equippedWeapon) == null)
         {
             Debug.LogWarning($"No registered attack handler supports {equippedWeapon.name}.", this);

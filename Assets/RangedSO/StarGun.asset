@@ -10,22 +10,24 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5ec186d1a765adae3aa6d3343c7dd524, type: 3}
-  m_Name: Shuriken
+  m_Name: StarGun
   m_EditorClassIdentifier: Assembly-CSharp::GunSO
-  itemName: Shuriken
+  itemName: Star gun
   itemID: 0
-  rarity: 1
-  icon: {fileID: 6348385188075547880, guid: 6b5a14228c74602439b8ad92bc82fb01, type: 3}
+  rarity: 5
+  icon: {fileID: 2583222161152059464, guid: f091614d457ed764f84dd792a4298854, type: 3}
   maxStackSize: 1
   tag: 1
   description: 
-  shootInterval: 0.4
-  MPCost: 0
-  consumeAmmo: 0
+  minPiece: 0
+  maxPiece: 0
+  shootInterval: 0.2
+  MPCost: 2
+  consumeAmmo: 1
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
-  capacity: 30
-  reloadTime: 2
-  spread: 5
+  capacity: 48
+  reloadTime: 1.5
+  spread: 25
   burstCount: 1
-  bulletData: {fileID: 11400000, guid: 6c8ffe4ac9f38c7ed960303f590d376a, type: 2}
+  bulletData: {fileID: 11400000, guid: 86760893c4ea18a099dbb1857142385b, type: 2}

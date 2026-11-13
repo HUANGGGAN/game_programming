@@ -53,7 +53,7 @@ MonoBehaviour:
   onInteract:
     m_PersistentCalls:
       m_Calls: []
-  item: {fileID: 11400000, guid: 3e5b0d0a1936a8f7c91cf352f7df5be2, type: 2}
+  item: {fileID: 11400000, guid: 7575a7ce492ab24e9b3070871f144ee9, type: 2}
   count: 1
   ammoCount: 0
   inventoryUI: {fileID: 0}

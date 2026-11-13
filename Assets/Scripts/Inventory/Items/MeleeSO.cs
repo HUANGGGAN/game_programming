@@ -20,6 +20,8 @@ public class MeleeSO : WeaponSO
     [Range(0f, 1f)] public float critRate = 0.05f;
     public float critMul = 3f;
     public bool drawAttackRange;
+    [Tooltip("ParticlePool effect ID played once per attack. 0 disables particles.")]
+    [Min(0)] public int ParticleID = 0;
     public EffectDefinition[] effects;
     public int[] attackAttributes; // Attribute IDs for the bullet's attack type (e.g., fire, ice, poison)
 }

@@ -9,20 +9,25 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30e5f9bff1f890d9d97eed21a05274bf, type: 3}
-  m_Name: FireWand
-  m_EditorClassIdentifier: Assembly-CSharp::WandSO
-  itemName: Fire Wand
-  itemID: 12
+  m_Script: {fileID: 11500000, guid: 5ec186d1a765adae3aa6d3343c7dd524, type: 3}
+  m_Name: FIreWand
+  m_EditorClassIdentifier: Assembly-CSharp::GunSO
+  itemName: New Item
+  itemID: 0
   rarity: 4
   icon: {fileID: 6225818281361698569, guid: f4caba175db4d0c4cbbc7fbc9a945443, type: 3}
   maxStackSize: 1
-  tag: 0
+  tag: 1
   description: 
+  minPiece: 0
+  maxPiece: 0
   shootInterval: 0.7
+  MPCost: 2
   consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
-  MPCost: 2
-  bulletData: {fileID: 11400000, guid: 3e323cc9e9858eb0cbb1e5151535a69f, type: 2}
-  attackMode: 0
+  capacity: 30
+  reloadTime: 2
+  spread: 0
+  burstCount: 1
+  bulletData: {fileID: 11400000, guid: 5a49c09db611f37c7a6d0db2f87c3dfb, type: 2}

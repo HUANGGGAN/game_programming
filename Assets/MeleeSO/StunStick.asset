@@ -15,15 +15,18 @@ MonoBehaviour:
   itemName: StunStick
   itemID: 0
   rarity: 3
-  icon: {fileID: 8709464355741663429, guid: 84dd1bca7d9df69028ca25a125fcca3d, type: 3}
+  icon: {fileID: -891294003826522972, guid: 1ef1e3868332b88e090d1e008ae768bb, type: 3}
   maxStackSize: 1
   tag: 1
   description: 
+  minPiece: 0
+  maxPiece: 0
   shootInterval: 1
+  MPCost: 0
   consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
-  animatorOverrideController: {fileID: 0}
+  attackAnimation: 0
   attackRange: 2
   attackAngle: 90
   attackDamage: 10
@@ -31,7 +34,7 @@ MonoBehaviour:
   knockbackForce: 1
   critRate: 0.1
   critMul: 3
-  drawAttackRange: 0
+  drawAttackRange: 1
   effects:
   - effectID: 6
     duration: 5

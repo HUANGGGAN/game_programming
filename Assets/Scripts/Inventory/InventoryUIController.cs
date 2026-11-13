@@ -1,5 +1,6 @@
 using UnityEngine;
 using TMPro;
+using UnityEngine.UI;
 
 public class InventoryUIController : MonoBehaviour
 {
@@ -11,6 +12,11 @@ public class InventoryUIController : MonoBehaviour
     [SerializeField] private Transform weaponSlotPanelTransform;
     [SerializeField] private Transform armorSlotGridTransform;
     [SerializeField] private Transform consumableSlotGridTransform;
+    [Header("Consumable HUD")]
+    [SerializeField] private Transform lowerConsumablePanel;
+    private ConsumableSlot[] consumableGuiSlots;
+    private TMP_Text[] consumableCountTexts;
+    private Image consumableCooldownFrame;
     [Header("Slot Prefabs (Frame/Slot)")]
     [SerializeField] private GameObject SlotPrefab;
     //[SerializeField] private GameObject weaponSlotPrefab;
@@ -44,6 +50,10 @@ public class InventoryUIController : MonoBehaviour
     private bool weaponPanelWasInteractable;
     private bool weaponPanelBlockedRaycasts;
     private bool weaponPanelCanvasGroupStateCached;
+    private CanvasGroup consumablePanelCanvasGroup;
+    private float consumablePanelVisibleAlpha;
+    private bool consumablePanelWasInteractable;
+    private bool consumablePanelBlockedRaycasts;
 
     private bool isInitialized;
 
@@ -88,6 +98,8 @@ public class InventoryUIController : MonoBehaviour
             weaponGuiSlots = weaponSlotPanelTransform.GetComponentsInChildren<WeaponSlot>(true);
             CacheWeaponSlotCanvasGroup();
         }
+        ResolveConsumableHUD();
+        SetConsumableCooldown(0f, 0f);
     }
 
     private InventorySlot[] CreateSlots(Transform grid, GameObject prefab, InventorySlotType type, int count)
@@ -328,6 +340,7 @@ public class InventoryUIController : MonoBehaviour
 
     public void SetWeaponSlotPanelVisible(bool visible) // Toggle
     {
+        SetConsumablePanelVisible(visible);
         if (weaponSlotPanelTransform == null)
             return;
 
@@ -335,6 +348,23 @@ public class InventoryUIController : MonoBehaviour
         weaponPanelCanvasGroup.alpha = visible ? weaponPanelVisibleAlpha : 0f;
         weaponPanelCanvasGroup.interactable = visible && weaponPanelWasInteractable;
         weaponPanelCanvasGroup.blocksRaycasts = visible && weaponPanelBlockedRaycasts;
+    }
+
+    private void SetConsumablePanelVisible(bool visible)
+    {
+        if (lowerConsumablePanel == null)
+            return;
+        if (consumablePanelCanvasGroup == null)
+        {
+            consumablePanelCanvasGroup = lowerConsumablePanel.GetComponent<CanvasGroup>() ??
+                lowerConsumablePanel.gameObject.AddComponent<CanvasGroup>();
+            consumablePanelVisibleAlpha = consumablePanelCanvasGroup.alpha;
+            consumablePanelWasInteractable = consumablePanelCanvasGroup.interactable;
+            consumablePanelBlockedRaycasts = consumablePanelCanvasGroup.blocksRaycasts;
+        }
+        consumablePanelCanvasGroup.alpha = visible ? consumablePanelVisibleAlpha : 0f;
+        consumablePanelCanvasGroup.interactable = visible && consumablePanelWasInteractable;
+        consumablePanelCanvasGroup.blocksRaycasts = visible && consumablePanelBlockedRaycasts;
     }
 
     private void CacheWeaponSlotCanvasGroup()
@@ -416,16 +446,58 @@ public class InventoryUIController : MonoBehaviour
 
     private void RefreshConsumableSlots()
     {
-        if (consumableSlots == null)
+        if (inventoryData == null)
             return;
 
-        for (int i = 0; i < consumableSlots.Length; i++)
+        for (int i = 0; consumableSlots != null && i < consumableSlots.Length; i++)
         {
             ItemSO item = i < inventoryData.consumableSlots.Length ? inventoryData.consumableSlots[i].item : null;
             consumableSlots[i].SetSlotType(InventorySlotType.Consumable);
             int count = i < inventoryData.consumableSlots.Length ? inventoryData.consumableSlots[i].count : 0;
             consumableSlots[i].SetupSlot(item, i, count);
         }
+        ResolveConsumableHUD();
+        for (int i = 0; consumableGuiSlots != null && i < consumableGuiSlots.Length; i++)
+        {
+            InventorySlotData data = i < inventoryData.consumableSlots.Length ? inventoryData.consumableSlots[i] : null;
+            consumableGuiSlots[i]?.SetConsumableIcon(data != null && data.count > 0 ? data.item?.icon : null);
+        }
+        for (int i = 0; consumableCountTexts != null && i < consumableCountTexts.Length; i++)
+        {
+            InventorySlotData data = i < inventoryData.consumableSlots.Length ? inventoryData.consumableSlots[i] : null;
+            if (consumableCountTexts[i] != null)
+                consumableCountTexts[i].text = data != null && data.item != null && data.count > 0 ? data.count.ToString() : string.Empty;
+        }
+    }
+
+    private void ResolveConsumableHUD()
+    {
+        if (lowerConsumablePanel == null)
+            return;
+        if (consumableGuiSlots == null)
+        {
+            Transform layout = lowerConsumablePanel.Find("ConsumableLayout");
+            if (layout != null) consumableGuiSlots = layout.GetComponentsInChildren<ConsumableSlot>(true);
+        }
+        if (consumableCountTexts == null)
+        {
+            Transform counts = lowerConsumablePanel.Find("ConsumableCounts");
+            if (counts != null) consumableCountTexts = counts.GetComponentsInChildren<TMP_Text>(true);
+        }
+        if (consumableCooldownFrame == null)
+            consumableCooldownFrame = lowerConsumablePanel.Find("ConsumableFrame")?.GetComponent<Image>();
+    }
+
+    public void SetConsumableCooldown(float remaining, float duration)
+    {
+        ResolveConsumableHUD();
+        if (consumableCooldownFrame == null)
+            return;
+        consumableCooldownFrame.type = Image.Type.Filled;
+        consumableCooldownFrame.fillMethod = Image.FillMethod.Vertical;
+        consumableCooldownFrame.fillOrigin = (int)Image.OriginVertical.Bottom;
+        consumableCooldownFrame.raycastTarget = false;
+        consumableCooldownFrame.fillAmount = duration > 0f ? Mathf.Clamp01(remaining / duration) : 0f;
     }
 
     // For InventoryManager scrolling and equipping weapons

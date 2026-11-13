@@ -8,6 +8,8 @@ public class PlayerConsumables : MonoBehaviour
 {
     [SerializeField] private InventoryUIController inventoryUI;
     private Player player;
+    private float nextUseTime;
+    private float cooldownDuration;
 
     private static readonly Dictionary<int, Action<Player>> handlers = new Dictionary<int, Action<Player>>
     {
@@ -30,6 +32,7 @@ public class PlayerConsumables : MonoBehaviour
 
     private void Update()
     {
+        UpdateCooldownUI();
         if (Time.timeScale == 0f || Keyboard.current == null)
             return;
         if (Keyboard.current.zKey.wasPressedThisFrame)
@@ -43,7 +46,7 @@ public class PlayerConsumables : MonoBehaviour
     public bool TryUseSlot(int slotIndex)
     {
         if (!isActiveAndEnabled || Time.timeScale == 0f || player == null || !player.isActiveAndEnabled ||
-            player.Data == null || player.Data.currentHealth <= 0f)
+            player.Data == null || player.Data.currentHealth <= 0f || Time.time < nextUseTime)
             return false;
             
 
@@ -59,6 +62,20 @@ public class PlayerConsumables : MonoBehaviour
             return false;
         handler(player);
         player.UpdatePlayerBarsFromData();
+        cooldownDuration = Mathf.Max(0f, consumable.cooldown);
+        nextUseTime = Time.time + cooldownDuration;
+        UpdateCooldownUI();
         return true;
+    }
+
+    private void UpdateCooldownUI()
+    {
+        ResolveInventory();
+        inventoryUI?.SetConsumableCooldown(Mathf.Max(0f, nextUseTime - Time.time), cooldownDuration);
+    }
+
+    private void OnDisable()
+    {
+        inventoryUI?.SetConsumableCooldown(0f, 0f);
     }
 }

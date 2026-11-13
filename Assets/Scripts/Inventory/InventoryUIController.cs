@@ -559,7 +559,8 @@ public class InventoryUIController : MonoBehaviour
         if (slotIndex < 0 || slotIndex >= inventoryData.weaponSlots.Length)
             return false;
         InventorySlotData slot = inventoryData.weaponSlots[slotIndex];
-        return slot.item is WeaponSO weapon && slot.count > 0 &&
+        WeaponSO weapon = slot.ResolveWeapon();
+        return weapon != null && slot.count > 0 &&
             (!weapon.consumeAmmo || (weapon.hasLimitedAmmo ? slot.count > 0 : slot.ammoCount > 0));
     }
 
@@ -597,11 +598,45 @@ public class InventoryUIController : MonoBehaviour
 
         inventoryData.EnsureDefaults();
         if (equippedWeaponIndex < 0 || equippedWeaponIndex >= inventoryData.weaponSlots.Length ||
-            inventoryData.weaponSlots[equippedWeaponIndex].item != weapon ||
+            inventoryData.weaponSlots[equippedWeaponIndex].ResolveWeapon() != weapon ||
             inventoryData.weaponSlots[equippedWeaponIndex].count <= 0)
             return false;
 
         inventoryData.weaponSlots[equippedWeaponIndex].ammoCount = ammoCapacity;
+        return true;
+    }
+
+    public WeaponSO GetWeaponAtSlot(int index)
+    {
+        if (inventoryData == null)
+            return null;
+        inventoryData.EnsureDefaults();
+        return index >= 0 && index < inventoryData.weaponSlots.Length
+            ? inventoryData.weaponSlots[index].ResolveWeapon() : null;
+    }
+
+    public bool TrySwitchEquippedAttackMode()
+    {
+        if (inventoryData == null || StateManager.Instance.CurrentState != GameState.Playing ||
+            equippedWeaponIndex < 0 || equippedWeaponIndex >= inventoryData.weaponSlots.Length)
+            return false;
+        InventorySlotData slot = inventoryData.weaponSlots[equippedWeaponIndex];
+        if (slot.item is not MultiWeaponSO)
+            return false;
+        slot.ResolveWeapon();
+        int oldIndex = slot.attackModeIndex;
+        int oldAmmo = slot.ammoCount;
+        if (!inventoryData.TrySwitchWeaponAttackMode(equippedWeaponIndex))
+            return false;
+        if (!EquipShooterForSelectedWeapon())
+        {
+            slot.attackModeIndex = oldIndex;
+            slot.ammoCount = oldAmmo;
+            EquipShooterForSelectedWeapon();
+            return false;
+        }
+        RefreshWeaponSlots();
+        playerShooter?.RefreshWeaponAmmoTexts();
         return true;
     }
 }

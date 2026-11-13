@@ -1,0 +1,29 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7e06f990e0bf49e09eaf7073c948a08f, type: 3}
+  m_Name: NewMultiWeapon
+  m_EditorClassIdentifier: Assembly-CSharp::MultiWeaponSO
+  itemName: New Item
+  itemID: 0
+  rarity: 6
+  icon: {fileID: 6348385188075547880, guid: 6b5a14228c74602439b8ad92bc82fb01, type: 3}
+  maxStackSize: 1
+  tag: 1
+  description: 
+  shootInterval: 1
+  MPCost: 0
+  consumeAmmo: 0
+  hasLimitedAmmo: 0
+  firePointOffset: {x: 0.5, y: 0.1}
+  weapons:
+  - {fileID: 11400000, guid: 6a33743e2cef362c48be4f0f50124866, type: 2}
+  - {fileID: 11400000, guid: a976da7b87410be048d52276f9351dcf, type: 2}

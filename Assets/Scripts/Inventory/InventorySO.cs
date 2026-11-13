@@ -6,6 +6,20 @@ public class InventorySlotData
     public ItemSO item;
     public int count;
     public int ammoCount;
+    public int attackModeIndex = -1;
+
+    public WeaponSO ResolveWeapon()
+    {
+        if (item is not MultiWeaponSO multi)
+            return item as WeaponSO;
+        if (multi.weapons == null || multi.weapons.Length == 0)
+            return null;
+        if (attackModeIndex < 0 || attackModeIndex >= multi.weapons.Length)
+            attackModeIndex = 0;
+        WeaponSO weapon = multi.weapons[attackModeIndex];
+        // Nested multi-weapons have no independent slot state to resolve against.
+        return weapon is MultiWeaponSO ? null : weapon;
+    }
 }
 
 public enum InventorySlotType
@@ -95,7 +109,9 @@ public class InventorySO : ScriptableObject
         if (slotA == slotB)
             return false;
 
-        if (slotA.item != null && slotA.item == slotB.item)
+        if (slotA.item != null && slotA.item == slotB.item &&
+            (slotA.item is not MultiWeaponSO ||
+             (slotA.attackModeIndex == slotB.attackModeIndex && slotA.ammoCount == slotB.ammoCount)))
         {
             int maxStack = Mathf.Max(1, slotA.item.maxStackSize);
             int room = Mathf.Max(0, maxStack - slotB.count);
@@ -111,6 +127,7 @@ public class InventorySO : ScriptableObject
                 {
                     slotA.item = null;
                     slotA.ammoCount = 0;
+                    slotA.attackModeIndex = -1;
                 }
                 return true;
             }
@@ -138,7 +155,25 @@ public class InventorySO : ScriptableObject
         {
             slot.item = null;
             slot.ammoCount = 0;
+            slot.attackModeIndex = -1;
         }
+        return true;
+    }
+
+    public bool TrySwitchWeaponAttackMode(int slotIndex)
+    {
+        EnsureDefaults();
+        if (slotIndex < 0 || slotIndex >= weaponSlots.Length)
+            return false;
+        InventorySlotData slot = weaponSlots[slotIndex];
+        if (slot.count <= 0 || slot.item is not MultiWeaponSO multi || multi.weapons == null || multi.weapons.Length < 2)
+            return false;
+        slot.ResolveWeapon();
+        int next = (slot.attackModeIndex + 1) % multi.weapons.Length;
+        if (multi.weapons[next] == null || multi.weapons[next] is MultiWeaponSO)
+            return false;
+        slot.attackModeIndex = next;
+        slot.ammoCount = 0;
         return true;
     }
 
@@ -148,7 +183,8 @@ public class InventorySO : ScriptableObject
         if (slotIndex < 0 || slotIndex >= weaponSlots.Length)
             return false;
         InventorySlotData slot = weaponSlots[slotIndex];
-        if (slot.item is not WeaponSO weapon || slot.count <= 0)
+        WeaponSO weapon = slot.ResolveWeapon();
+        if (weapon == null || slot.count <= 0)
             return false;
         if (!weapon.consumeAmmo)
             return true;
@@ -159,6 +195,7 @@ public class InventorySO : ScriptableObject
             {
                 slot.item = null;
                 slot.ammoCount = 0;
+                slot.attackModeIndex = -1;
             }
             return true;
         }
@@ -257,6 +294,8 @@ public class InventorySO : ScriptableObject
             int existingCount = isExistingStack ? Mathf.Max(0, slot.count) : 0;
             int added = Mathf.Min(count - givenCount, maxStack - existingCount);
             slot.item = item;
+            if (!isExistingStack)
+                slot.attackModeIndex = -1;
             slot.count = existingCount + added;
             if (!isExistingStack || ammoCount > 0)
                 slot.ammoCount = ammoCount;
@@ -305,6 +344,7 @@ public class InventorySO : ScriptableObject
             destination[i].item = source[i].item;
             destination[i].count = source[i].count;
             destination[i].ammoCount = source[i].ammoCount;
+            destination[i].attackModeIndex = source[i].attackModeIndex;
         }
     }
 
@@ -323,6 +363,7 @@ public class InventorySO : ScriptableObject
         targetSlots[index].item = null;
         targetSlots[index].count = 0;
         targetSlots[index].ammoCount = 0;
+        targetSlots[index].attackModeIndex = -1;
         return true;
     }
 
@@ -380,6 +421,7 @@ public class InventorySO : ScriptableObject
                     items[i].item = null;
                     items[i].count = 0;
                     items[i].ammoCount = 0;
+                    items[i].attackModeIndex = -1;
                 }
             }
 
@@ -406,12 +448,14 @@ public class InventorySO : ScriptableObject
             {
                 slots[i].count = 0;
                 slots[i].ammoCount = 0;
+                slots[i].attackModeIndex = -1;
             }
             else if (slots[i].count <= 0)
             {
                 slots[i].item = null;
                 slots[i].count = 0;
                 slots[i].ammoCount = 0;
+                slots[i].attackModeIndex = -1;
             }
         }
     }

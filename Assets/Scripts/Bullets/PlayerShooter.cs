@@ -76,6 +76,9 @@ public class PlayerShooter2D : MonoBehaviour
                 timedHandler.Tick(Time.deltaTime);
         }
 
+        if (Keyboard.current != null && Keyboard.current.tKey.wasPressedThisFrame && shootingEnabled)
+            inventoryUIController?.TrySwitchEquippedAttackMode();
+
         if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
             StartReload();
 
@@ -166,6 +169,8 @@ public class PlayerShooter2D : MonoBehaviour
                 continue;
 
             ItemSO item = inventoryUIController != null ? inventoryUIController.GetItemAtSlot(i) : null;
+            if (item is MultiWeaponSO)
+                item = inventoryUIController.GetWeaponAtSlot(i);
             if (item == null)
             {
                 ammoText.text = string.Empty;
@@ -203,6 +208,8 @@ public class PlayerShooter2D : MonoBehaviour
     {
         lazerAttack.Hide();
         CancelReload();
+        if (equippedWeapon is MultiWeaponSO && inventoryUIController != null)
+            equippedWeapon = inventoryUIController.GetWeaponAtSlot(inventoryUIController.GetEquippedWeaponIndex());
 
         if (equippedWeapon == null || inventoryUIController == null)
         {

@@ -291,6 +291,8 @@ public class ShopManager : MonoBehaviour
                 statusText.text = "Purchase unavailable. Check your currency and inventory space.";
             return;
         }
+        if (gainItemPanel != null)
+            SetImage(gainItemPanel.transform, "Image", selectedOffer.@object?.item?.icon ?? selectedOffer.objectIcon);
         gainItemVisible = true;
         StateManager.Instance.CloseState(GameState.Purchase);
     }

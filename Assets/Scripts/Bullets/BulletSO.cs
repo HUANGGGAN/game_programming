@@ -18,6 +18,8 @@ public class BulletSO : ScriptableObject
     public Sprite bulletSprite;
     [Min(0)] public int ParticleID = 0; // 0: no particle effect on deactivation
     public Color tint = Color.white;
+    [Tooltip("Visual rotation in degrees per second. Zero disables spinning; negative values reverse it.")]
+    public float spinningSpeed = 0f;
     public Vector2 colliderSize = new Vector2(0.2f, 0.2f);
 
     [Header("Stats")]

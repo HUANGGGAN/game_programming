@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
-using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class DecompositionManager : MonoBehaviour
@@ -18,15 +17,12 @@ public class DecompositionManager : MonoBehaviour
     [Tooltip("Common, Uncommon, Rare, Epic, Legendary, Mythic, in that order.")]
     [SerializeField] private ItemSO[] weaponPieces = new ItemSO[6];
     [SerializeField] private TMP_Text statusText;
-    [SerializeField] private RectTransform descriptionPanel;
-    [SerializeField] private TMP_Text descriptionText;
 
     private readonly List<DecompositionSlot> slots = new List<DecompositionSlot>();
     private readonly List<GameObject> slotFrames = new List<GameObject>();
     private StateManager stateManager;
     private Canvas dragCanvas;
     private bool initialized;
-    private DecompositionSlot descriptionOwner;
 
     private void Awake() => Initialize();
 
@@ -63,12 +59,6 @@ public class DecompositionManager : MonoBehaviour
             Debug.LogError("Decomposition slot prefab must contain one DecompositionSlot on its item icon/Slot child, with Frame on the parent and no InventorySlot components.", this);
         closeButton?.onClick.AddListener(Close);
         confirmButton?.onClick.AddListener(Confirm);
-        if (descriptionPanel != null)
-        {
-            CanvasGroup group = descriptionPanel.GetComponent<CanvasGroup>() ?? descriptionPanel.gameObject.AddComponent<CanvasGroup>();
-            group.blocksRaycasts = false;
-            if (descriptionText == null) descriptionText = descriptionPanel.GetComponentInChildren<TMP_Text>(true);
-        }
         stateManager = StateManager.Instance;
         stateManager.StateChanged += ApplyState;
         ApplyState(stateManager.CurrentState);
@@ -110,7 +100,6 @@ public class DecompositionManager : MonoBehaviour
         if (!visible && DecompositionSlot.DraggedSlot != null && DecompositionSlot.DraggedSlot.Manager == this)
             DecompositionSlot.DraggedSlot.CancelDrag();
         if (visible) Refresh();
-        HideDescription();
         if (decompositionPanel != null) decompositionPanel.SetActive(visible);
     }
 
@@ -169,41 +158,13 @@ public class DecompositionManager : MonoBehaviour
             dragCanvas.sortingOrder = 32767;
             layer.GetComponent<CanvasGroup>().blocksRaycasts = false;
         }
-        HideDescription();
         return dragCanvas.transform;
-    }
-
-    public void ShowDescription(DecompositionSlot slot, PointerEventData pointer)
-    {
-        if (descriptionPanel == null || descriptionText == null || slot.CurrentItem == null || pointer == null)
-        {
-            HideDescription(slot);
-            return;
-        }
-        descriptionText.text = slot.CurrentItem.description;
-        descriptionOwner = slot;
-        Vector2 cursor = UnityEngine.InputSystem.Mouse.current != null
-            ? UnityEngine.InputSystem.Mouse.current.position.ReadValue() : pointer.position;
-        if (descriptionPanel.parent is RectTransform parent && RectTransformUtility.ScreenPointToWorldPointInRectangle(
-            parent, cursor + new Vector2(16f, 16f), pointer.enterEventCamera, out Vector3 world))
-            descriptionPanel.position = world;
-        descriptionPanel.gameObject.SetActive(true);
-        descriptionPanel.SetAsLastSibling();
-    }
-
-    public void HideDescription(DecompositionSlot owner = null)
-    {
-        if (owner != null && descriptionOwner != owner)
-            return;
-        descriptionOwner = null;
-        if (descriptionPanel != null) descriptionPanel.gameObject.SetActive(false);
     }
 
     private void OnDisable()
     {
         if (DecompositionSlot.DraggedSlot != null && DecompositionSlot.DraggedSlot.Manager == this)
             DecompositionSlot.DraggedSlot.CancelDrag();
-        HideDescription();
         if (stateManager != null) stateManager.CloseState(GameState.Decomposition);
     }
 

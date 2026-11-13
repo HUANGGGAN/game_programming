@@ -128,7 +128,6 @@ public class Frame : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, I
     {
         pointerInside = true;
         slot?.OnPointerEnter(eventData);
-        decompositionSlot?.OnPointerEnter(eventData);
         RefreshColor();
     }
 
@@ -136,7 +135,6 @@ public class Frame : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, I
     {
         pointerInside = false;
         slot?.OnPointerExit(eventData);
-        decompositionSlot?.OnPointerExit(eventData);
         RefreshColor();
     }
 

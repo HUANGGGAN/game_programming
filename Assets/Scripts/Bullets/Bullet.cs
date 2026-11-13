@@ -33,6 +33,7 @@ public class Bullet2D : MonoBehaviour
 
     protected virtual bool UsesTargetExplosion => bulletData != null && bulletData.bulletMode == 1 && bulletData.isExplosive;
     protected virtual bool ImpactsColliders => true;
+    protected virtual bool UsesConfiguredSpin => true;
     protected virtual bool DespawnOffScreen => !IsRicochet || bulletData.bulletMode != 2;
 
     public float Damage => currentDamage;
@@ -77,6 +78,23 @@ public class Bullet2D : MonoBehaviour
         {
             spriteRenderer.sprite = bulletData.bulletSprite;
             spriteRenderer.color = bulletData.tint;
+            if (bulletData.spinningSpeed != 0f && spriteRenderer.transform == transform)
+            {
+                // Rotate the image independently of casts and ricochet direction.
+                SpriteRenderer original = spriteRenderer;
+                GameObject visual = new GameObject("Bullet Visual");
+                visual.transform.SetParent(transform, false);
+                spriteRenderer = visual.AddComponent<SpriteRenderer>();
+                spriteRenderer.sprite = original.sprite;
+                spriteRenderer.color = original.color;
+                spriteRenderer.sharedMaterial = original.sharedMaterial;
+                spriteRenderer.sortingLayerID = original.sortingLayerID;
+                spriteRenderer.sortingOrder = original.sortingOrder;
+                spriteRenderer.flipX = original.flipX;
+                spriteRenderer.flipY = original.flipY;
+                spriteRenderer.maskInteraction = original.maskInteraction;
+                original.enabled = false;
+            }
         }
 
         BoxCollider2D boxCollider = bulletCollider as BoxCollider2D;
@@ -114,6 +132,8 @@ public class Bullet2D : MonoBehaviour
         // Re-enable visual, collider, and GameObject state when re-firing
         gameObject.SetActive(true);
         if (spriteRenderer != null) spriteRenderer.enabled = true;
+        if (spriteRenderer != null && spriteRenderer.transform != transform)
+            spriteRenderer.transform.localRotation = Quaternion.identity;
         if (bulletCollider != null) bulletCollider.enabled = true;
         remainingLifetime = bulletData.lifetime;
 
@@ -137,6 +157,9 @@ public class Bullet2D : MonoBehaviour
             Deactivate();
             return;
         }
+
+        if (hasLaunched && UsesConfiguredSpin && bulletData != null && bulletData.spinningSpeed != 0f && spriteRenderer != null)
+            spriteRenderer.transform.Rotate(0f, 0f, bulletData.spinningSpeed * Time.deltaTime, Space.Self);
 
         // Check if bullet flew off-screen
         if (DespawnOffScreen && mainCamera != null)

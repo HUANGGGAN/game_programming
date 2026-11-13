@@ -23,6 +23,7 @@ public class ArcBullet2D : Bullet2D
     private bool isArcing;
     private Vector2 boomerangDirection;
     protected override bool ImpactsColliders => bulletData != null && bulletData.bulletMode == 1;
+    protected override bool UsesConfiguredSpin => !isBoomerang;
     public override Vector2 TravelDirection => isBoomerang && boomerangDirection.sqrMagnitude > 0f
         ? boomerangDirection : base.TravelDirection;
     protected override bool DespawnOffScreen => !isBoomerang;

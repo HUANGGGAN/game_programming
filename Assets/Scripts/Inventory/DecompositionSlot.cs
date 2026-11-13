@@ -4,12 +4,11 @@ using UnityEngine.EventSystems;
 using UnityEngine.UI;
 
 public class DecompositionSlot : MonoBehaviour, IBeginDragHandler, IDragHandler, IEndDragHandler,
-    IDropHandler, IPointerEnterHandler, IPointerExitHandler, IPointerClickHandler
+    IDropHandler, IPointerClickHandler
 {
     [SerializeField] private Image itemIconImage;
     [SerializeField] private TMP_Text countText;
     [SerializeField] private Color maxStackCountColor = Color.green;
-    [SerializeField, Min(0f)] private float descriptionHoverDelay = 0.5f;
     public DecompositionManager Manager { get; private set; }
     public bool IsDecomposition { get; private set; }
     public int Index { get; private set; }
@@ -23,9 +22,6 @@ public class DecompositionSlot : MonoBehaviour, IBeginDragHandler, IDragHandler,
     private Vector3 originalPosition;
     private Vector3 originalScale;
     private Quaternion originalRotation;
-    private PointerEventData hoverPointer;
-    private float hoverStarted;
-    private bool pointerInside;
 
     public void Initialize(DecompositionManager manager, bool decomposition, int index)
     {
@@ -88,8 +84,6 @@ public class DecompositionSlot : MonoBehaviour, IBeginDragHandler, IDragHandler,
     {
         if (!IsDragging) return;
         IsDragging = false;
-        hoverPointer = null;
-        Manager?.HideDescription(this);
         if (DraggedSlot == this) DraggedSlot = null;
         if (itemIconImage != null && originalParent != null)
         {
@@ -110,49 +104,14 @@ public class DecompositionSlot : MonoBehaviour, IBeginDragHandler, IDragHandler,
         if (CanReceiveDropFrom(source)) Manager.Move(source, this);
     }
 
-    private void Update()
-    {
-        if (!pointerInside)
-            return;
-        if (DraggedSlot != null)
-        {
-            hoverStarted = Time.unscaledTime;
-            Manager?.HideDescription(this);
-            return;
-        }
-        if (hoverPointer != null && Time.unscaledTime - hoverStarted >= descriptionHoverDelay)
-            Manager?.ShowDescription(this, hoverPointer);
-    }
-
-    public void OnPointerEnter(PointerEventData data)
-    {
-        hoverPointer = data;
-        if (!pointerInside)
-            hoverStarted = Time.unscaledTime;
-        pointerInside = true;
-    }
-
-    public void OnPointerExit(PointerEventData data)
-    {
-        hoverPointer = null;
-        pointerInside = false;
-        Manager?.HideDescription(this);
-    }
-
     public void OnPointerClick(PointerEventData data)
     {
         if (data.button != PointerEventData.InputButton.Left || data.dragging || DraggedSlot != null) return;
         GetComponentInParent<Frame>()?.Select();
-        hoverPointer = data;
-        hoverStarted = Time.unscaledTime - descriptionHoverDelay;
-        Manager?.ShowDescription(this, data);
     }
 
     private void OnDisable()
     {
-        hoverPointer = null;
-        pointerInside = false;
-        Manager?.HideDescription(this);
         EndDrag();
     }
 }

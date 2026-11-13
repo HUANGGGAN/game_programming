@@ -16,6 +16,7 @@ MonoBehaviour:
   bulletSprite: {fileID: 6348385188075547880, guid: 6b5a14228c74602439b8ad92bc82fb01, type: 3}
   ParticleID: 0
   tint: {r: 1, g: 1, b: 1, a: 1}
+  spinningSpeed: 540
   colliderSize: {x: 0.2, y: 0.2}
   damage: 7
   speed: 13

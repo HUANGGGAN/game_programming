@@ -17,8 +17,12 @@ MonoBehaviour:
   rarity: 2
   icon: {fileID: -2576084159183346013, guid: e310e9c720829de28ba7c35b50b9907f, type: 3}
   maxStackSize: 10
+  tag: 0
   description: 
+  minPiece: 1
+  maxPiece: 3
   shootInterval: 0.5
+  MPCost: 0
   consumeAmmo: 1
   hasLimitedAmmo: 1
   firePointOffset: {x: 0.5, y: 0.1}

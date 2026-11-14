@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.InputSystem;
@@ -7,9 +6,6 @@ using UnityEngine.InputSystem;
 public class Interactable : MonoBehaviour
 {
     [SerializeField, Min(0f)] private float interactionRange = 1.5f;
-    [SerializeField] private Vector3 hintOffset = new Vector3(0f, 0.8f, 0f);
-    [SerializeField] private TMP_Text hintText;
-    [SerializeField, Min(0f)] private float hintFontSize = 6f;
     [SerializeField] private string interactionHint = "Press F to interact";
     [SerializeField] private UnityEvent onInteract = new UnityEvent();
 
@@ -26,15 +22,13 @@ public class Interactable : MonoBehaviour
     protected virtual void OnEnable()
     {
         activeInteractables.Add(this);
-        SetHintVisible(false);
     }
 
     protected virtual void OnDisable()
     {
         activeInteractables.Remove(this);
-        SetHintVisible(false);
         if (selected == this)
-            selected = null;
+            ClearSelection();
     }
 
     public virtual string GetHint() => interactionHint;
@@ -48,7 +42,7 @@ public class Interactable : MonoBehaviour
 
     public static void UpdateInteraction(Transform player)
     {
-        if (Time.timeScale == 0f)
+        if (player == null || Time.timeScale == 0f)
         {
             ClearSelection();
             return;
@@ -97,29 +91,7 @@ public class Interactable : MonoBehaviour
 
     private void SetHintVisible(bool visible)
     {
-        if (visible && hintText == null)
-        {
-            GameObject hintObject = new GameObject("Interaction Hint");
-            hintObject.transform.SetParent(transform, false);
-            TextMeshPro text = hintObject.AddComponent<TextMeshPro>();
-            text.alignment = TextAlignmentOptions.Center;
-            text.rectTransform.sizeDelta = new Vector2(40f, 8f);
-            text.rectTransform.localScale = Vector3.one * 1f;
-            text.sortingOrder = short.MaxValue;
-            hintText = text;
-        }
-
-        if (hintText == null)
-            return;
-
-        hintText.enabled = visible;
-        if (visible)
-        {
-            hintText.fontSize = hintFontSize;
-            hintText.text = GetHint();
-            hintText.color = GetHintColor();
-            hintText.transform.position = transform.position + hintOffset;
-            hintText.transform.rotation = Quaternion.identity;
-        }
+        InteractionHint.SetHint(visible ? GetHint() : string.Empty,
+            visible ? GetHintColor() : Color.white, visible ? transform : null);
     }
 }

@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public enum GameState { Playing, Inventory, Tutorial, Merchant, Purchase, Decomposition }
+public enum GameState { Playing, Inventory, Tutorial, Merchant, Purchase, Decomposition, Storage }
 
 public class StateManager : MonoBehaviour
 {
@@ -75,9 +75,9 @@ public class StateManager : MonoBehaviour
     {
         if (Keyboard.current != null &&
             ((Keyboard.current.escapeKey.wasPressedThisFrame &&
-              (CurrentState == GameState.Inventory || CurrentState == GameState.Merchant || CurrentState == GameState.Purchase || CurrentState == GameState.Decomposition)) ||
+              (CurrentState == GameState.Inventory || CurrentState == GameState.Merchant || CurrentState == GameState.Purchase || CurrentState == GameState.Decomposition || CurrentState == GameState.Storage)) ||
              (Keyboard.current.eKey.wasPressedThisFrame &&
-              (CurrentState == GameState.Merchant || CurrentState == GameState.Purchase || CurrentState == GameState.Decomposition))))
+              (CurrentState == GameState.Merchant || CurrentState == GameState.Purchase || CurrentState == GameState.Decomposition || CurrentState == GameState.Storage))))
             CloseState(CurrentState);
     }
 

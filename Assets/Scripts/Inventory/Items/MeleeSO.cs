@@ -4,7 +4,8 @@ public enum MeleeAttackAnimation
 {
     NoAttack = -1,
     SwingAttack = 0,
-    PokeAttack = 1
+    PokeAttack = 1, 
+    SpinAttack = 2
 }
 
 [CreateAssetMenu(fileName = "NewMelee", menuName = "Weapon/Melee")]
@@ -12,6 +13,9 @@ public class MeleeSO : WeaponSO
 {
     [Header("Melee Stats")]
     public MeleeAttackAnimation attackAnimation = MeleeAttackAnimation.SwingAttack;
+    [Tooltip("0: Sector, 1: Dash, 2: Spin")][Range(0, 2)] public int attackType;
+    [Min(0f)] public float attackRadius = 1f;
+    [Min(1)] public int attackCount = 1;
     public float attackRange = 2.0f; // Range of the melee attack
     public float attackAngle = 90.0f; // Angle of the melee attack in degrees
     public float attackDamage = 10.0f; // Damage value for the melee attack

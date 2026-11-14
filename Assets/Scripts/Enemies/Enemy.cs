@@ -131,6 +131,7 @@ public class EnemyChase : MonoBehaviour, IEffectSource
 
         // Reset health every time the enemy is spawned/reactivated
         currentHealth = maxHealth;
+        EnemyFeedbackPool.Register(this);
         recentDamageSourceIds.Clear();
         recentDamageSourceTimes.Clear();
         ClearEffects();
@@ -452,7 +453,9 @@ public class EnemyChase : MonoBehaviour, IEffectSource
             ApplyKnockback(knockbackDirection, knockbackForce);
         }
 
+        float healthLost = Mathf.Min(currentHealth, damageAmount);
         currentHealth -= damageAmount;
+        EnemyFeedbackPool.Damaged(this, healthLost);
 
         if (currentHealth <= 0f)
         {
@@ -615,7 +618,9 @@ public class EnemyChase : MonoBehaviour, IEffectSource
         isDying = true;
         ClearEffects();
         Player playerComponent = player != null ? player.GetComponentInParent<Player>() : null;
-        playerComponent?.addMoney(enemyData != null ? enemyData.money : 1);
+        int money = enemyData != null ? enemyData.money : 1;
+        playerComponent?.addMoney(money);
+        EnemyFeedbackPool.Died(this, money);
         CancelAttack();
         currentHealth = 0f;
         StopHitFlash();
@@ -671,6 +676,7 @@ public class EnemyChase : MonoBehaviour, IEffectSource
 
     protected virtual void OnDisable()
     {
+        EnemyFeedbackPool.Unregister(this);
         CancelAttack();
         ClearKnockback();
         if (deathRoutine != null)

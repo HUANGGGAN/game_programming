@@ -9,23 +9,23 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 5ec186d1a765adae3aa6d3343c7dd524, type: 3}
+  m_Script: {fileID: 11500000, guid: 7e06f990e0bf49e09eaf7073c948a08f, type: 3}
   m_Name: WaterGun
-  m_EditorClassIdentifier: Assembly-CSharp::GunSO
+  m_EditorClassIdentifier: Assembly-CSharp::MultiWeaponSO
   itemName: Water Gun
   itemID: 0
   rarity: 2
   icon: {fileID: -8702762912894191362, guid: 0f650c14efd101ec4a79ad15d90db5c2, type: 3}
   maxStackSize: 1
-  tag: 1
+  tag: 0
   description: 
-  shootInterval: 0.5
-  consumeAmmo: 1
+  minPiece: 0
+  maxPiece: 0
+  shootInterval: 1
+  MPCost: 0
+  consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
-  animatorOverrideController: {fileID: 0}
-  capacity: 20
-  reloadTime: 1
-  spread: 5
-  burstCount: 1
-  bulletData: {fileID: 11400000, guid: 6ed994bd3ff542fd387aa65af1440e30, type: 2}
+  weapons:
+  - {fileID: 11400000, guid: 9339e003eb432e605ba49d5bc4458ea4, type: 2}
+  - {fileID: 11400000, guid: 10ccc1825c9f8cd17b61af3e1a6f0642, type: 2}

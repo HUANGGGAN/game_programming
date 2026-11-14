@@ -138,7 +138,7 @@ public class PlayerShooter2D : MonoBehaviour
         if (firingLazer)
             lazerAttack.UpdateBeam((LazerSO)equippedWeapon, origin, direction, aimPosition);
         else
-            meleeAttack.UpdateRange(origin, direction);
+            meleeAttack.UpdateRange(equippedWeapon is MeleeSO melee && melee.attackType == 1 && player != null ? (Vector2)player.transform.position : origin, direction);
     }
 
     private void OnDisable()
@@ -146,6 +146,7 @@ public class PlayerShooter2D : MonoBehaviour
         CancelReload();
         nextShotTime = 0f;
         ClearWeaponFrames();
+        meleeAttack.CancelAttack();
         meleeAttack.HideRange();
         lazerAttack.HideImmediate();
     }
@@ -443,6 +444,7 @@ public class PlayerShooter2D : MonoBehaviour
         // 3. Calculate direction vector snapshot
         Vector2 shootDirection = ((Vector2)mouseWorldPos - (Vector2)aimOrigin).normalized;
 
+        meleeAttack.SetWeaponHolder(weaponHolder);
         MeleeSO meleeWeapon = equippedWeapon as MeleeSO;
         if (!TryPerformAttack(spawnPosition, shootDirection, chargeRatio, mouseWorldPos))
         {
@@ -465,6 +467,9 @@ public class PlayerShooter2D : MonoBehaviour
                     break;
                 case MeleeAttackAnimation.PokeAttack:
                     animator.SetTrigger("Poke");
+                    break;
+                case MeleeAttackAnimation.SpinAttack:
+                    animator.SetTrigger("Spin");
                     break;
             }
         }

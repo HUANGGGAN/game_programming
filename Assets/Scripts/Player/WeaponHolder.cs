@@ -5,6 +5,9 @@ public class WeaponHolder : MonoBehaviour
 {
     [SerializeField] private SpriteRenderer weaponRenderer;
 
+    private float meleeSpinAngle;
+    public void SetMeleeSpin(float angle) => meleeSpinAngle = angle;
+
     private Camera mainCamera;
     private Vector3 defaultLocalPosition;
     private Vector3 defaultLocalScale;
@@ -62,7 +65,7 @@ public class WeaponHolder : MonoBehaviour
         if (direction.sqrMagnitude > Mathf.Epsilon)
         {
             float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
-            transform.rotation = Quaternion.Euler(0f, 0f, angle);
+            transform.rotation = Quaternion.Euler(0f, 0f, angle + meleeSpinAngle);
         }
 
         // 5. FIX: Use localScale.y flipping instead of weaponRenderer.flipY 

@@ -26,6 +26,32 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
     private float activeDamage;
     private int activeDamageSourceId;
     private MeleeSO equippedWeapon;
+    private WeaponHolder weaponHolder;
+    private int completedAttacks;
+    private Vector2 previousDashOrigin;
+    private readonly HashSet<EnemyChase> hitEnemies = new HashSet<EnemyChase>();
+
+    public void SetWeaponHolder(WeaponHolder holder) => weaponHolder = holder;
+
+    public void CancelAttack()
+    {
+        if (activeWeapon != null && activeWeapon.attackType == 1 && activeAttacker != null)
+            activeAttacker.EndMeleeDash();
+        weaponHolder?.SetMeleeSpin(0f);
+        activeWeapon = null;
+        activeAttacker = null;
+        hitEnemies.Clear();
+    }
+
+    private void BeginStrike()
+    {
+        activeDamage = CriticalAttack.RollDamage(activeWeapon.attackDamage, activeWeapon.critRate, activeWeapon.critMul);
+        activeDamageSourceId = Interlocked.Increment(ref nextDamageSourceId);
+        hitEnemies.Clear();
+        if (activeWeapon.attackType == 2 && activeWeapon.drawAttackRange)
+            DrawAttackRange(activeOrigin, activeDirection, Mathf.Max(0f, activeWeapon.attackRange), 360f, 0.9f);
+    }
+
     private LineRenderer rangeRenderer;
     private Material rangeMaterial;
     private Vector3[] rangePoints;
@@ -33,7 +59,7 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
     public void SetEquippedWeapon(MeleeSO weapon)
     {
         if (equippedWeapon != weapon)
-            activeWeapon = null;
+            CancelAttack();
         equippedWeapon = weapon;
         if (weapon == null || !weapon.drawAttackRange)
             HideRange();
@@ -47,6 +73,7 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
 
     public void DisposeRange()
     {
+        CancelAttack();
         if (rangeRenderer != null)
             UnityEngine.Object.Destroy(rangeRenderer.gameObject);
         if (rangeMaterial != null)
@@ -72,11 +99,20 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
         }
         if (attacking)
         {
-            origin = activeOrigin;
+            origin = weapon.attackType == 1 && activeAttacker != null ? (Vector2)activeAttacker.transform.position : activeOrigin;
             direction = activeDirection;
         }
-        DrawAttackRange(origin, direction, Mathf.Max(0f, weapon.attackRange),
-            Mathf.Clamp(weapon.attackAngle, 0f, 360f), attacking ? 0.9f : 0.3f);
+        float opacity = attacking ? 0.9f : 0.3f;
+        if (attacking && weapon.attackType == 2)
+        {
+            // Restart the highlight for every strike instead of showing one solid circle.
+            float progress = Mathf.Clamp01(elapsedDuration / activeDuration);
+            opacity = Mathf.Lerp(0.9f, 0.3f, progress);
+        }
+        DrawAttackRange(origin, direction,
+            Mathf.Max(0f, weapon.attackType == 1 ? weapon.attackRadius : weapon.attackRange),
+            weapon.attackType == 0 ? Mathf.Clamp(weapon.attackAngle, 0f, 360f) : 360f,
+            opacity);
     }
 
     public bool CanHandle(WeaponSO weapon)
@@ -89,6 +125,8 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
         if (weapon is not MeleeSO meleeWeapon || meleeWeapon.attackRange <= 0f || meleeWeapon.attackDamage <= 0f || direction.sqrMagnitude <= Mathf.Epsilon)
             return false;
 
+        if (meleeWeapon.attackType == 1 && (attacker == null || !attacker.CanMeleeDash || meleeWeapon.attackRadius <= 0f))
+            return false;
         if (activeWeapon != null)
             return false;
 
@@ -97,12 +135,15 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
 
         activeWeapon = meleeWeapon;
         activeAttacker = attacker;
-        activeOrigin = origin;
+        activeOrigin = meleeWeapon.attackType == 1 ? (Vector2)attacker.transform.position : origin;
+        previousDashOrigin = activeOrigin;
         activeDirection = direction.normalized;
-        activeDuration = Mathf.Max(0f, meleeWeapon.attackDuration);
+        activeDuration = meleeWeapon.attackType == 0 ? Mathf.Max(0f, meleeWeapon.attackDuration) : Mathf.Max(Time.fixedDeltaTime, meleeWeapon.attackDuration);
         elapsedDuration = 0f;
-        activeDamage = CriticalAttack.RollDamage(meleeWeapon.attackDamage, meleeWeapon.critRate, meleeWeapon.critMul);
-        activeDamageSourceId = Interlocked.Increment(ref nextDamageSourceId);
+        completedAttacks = 0;
+        BeginStrike();
+        if (meleeWeapon.attackType == 1)
+            attacker.BeginMeleeDash(activeDirection, meleeWeapon.attackRange, activeDuration);
 
         if (meleeWeapon.ParticleID > 0)
         {
@@ -114,36 +155,69 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
 
         ApplyAttack();
         if (activeDuration <= 0f)
-            activeWeapon = null;
+            CancelAttack();
 
         return true;
     }
 
     public void Tick(float deltaTime)
     {
-        if (activeWeapon == null)
-            return;
-
-        if (elapsedDuration >= activeDuration)
+        if (activeWeapon == null || deltaTime <= 0f) return;
+        if (activeWeapon.attackType == 1)
         {
-            activeWeapon = null;
+            if (activeAttacker == null || !activeAttacker.isActiveAndEnabled)
+            {
+                CancelAttack();
+                return;
+            }
+            activeOrigin = activeAttacker.transform.position;
+            ApplyAttack();
+            previousDashOrigin = activeOrigin;
+            if (!activeAttacker.IsMeleeDashing) CancelAttack();
             return;
         }
 
-        ApplyAttack();
-        elapsedDuration += deltaTime;
-        if (elapsedDuration >= activeDuration)
-            activeWeapon = null;
+        // Split long frames at strike boundaries so every spin gets its own hit.
+        while (activeWeapon != null && deltaTime > 0f)
+        {
+            ApplyAttack();
+            float step = Mathf.Min(deltaTime, activeDuration - elapsedDuration);
+            elapsedDuration += step;
+            deltaTime -= step;
+            if (activeWeapon.attackType == 2)
+                weaponHolder?.SetMeleeSpin(360f * elapsedDuration / activeDuration);
+            if (elapsedDuration < activeDuration) break;
+            completedAttacks++;
+            if (activeWeapon.attackType != 2 || completedAttacks >= Mathf.Max(1, activeWeapon.attackCount))
+            {
+                CancelAttack();
+                break;
+            }
+            elapsedDuration = 0f;
+            BeginStrike();
+            ApplyAttack();
+        }
     }
 
     private void ApplyAttack()
     {
-        float halfAngle = Mathf.Clamp(activeWeapon.attackAngle, 0f, 360f) * 0.5f;
-        Collider2D[] colliders = Physics2D.OverlapCircleAll(activeOrigin, activeWeapon.attackRange);
+        float halfAngle = activeWeapon.attackType == 0 ? Mathf.Clamp(activeWeapon.attackAngle, 0f, 360f) * 0.5f : 180f;
+        Collider2D[] colliders;
+        if (activeWeapon.attackType == 1)
+        {
+            // Sweep the circular hit area between physics positions to catch enemies along the dash.
+            Vector2 travel = activeOrigin - previousDashOrigin;
+            float radius = Mathf.Max(0f, activeWeapon.attackRadius);
+            colliders = Physics2D.OverlapCapsuleAll((activeOrigin + previousDashOrigin) * 0.5f,
+                new Vector2(travel.magnitude + radius * 2f, radius * 2f), CapsuleDirection2D.Horizontal,
+                Mathf.Atan2(travel.y, travel.x) * Mathf.Rad2Deg);
+        }
+        else
+            colliders = Physics2D.OverlapCircleAll(activeOrigin, activeWeapon.attackRange);
         foreach (Collider2D collider in colliders)
         {
             EnemyChase enemy = collider.GetComponentInParent<EnemyChase>();
-            if (enemy == null)
+            if (enemy == null || hitEnemies.Contains(enemy))
                 continue;
 
             Vector2 directionToEnemy = (Vector2)enemy.transform.position - activeOrigin;
@@ -162,6 +236,7 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
                 activeWeapon.attackAttributes,
                 EnemyDamageKind.Melee))
             {
+                hitEnemies.Add(enemy);
                 enemy.ApplyEffects(activeWeapon.effects, restoreAttacker: activeAttacker != null ? activeAttacker.RestoreEffectResource : null);
             }
         }
@@ -196,17 +271,19 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
         float centerAngle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         float halfAngle = attackAngle * 0.5f;
         int segments = Mathf.Max(1, Mathf.CeilToInt(attackAngle / 10f));
-        if (rangePoints == null || rangePoints.Length != segments + 3)
-            rangePoints = new Vector3[segments + 3];
+        bool circle = attackAngle >= 360f;
+        int pointCount = circle ? segments + 1 : segments + 3;
+        if (rangePoints == null || rangePoints.Length != pointCount)
+            rangePoints = new Vector3[pointCount];
 
         rangePoints[0] = new Vector3(origin.x, origin.y, 0f);
         for (int i = 0; i <= segments; i++)
         {
             float angle = centerAngle - halfAngle + attackAngle * i / segments;
             Vector2 arcPoint = GetArcPoint(origin, angle, range);
-            rangePoints[i + 1] = new Vector3(arcPoint.x, arcPoint.y, 0f);
+            rangePoints[i + (circle ? 0 : 1)] = new Vector3(arcPoint.x, arcPoint.y, 0f);
         }
-        rangePoints[rangePoints.Length - 1] = rangePoints[0];
+        if (!circle) rangePoints[rangePoints.Length - 1] = rangePoints[0];
         rangeRenderer.positionCount = rangePoints.Length;
         rangeRenderer.SetPositions(rangePoints);
     }

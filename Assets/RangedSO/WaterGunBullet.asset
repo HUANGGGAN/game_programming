@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BulletSO
   bulletId: 0
   bulletSprite: {fileID: 6162212308415976321, guid: 0b31779cde4925e7e8eb42cf06fe65c2, type: 3}
-  ParticleID: 0
+  ParticleID: 3
   tint: {r: 1, g: 1, b: 1, a: 1}
   spinningSpeed: 0
   colliderSize: {x: 0.2, y: 0.2}

@@ -21,6 +21,28 @@ public class Player : MonoBehaviour, IEffectSource
     private Rigidbody2D _rb;
     private Vector2 _inputVector;
     private bool isKnockedBack;
+    private Vector2 meleeDashDirection;
+    private float meleeDashRemaining;
+    private float meleeDashSpeed;
+    private readonly RaycastHit2D[] meleeDashHits = new RaycastHit2D[64];
+    public bool IsMeleeDashing { get; private set; }
+    public bool CanMeleeDash => isActiveAndEnabled && !isKnockedBack;
+
+    public void BeginMeleeDash(Vector2 direction, float distance, float duration)
+    {
+        meleeDashDirection = direction.normalized;
+        meleeDashRemaining = distance;
+        meleeDashSpeed = distance / Mathf.Max(Time.fixedDeltaTime, duration);
+        IsMeleeDashing = true;
+    }
+
+    public void EndMeleeDash()
+    {
+        if (!IsMeleeDashing) return;
+        IsMeleeDashing = false;
+        if (_rb != null && !isKnockedBack) _rb.linearVelocity = Vector2.zero;
+    }
+
     private Coroutine knockbackRoutine;
     private readonly List<ActiveEffect> activeEffects = new List<ActiveEffect>();
     private float effectTickElapsed;
@@ -102,6 +124,7 @@ public class Player : MonoBehaviour, IEffectSource
 
     private void OnDisable()
     {
+        EndMeleeDash();
         ClearKnockback();
         _inputVector = Vector2.zero;
         if (startupTutorialRoutine != null)
@@ -114,6 +137,29 @@ public class Player : MonoBehaviour, IEffectSource
 
     private void FixedUpdate()
     {
+        if (IsMeleeDashing)
+        {
+            if (isKnockedBack || meleeDashRemaining <= 0f)
+                EndMeleeDash();
+            else
+            {
+                float distance = Mathf.Min(meleeDashRemaining, meleeDashSpeed * Time.fixedDeltaTime);
+                ContactFilter2D filter = new ContactFilter2D();
+                filter.SetLayerMask(Physics2D.GetLayerCollisionMask(gameObject.layer));
+                filter.useTriggers = false;
+                int count = _rb.Cast(meleeDashDirection, filter, meleeDashHits, distance);
+                for (int i = 0; i < count; i++)
+                {
+                    Collider2D hit = meleeDashHits[i].collider;
+                    if (hit.GetComponentInParent<EnemyChase>() != null || hit.attachedRigidbody == _rb) continue;
+                    distance = Mathf.Min(distance, Mathf.Max(0f, meleeDashHits[i].distance - 0.01f));
+                }
+                _rb.linearVelocity = meleeDashDirection * (distance / Time.fixedDeltaTime);
+                meleeDashRemaining -= distance;
+                if (distance <= 0f) meleeDashRemaining = 0f;
+                return;
+            }
+        }
         // Let physics own movement until the knockback impulse has finished.
         if (isKnockedBack)
             return;

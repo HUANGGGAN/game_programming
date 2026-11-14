@@ -12,12 +12,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e06f990e0bf49e09eaf7073c948a08f, type: 3}
   m_Name: Samurai
   m_EditorClassIdentifier: Assembly-CSharp::MultiWeaponSO
-  itemName: New Item
+  itemName: Samurai
   itemID: 0
-  rarity: 0
-  icon: {fileID: 0}
+  rarity: 3
+  icon: {fileID: 5271604357546552513, guid: b8a65f38b0d688d3589e5788573d89e4, type: 3}
   maxStackSize: 1
-  tag: 0
+  tag: 1
   description: 
   minPiece: 0
   maxPiece: 0
@@ -26,4 +26,6 @@ MonoBehaviour:
   consumeAmmo: 1
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
-  weapons: []
+  weapons:
+  - {fileID: 11400000, guid: 4b8352b2bd1c597faa29eb1624add3cb, type: 2}
+  - {fileID: 11400000, guid: 06ccd043cb3041ccfbc5f17a044d5aeb, type: 2}

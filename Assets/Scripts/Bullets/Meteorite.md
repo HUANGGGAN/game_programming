@@ -22,6 +22,7 @@ When summon, appear at the upper left of the target from the edge of screen. The
 ### Animation clip
 
 When reach target, switch to ExplosionStage(animator.SetTrigger("Explode");), then set explosion at that place.
+Return to the pool after explosion animation.
 
 ## Explosion
 

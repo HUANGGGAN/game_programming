@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -7,6 +8,49 @@ public class BulletPool : MonoBehaviour
 
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private GameObject arcBulletPrefab;
+    [SerializeField] private Meteorite meteoritePrefab;
+    [SerializeField, Min(0)] private int initialMeteoritePoolSize = 0;
+    private readonly List<Meteorite> meteorites = new List<Meteorite>();
+    public bool CanSummonMeteorite => meteoritePrefab != null;
+
+    public void SummonMeteoriteBurst(Vector2 target, float scatterRadius, Player attacker = null)
+    {
+        SummonMeteorite(target, attacker);
+        StartCoroutine(SummonExtraMeteorites(target, Mathf.Max(0f, scatterRadius), attacker));
+    }
+
+    private IEnumerator SummonExtraMeteorites(Vector2 target, float scatterRadius, Player attacker)
+    {
+        WaitForSeconds interval = new WaitForSeconds(0.1f);
+        for (int i = 0; i < 4; i++)
+        {
+            yield return interval;
+            SummonMeteorite(target + Random.insideUnitCircle * scatterRadius, attacker);
+        }
+    }
+
+    public Meteorite SummonMeteorite(Vector2 target, Player attacker = null)
+    {
+        if (meteoritePrefab == null) return null;
+        Meteorite meteorite = meteorites.Find(item => item != null && !item.gameObject.activeSelf);
+        if (meteorite == null) meteorite = CreateMeteorite();
+        meteorite.Launch(target, attacker);
+        return meteorite;
+    }
+
+    private Meteorite CreateMeteorite()
+    {
+        Meteorite meteorite = Instantiate(meteoritePrefab, transform);
+        meteorite.gameObject.SetActive(false);
+        meteorites.Add(meteorite);
+        return meteorite;
+    }
+
+    private void OnDestroy()
+    {
+        if (Instance == this) Instance = null;
+    }
+
     [SerializeField] private int poolSize = 10;
 
     private Dictionary<string, List<Bullet2D>> bulletPools = new Dictionary<string, List<Bullet2D>>();
@@ -14,6 +58,7 @@ public class BulletPool : MonoBehaviour
     private void Awake()
     {
         Instance = this;
+        for (int i = 0; i < initialMeteoritePoolSize && meteoritePrefab != null; i++) CreateMeteorite();
     }
 
     public Bullet2D GetBullet(BulletSO bulletData)

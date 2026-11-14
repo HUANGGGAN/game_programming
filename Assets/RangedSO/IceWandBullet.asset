@@ -12,22 +12,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60cb8d2a654d011e49bd6b6c11263e2a, type: 3}
   m_Name: IceWandBullet
   m_EditorClassIdentifier: Assembly-CSharp::BulletSO
-  bulletId: 
-  bulletSprite: {fileID: 0}
+  bulletId: 0
+  bulletSprite: {fileID: -6263091795111771235, guid: 49f55dfb91d900ecb9ea84eb1c77e5a9, type: 3}
   ParticleID: 0
   tint: {r: 1, g: 1, b: 1, a: 1}
   spinningSpeed: 0
   colliderSize: {x: 0.2, y: 0.2}
-  damage: 10
-  speed: 15
+  damage: 14
+  speed: 12
   lifetime: 3
   isPiercing: 0
   bulletMode: 0
   isExplosive: 0
-  explosionRadius: 2
-  knockbackForce: 5
-  explosiveDamage: 20
+  explosionRadius: 1
+  knockbackForce: 0.5
+  explosiveDamage: 7
   critRate: 0.05
   critMul: 3
-  effects: []
-  attackAttributes: 
+  effects:
+  - effectID: 5
+    duration: 1
+    probability: 1
+    level: 3
+  attackAttributes: 05000000

@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: PlayerInventoryData
   m_EditorClassIdentifier: Assembly-CSharp::InventorySO
   slots:
-  - item: {fileID: 11400000, guid: e8ba09ae06a3c3478916365c358fd503, type: 2}
+  - item: {fileID: 11400000, guid: 19aa54060d9ff7133b840258a9bb6c69, type: 2}
     count: 1
     ammoCount: 0
     attackModeIndex: -1
@@ -29,13 +29,13 @@ MonoBehaviour:
     count: 1
     ammoCount: 0
     attackModeIndex: -1
-  - item: {fileID: 11400000, guid: 4b8352b2bd1c597faa29eb1624add3cb, type: 2}
+  - item: {fileID: 11400000, guid: 3b840bf4ccae39aab9ce3b6ada920d50, type: 2}
     count: 1
     ammoCount: 0
     attackModeIndex: -1
-  - item: {fileID: 11400000, guid: 4a0e4be5bd6bc9a669a71678f3325615, type: 2}
+  - item: {fileID: 11400000, guid: 9b4f5edc0dc1e2fdf9f4cf1495a11c32, type: 2}
     count: 1
-    ammoCount: 11
+    ammoCount: 0
     attackModeIndex: -1
   - item: {fileID: 11400000, guid: 4b27838c02f5b35e28dc2c829d028563, type: 2}
     count: 1
@@ -45,32 +45,32 @@ MonoBehaviour:
     count: 1
     ammoCount: 0
     attackModeIndex: -1
-  - item: {fileID: 11400000, guid: 9e7e20e88df5cd74395e944921aa4fb1, type: 2}
-    count: 1
-    ammoCount: 0
-    attackModeIndex: 1
-  - item: {fileID: 11400000, guid: a0393866853dd5754877fd435906d194, type: 2}
-    count: 2
-    ammoCount: 19
-    attackModeIndex: -1
   - item: {fileID: 11400000, guid: 21621542819cfa555b776939b422dca8, type: 2}
     count: 1
     ammoCount: 0
     attackModeIndex: -1
+  - item: {fileID: 11400000, guid: 6579d80a3b05930429762367ea991f49, type: 2}
+    count: 1
+    ammoCount: 0
+    attackModeIndex: 1
   - item: {fileID: 0}
     count: 0
     ammoCount: 0
     attackModeIndex: -1
+  - item: {fileID: 11400000, guid: 71a98ca430d18b91e9fec7c0185fff13, type: 2}
+    count: 1
+    ammoCount: 0
+    attackModeIndex: 1
   weaponSlots:
-  - item: {fileID: 11400000, guid: 3b840bf4ccae39aab9ce3b6ada920d50, type: 2}
+  - item: {fileID: 11400000, guid: e63ce1139123deb199fbe6f55f4fe6fd, type: 2}
+    count: 1
+    ammoCount: 0
+    attackModeIndex: 1
+  - item: {fileID: 11400000, guid: 54361bd885db51356a989211713c03ec, type: 2}
     count: 1
     ammoCount: 0
     attackModeIndex: -1
-  - item: {fileID: 11400000, guid: 71a98ca430d18b91e9fec7c0185fff13, type: 2}
-    count: 1
-    ammoCount: 16
-    attackModeIndex: 0
-  - item: {fileID: 11400000, guid: 19aa54060d9ff7133b840258a9bb6c69, type: 2}
+  - item: {fileID: 11400000, guid: 9b4f5edc0dc1e2fdf9f4cf1495a11c32, type: 2}
     count: 1
     ammoCount: 0
     attackModeIndex: -1

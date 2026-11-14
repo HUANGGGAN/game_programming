@@ -12,22 +12,22 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ec186d1a765adae3aa6d3343c7dd524, type: 3}
   m_Name: IceWand
   m_EditorClassIdentifier: Assembly-CSharp::GunSO
-  itemName: New Item
+  itemName: IceWand
   itemID: 0
-  rarity: 0
-  icon: {fileID: 0}
+  rarity: 2
+  icon: {fileID: 3711656471350060144, guid: e1d33177b43822207bb0a1d1fc2f6132, type: 3}
   maxStackSize: 1
-  tag: 0
+  tag: 1
   description: 
   minPiece: 0
   maxPiece: 0
-  shootInterval: 1
-  MPCost: 0
-  consumeAmmo: 1
+  shootInterval: 0.7
+  MPCost: 1
+  consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
   capacity: 30
   reloadTime: 2
   spread: 5
   burstCount: 1
-  bulletData: {fileID: 0}
+  bulletData: {fileID: 11400000, guid: c952465322ea8f6cea54d4eba78df9ba, type: 2}

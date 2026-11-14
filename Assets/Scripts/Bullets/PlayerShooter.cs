@@ -50,6 +50,7 @@ public class PlayerShooter2D : MonoBehaviour
         if (player == null)
             player = GetComponentInParent<Player>();
         attackHandlers.Insert(0, new WandProjectileAttack());
+        attackHandlers.Insert(0, new MeteoriteAttack());
         weaponHolder = GetComponent<WeaponHolder>();
         if (weaponHolder == null)
             weaponHolder = GetComponentInParent<WeaponHolder>();
@@ -218,7 +219,8 @@ public class PlayerShooter2D : MonoBehaviour
             return false;
         }
 
-        if (equippedWeapon is IProjectileWeapon projectileWeapon && projectileWeapon.ProjectileData is RandomBulletSO random &&
+        if (equippedWeapon is not WandSO { attackMode: 1 } &&
+            equippedWeapon is IProjectileWeapon projectileWeapon && projectileWeapon.ProjectileData is RandomBulletSO random &&
             !random.HasValidBullets)
         {
             Debug.LogWarning($"Configure at least one bullet with a positive finite weight on {random.name}.", this);

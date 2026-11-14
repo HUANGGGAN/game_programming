@@ -10,6 +10,15 @@ public class ArcBullet2D : Bullet2D
     [SerializeField] private float spinSpeed = 720f;
     [SerializeField, Min(0f)] private float catchDistance = 0.15f;
     [SerializeField, Range(4, 128)] private int curveSegments = 32;
+    [Header("Surrounding (Mode 2)")]
+    [SerializeField, Min(0.01f)] private float orbitRadius = 2f;
+    private bool isOrbiting;
+    private Transform orbitTarget;
+    private float orbitAngle;
+    private float orbitSpeed;
+    private float activeOrbitRadius;
+    private Vector2 orbitDirection;
+    private Vector2 previousOrbitCenter;
     private bool isBoomerang;
     private bool isReturning;
     private float boomerangSpeed;
@@ -22,11 +31,11 @@ public class ArcBullet2D : Bullet2D
     private float flightDistance;
     private bool isArcing;
     private Vector2 boomerangDirection;
-    protected override bool ImpactsColliders => bulletData != null && bulletData.bulletMode == 1;
+    protected override bool ImpactsColliders => bulletData != null && (bulletData.bulletMode == 1 || bulletData.bulletMode == 2);
     protected override bool UsesConfiguredSpin => !isBoomerang;
-    public override Vector2 TravelDirection => isBoomerang && boomerangDirection.sqrMagnitude > 0f
+    public override Vector2 TravelDirection => isOrbiting ? orbitDirection : isBoomerang && boomerangDirection.sqrMagnitude > 0f
         ? boomerangDirection : base.TravelDirection;
-    protected override bool DespawnOffScreen => !isBoomerang;
+    protected override bool DespawnOffScreen => !isBoomerang && !isOrbiting;
 
     protected override bool UsesTargetExplosion =>
         bulletData != null && bulletData.bulletMode == 0 && bulletData.bulletId == "1" && bulletData.isExplosive;
@@ -68,6 +77,29 @@ public class ArcBullet2D : Bullet2D
         visualSprite.localRotation = Quaternion.identity;
         isBoomerang = bulletData != null && bulletData.bulletMode == 1 && bulletData.bulletId == "1" && targetPosition.HasValue;
         isReturning = false;
+        isOrbiting = bulletData != null && bulletData.bulletId == "1" && bulletData.bulletMode == 2;
+        if (isOrbiting)
+        {
+            orbitTarget = Attacker != null ? Attacker.transform : returnTarget;
+            if (orbitTarget == null)
+            {
+                GameObject player = GameObject.FindGameObjectWithTag("Player");
+                if (player != null) orbitTarget = player.transform;
+            }
+            if (orbitTarget == null || !orbitTarget.gameObject.activeInHierarchy)
+            {
+                Deactivate();
+                return;
+            }
+            activeOrbitRadius = Mathf.Max(0.01f, orbitRadius);
+            orbitSpeed = Mathf.Max(0f, speed);
+            orbitAngle = Mathf.Atan2(direction.y, direction.x);
+            previousOrbitCenter = orbitTarget.position;
+            rb.position = previousOrbitCenter + new Vector2(Mathf.Cos(orbitAngle), Mathf.Sin(orbitAngle)) * activeOrbitRadius;
+            transform.position = new Vector3(rb.position.x, rb.position.y, transform.position.z);
+            orbitDirection = new Vector2(-Mathf.Sin(orbitAngle), Mathf.Cos(orbitAngle));
+            rb.linearVelocity = Vector2.zero;
+        }
         if (isBoomerang)
         {
             if (returnTarget == null)
@@ -88,6 +120,11 @@ public class ArcBullet2D : Bullet2D
 
     protected override void FixedUpdate()
     {
+        if (isOrbiting)
+        {
+            UpdateOrbit();
+            return;
+        }
         if (!isBoomerang)
         {
             base.FixedUpdate();
@@ -155,6 +192,35 @@ public class ArcBullet2D : Bullet2D
         }
     }
 
+    private void UpdateOrbit()
+    {
+        if (orbitTarget == null || !orbitTarget.gameObject.activeInHierarchy)
+        {
+            Deactivate();
+            return;
+        }
+        Vector2 center = orbitTarget.position;
+        float angleStep = orbitSpeed / activeOrbitRadius * Time.fixedDeltaTime;
+        // Sweep short chords around the circle so fast orbits still hit along the curve.
+        int steps = Mathf.Max(1, Mathf.CeilToInt(angleStep / (10f * Mathf.Deg2Rad)));
+        float startAngle = orbitAngle;
+        for (int i = 1; i <= steps; i++)
+        {
+            float progress = (float)i / steps;
+            float angle = startAngle + angleStep * progress;
+            Vector2 next = Vector2.Lerp(previousOrbitCenter, center, progress) +
+                new Vector2(Mathf.Cos(angle), Mathf.Sin(angle)) * activeOrbitRadius;
+            Vector2 movement = next - rb.position;
+            orbitDirection = movement.sqrMagnitude > Mathf.Epsilon ? movement.normalized :
+                new Vector2(-Mathf.Sin(angle), Mathf.Cos(angle));
+            if (!SweepForImpacts(movement)) return;
+            rb.position = next;
+        }
+        orbitAngle = Mathf.Repeat(startAngle + angleStep, Mathf.PI * 2f);
+        previousOrbitCenter = center;
+        rb.linearVelocity = Vector2.zero;
+    }
+
     private void LateUpdate()
     {
         if (isBoomerang)
@@ -175,6 +241,8 @@ public class ArcBullet2D : Bullet2D
         isArcing = false;
         isBoomerang = false;
         isReturning = false;
+        isOrbiting = false;
+        orbitTarget = null;
         if (visualSprite != null)
         {
             visualSprite.localPosition = Vector3.zero;

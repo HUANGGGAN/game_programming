@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Threading;
 using UnityEngine;
 
 public interface IWeaponAttackHandler
@@ -16,7 +15,6 @@ public interface ITimedWeaponAttackHandler
 
 public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandler
 {
-    private static int nextDamageSourceId;
     private MeleeSO activeWeapon;
     private Player activeAttacker;
     private Vector2 activeOrigin;
@@ -46,7 +44,7 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
     private void BeginStrike()
     {
         activeDamage = CriticalAttack.RollDamage(activeWeapon.attackDamage, activeWeapon.critRate, activeWeapon.critMul);
-        activeDamageSourceId = Interlocked.Increment(ref nextDamageSourceId);
+        activeDamageSourceId = DamageSources.Next();
         hitEnemies.Clear();
         if (activeWeapon.attackType == 2 && activeWeapon.drawAttackRange)
             DrawAttackRange(activeOrigin, activeDirection, Mathf.Max(0f, activeWeapon.attackRange), 360f, 0.9f);

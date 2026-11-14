@@ -1,0 +1,31 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 30e5f9bff1f890d9d97eed21a05274bf, type: 3}
+  m_Name: MeteoriteWand
+  m_EditorClassIdentifier: Assembly-CSharp::WandSO
+  itemName: Meteorite Wand
+  itemID: 0
+  rarity: 4
+  icon: {fileID: -6050681724089839600, guid: eaa81d48a6ceb467b82e1e61a0f8da45, type: 3}
+  maxStackSize: 1
+  tag: 0
+  description: 
+  minPiece: 0
+  maxPiece: 0
+  shootInterval: 1.5
+  MPCost: 5
+  consumeAmmo: 0
+  hasLimitedAmmo: 0
+  firePointOffset: {x: 0.5, y: 0.1}
+  bulletData: {fileID: 0}
+  attackMode: 1
+  meteoriteScatterRadius: 7

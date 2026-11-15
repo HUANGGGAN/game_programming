@@ -21,6 +21,8 @@ public class PlayerShooter2D : MonoBehaviour
     private Camera mainCamera;
     private WeaponHolder weaponHolder;
     private Player player;
+    private RegionTracker regionTracker;
+    private bool waterBlocksAttacks;
     private TMP_Text reloadCountdownText;
     private bool shootingEnabled = true;
     private float nextShotTime;
@@ -49,6 +51,10 @@ public class PlayerShooter2D : MonoBehaviour
         player = GetComponent<Player>();
         if (player == null)
             player = GetComponentInParent<Player>();
+        if (player != null)
+            regionTracker = player.GetComponent<RegionTracker>() ?? player.gameObject.AddComponent<RegionTracker>();
+        else
+            regionTracker = GetComponentInParent<RegionTracker>();
         attackHandlers.Insert(0, new WandProjectileAttack());
         attackHandlers.Insert(0, new MeteoriteAttack());
         weaponHolder = GetComponent<WeaponHolder>();
@@ -69,7 +75,21 @@ public class PlayerShooter2D : MonoBehaviour
 
     private void Update()
     {
-        if (Time.timeScale == 0f) return;
+        if (regionTracker != null)
+        {
+            regionTracker.RefreshRegions();
+            bool inWater = regionTracker.IsInWater;
+            if (inWater && !waterBlocksAttacks)
+            {
+                CancelReload();
+                meleeAttack.CancelAttack();
+                meleeAttack.HideRange();
+                lazerAttack.HideImmediate();
+            }
+            waterBlocksAttacks = inWater;
+        }
+        else waterBlocksAttacks = false;
+        if (Time.timeScale == 0f || waterBlocksAttacks) return;
 
         for (int i = 0; i < attackHandlers.Count; i++)
         {
@@ -110,15 +130,17 @@ public class PlayerShooter2D : MonoBehaviour
 
     private void LateUpdate()
     {
+        if (waterBlocksAttacks)
+            meleeAttack.HideRange();
         UpdateWeaponFrames();
-        bool firingLazer = equippedWeapon is LazerSO && shootingEnabled && !isReloading && Time.timeScale > 0f &&
+        bool firingLazer = !waterBlocksAttacks && equippedWeapon is LazerSO && shootingEnabled && !isReloading && Time.timeScale > 0f &&
             Mouse.current != null && Mouse.current.leftButton.isPressed;
         if (!firingLazer)
             lazerAttack.Hide();
         if (Time.timeScale <= 0f)
             lazerAttack.HideImmediate();
         lazerAttack.TickVisual(Time.deltaTime);
-        if (equippedWeapon is not MeleeSO && !firingLazer)
+        if (waterBlocksAttacks || (equippedWeapon is not MeleeSO && !firingLazer))
             return;
 
         Transform weaponTransform = weaponHolder != null ? weaponHolder.transform : transform;
@@ -407,7 +429,8 @@ public class PlayerShooter2D : MonoBehaviour
 
     private bool Shoot(float? chargeRatio = null)
     {
-        if (Mouse.current == null || inventoryUIController == null || equippedWeapon == null)
+        if (waterBlocksAttacks || (regionTracker != null && regionTracker.IsInWater) ||
+            Mouse.current == null || inventoryUIController == null || equippedWeapon == null)
             return false;
 
         bool shouldConsumeAmmo = equippedWeapon is not WandSO && equippedWeapon.consumeAmmo;

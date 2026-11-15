@@ -38,7 +38,7 @@ public static class EffectRuntime
     public const int MPStealing = 8;
 
     public static bool Apply(List<ActiveEffect> activeEffects, EffectDefinition[] definitions, float probabilityMultiplier = 1f, int[] blockedEffectIDs = null,
-        Action<int, int> restoreAttacker = null, bool allowTimedEffects = true)
+        Action<int, int> restoreAttacker = null, bool allowTimedEffects = true, bool stackMatchingLevels = true)
     {
         if (activeEffects == null || definitions == null)
             return false;
@@ -47,7 +47,7 @@ public static class EffectRuntime
 
         foreach (EffectDefinition definition in definitions)
         {
-            if (definition == null || definition.level <= 0)
+            if (definition == null || definition.level <= 0 || definition.effectID == int.MinValue)
                 continue;
             bool stealing = definition.effectID == HPStealing || definition.effectID == MPStealing;
             if (!stealing && (!allowTimedEffects || definition.duration <= 0f))
@@ -57,6 +57,10 @@ public static class EffectRuntime
 
             float probability = Mathf.Clamp01(definition.probability * Mathf.Max(0f, probabilityMultiplier));
             if (probability <= 0f || (probability < 1f && UnityEngine.Random.value >= probability))
+                continue;
+
+            // Test the incoming level before merging or applying Fire/Freeze interactions.
+            if (definition.effectID > 0 && IsResisted(activeEffects, definition.effectID, definition.level))
                 continue;
 
             if (stealing)
@@ -71,7 +75,7 @@ public static class EffectRuntime
 
             int level = definition.level;
             float duration = definition.duration;
-            // Carry matching levels upward until the resulting level is unique.
+            // Positive effects upgrade matching levels; resistances only refresh duration.
             while (true)
             {
                 ActiveEffect matching = activeEffects.Find(effect => effect != null &&
@@ -80,7 +84,7 @@ public static class EffectRuntime
                     break;
                 duration = Mathf.Max(duration, matching.remainTime);
                 activeEffects.Remove(matching);
-                if (level < int.MaxValue)
+                if (definition.effectID > 0 && stackMatchingLevels && level < int.MaxValue)
                     level++;
             }
             activeEffects.Add(new ActiveEffect
@@ -89,9 +93,22 @@ public static class EffectRuntime
                 remainTime = duration,
                 level = level
             });
+            if (definition.effectID < 0)
+            {
+                int resistedID = -definition.effectID;
+                activeEffects.RemoveAll(effect => effect != null && effect.effectID == resistedID && effect.level <= level);
+            }
             changed = true;
         }
         return changed;
+    }
+
+    private static bool IsResisted(List<ActiveEffect> activeEffects, int effectID, int level)
+    {
+        foreach (ActiveEffect effect in activeEffects)
+            if (effect != null && effect.effectID == -effectID && effect.remainTime > 0f && effect.level >= level)
+                return true;
+        return false;
     }
 
     private static bool Contains(int[] values, int value)

@@ -6,6 +6,7 @@ public class Meteorite : MonoBehaviour
     [SerializeField] private Animator animator;
     [SerializeField, Min(0.01f)] private float fallSpeed = 15f;
     [SerializeField, Min(0f)] private float screenEdgeMargin = 1f;
+    [SerializeField, Min(0)] private int explosionParticleId;
     [SerializeField, Min(0f)] private float explosionRadius = 2f;
     [SerializeField, Min(0f)] private float explosionDamage = 20f;
     [SerializeField, Min(0f)] private float knockbackForce = 5f;
@@ -70,7 +71,7 @@ public class Meteorite : MonoBehaviour
         exploding = true;
         if (animator != null) animator.SetTrigger("Explode");
         Explosion.Perform(target, explosionRadius, explosionDamage, knockbackForce, effects, attackAttributes, attacker,
-            fallbackDirection: new Vector2(1f, -1f).normalized);
+            fallbackDirection: new Vector2(1f, -1f).normalized, particleId: explosionParticleId);
     }
 
     // Animation event on the final frame of the explosion clip (or automatic ExplosionStage completion).

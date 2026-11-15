@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f22712a39be00187d950d83a05b49ea1, type: 3}
+  m_Name: ClearPotionL
+  m_EditorClassIdentifier: Assembly-CSharp::ConsumableSO
+  itemName: ClearPotion
+  itemID: 0
+  rarity: 4
+  icon: {fileID: -22490691976609277, guid: a56d75fbd3f6d6135a345b4a2a7510df, type: 3}
+  maxStackSize: 5
+  tag: 0
+  description: 
+  minPiece: 0
+  maxPiece: 0
+  id: 9
+  cooldown: 1

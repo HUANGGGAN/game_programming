@@ -14,13 +14,15 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ChargedSO
   itemName: Elastic Ball
   itemID: 0
-  rarity: 2
+  rarity: 3
   icon: {fileID: -3427126441530014940, guid: dd724e59f370685f8a495b28ef69a6e7, type: 3}
   maxStackSize: 1
   tag: 1
   description: 
-  shootInterval: 0.2
-  MPCost: 0
+  minPiece: 0
+  maxPiece: 0
+  shootInterval: 0.25
+  MPCost: 1
   consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}

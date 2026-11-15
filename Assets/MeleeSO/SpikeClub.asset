@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MeleeSO
   itemName: Spike Club
   itemID: 0
-  rarity: 1
+  rarity: 2
   icon: {fileID: -7774531903022221826, guid: ec6ecc5b85d243c8a9c9211712fe669e, type: 3}
   maxStackSize: 1
   tag: 1

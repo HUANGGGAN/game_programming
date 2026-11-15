@@ -12,10 +12,11 @@ public static class Explosion
 {
     public static void Perform(Vector2 origin, float radius, float damage, float knockbackForce,
         EffectDefinition[] effects = null, int[] attackAttributes = null, Player attacker = null,
-        float effectProbabilityMultiplier = 1f, Vector2 fallbackDirection = default)
+        float effectProbabilityMultiplier = 1f, Vector2 fallbackDirection = default, int particleId = 0)
     {
         radius = Mathf.Max(0f, radius);
         DrawExplosionRange(origin, radius);
+        PlayParticle(origin, particleId);
         int sourceId = DamageSources.Next();
         HashSet<EnemyChase> damaged = new HashSet<EnemyChase>();
         foreach (Collider2D collider in Physics2D.OverlapCircleAll(origin, radius))
@@ -29,6 +30,30 @@ public static class Explosion
                 enemy.ApplyEffects(effects, effectProbabilityMultiplier,
                     attacker != null ? attacker.RestoreEffectResource : null);
         }
+    }
+
+    public static void PerformEnemy(Vector2 origin, float radius, float damage, float knockbackForce,
+        EffectDefinition[] effects = null, EnemyChase attacker = null, Vector2 fallbackDirection = default, int particleId = 0)
+    {
+        radius = Mathf.Max(0f, radius);
+        DrawExplosionRange(origin, radius);
+        PlayParticle(origin, particleId);
+        HashSet<Player> damaged = new HashSet<Player>();
+        foreach (Collider2D collider in Physics2D.OverlapCircleAll(origin, radius))
+        {
+            Player player = collider.GetComponentInParent<Player>();
+            if (player == null || !player.isActiveAndEnabled || !damaged.Add(player) || !player.TakeDamage(damage)) continue;
+            Vector2 direction = (Vector2)player.transform.position - origin;
+            if (direction.sqrMagnitude <= Mathf.Epsilon) direction = fallbackDirection;
+            player.ApplyKnockback(direction, knockbackForce);
+            player.ApplyEffects(effects, attacker != null && attacker.isActiveAndEnabled ? attacker.RestoreEffectResource : null);
+        }
+    }
+
+    private static void PlayParticle(Vector2 position, int particleId)
+    {
+        if (particleId > 0)
+            ParticlePool.Instance?.Play(particleId.ToString(System.Globalization.CultureInfo.InvariantCulture), position);
     }
 
     private static void DrawExplosionRange(Vector2 origin, float radius)

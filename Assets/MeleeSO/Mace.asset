@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MultiWeaponSO
   itemName: Mace
   itemID: 0
-  rarity: 2
+  rarity: 3
   icon: {fileID: 8612480020434785557, guid: d384fff777becef42b5a02482c439935, type: 3}
   maxStackSize: 1
   tag: 0

@@ -17,4 +17,4 @@ MonoBehaviour:
   currentHealth: 100
   maxHealth: 100
   currentMP: 100
-  maxMP: 100
+  maxMP: 200

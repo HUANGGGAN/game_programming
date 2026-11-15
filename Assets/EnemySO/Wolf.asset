@@ -16,19 +16,25 @@ MonoBehaviour:
   spriteFacesRightByDefault: 1
   effects:
   - effectID: 3
-    duration: 2
-    probability: 0.5
+    duration: 3
+    probability: 1
     level: 1
   resistances: 
   weaknesses: 
-  enemy_point: 1
-  enemy_difficulty: 1
-  attackRange: 2
-  damage: 5
-  knockbackForce: 5
-  knockbackResistance: 5
-  speed: 3
-  attackInterval: 1
-  attackDuration: 0.4
-  HP: 600
+  enemy_point: 2
+  enemy_difficulty: 2
+  money: 2
+  attackType: 0
+  rangedBullet: {fileID: 0}
+  obstacleLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  attackRange: 1.5
+  damage: 7
+  knockbackForce: 4
+  attackInterval: 0.6
+  attackDuration: 0.15
   attackAttributes: 
+  speed: 3.5
+  HP: 40
+  knockbackResistance: 0

@@ -150,7 +150,6 @@ public class EnemyFeedbackPool : MonoBehaviour
         text.text = amount.ToString("0.#");
         text.transform.position = position + damageNumberOffset;
         text.gameObject.SetActive(true);
-        Debug.Log($"Showing damage: {amount}");
         numbers.Add(new Popup { text = text, start = text.transform.position, color = text.color,
             velocity = new Vector3(Random.Range(-scatterSpeed, scatterSpeed), jumpSpeed, 0f) });
     }

@@ -66,7 +66,7 @@ public class EffectManager : MonoBehaviour
                 frame = Instantiate(effectIconPrefab, effectIconSlotGrid, false);
                 frames[effect.effectID] = frame;
             }
-            Transform iconTransform = frame.transform.Find("EffectIconImage");
+            Transform iconTransform = frame.transform.Find("EffectImage");
             Image image = iconTransform != null ? iconTransform.GetComponent<Image>() : null;
             if (image != null)
             {

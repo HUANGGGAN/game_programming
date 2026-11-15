@@ -24,7 +24,9 @@ public class Player : MonoBehaviour, IEffectSource
     private Vector2 meleeDashDirection;
     private float meleeDashRemaining;
     private float meleeDashSpeed;
-    private readonly RaycastHit2D[] meleeDashHits = new RaycastHit2D[64];
+    private float meleeDashTimeRemaining;
+    private const float MeleeDashSkin = 0.02f;
+    private readonly List<RaycastHit2D> meleeDashHits = new List<RaycastHit2D>();
     public bool IsMeleeDashing { get; private set; }
     public bool CanMeleeDash => isActiveAndEnabled && !isKnockedBack;
 
@@ -32,7 +34,8 @@ public class Player : MonoBehaviour, IEffectSource
     {
         meleeDashDirection = direction.normalized;
         meleeDashRemaining = distance;
-        meleeDashSpeed = distance / Mathf.Max(Time.fixedDeltaTime, duration);
+        meleeDashTimeRemaining = Mathf.Max(Time.fixedDeltaTime, duration);
+        meleeDashSpeed = distance / meleeDashTimeRemaining;
         IsMeleeDashing = true;
     }
 
@@ -40,6 +43,8 @@ public class Player : MonoBehaviour, IEffectSource
     {
         if (!IsMeleeDashing) return;
         IsMeleeDashing = false;
+        meleeDashRemaining = 0f;
+        meleeDashTimeRemaining = 0f;
         if (_rb != null && !isKnockedBack) _rb.linearVelocity = Vector2.zero;
     }
 
@@ -50,6 +55,7 @@ public class Player : MonoBehaviour, IEffectSource
     public event System.Action EffectsChanged;
     private Camera mainCamera;
     private Coroutine startupTutorialRoutine;
+    private RegionTracker regionTracker;
 
     public PlayerData Data => playerData;
 
@@ -66,6 +72,10 @@ public class Player : MonoBehaviour, IEffectSource
 
         if (playerSpriteRenderer != null)
             playerSpriteRenderer.flipX = false;
+
+        if (GetComponent<RegionTracker>() == null)
+            gameObject.AddComponent<RegionTracker>();
+        regionTracker = GetComponent<RegionTracker>();
 
         if (GetComponent<PlayerConsumables>() == null)
             gameObject.AddComponent<PlayerConsumables>();
@@ -118,6 +128,7 @@ public class Player : MonoBehaviour, IEffectSource
         if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
             addMoney(10);
         Interactable.UpdateInteraction(transform);
+        regionTracker?.RefreshRegions();
         if (EffectRuntime.Tick(activeEffects, Time.deltaTime, amount => TakeDamage(amount), ref effectTickElapsed))
             EffectsChanged?.Invoke();
         ReadMovementInput();
@@ -141,24 +152,35 @@ public class Player : MonoBehaviour, IEffectSource
     {
         if (IsMeleeDashing)
         {
-            if (isKnockedBack || meleeDashRemaining <= 0f)
+            if (isKnockedBack || meleeDashRemaining <= 0.0001f || meleeDashTimeRemaining <= 0f)
                 EndMeleeDash();
             else
             {
                 float distance = Mathf.Min(meleeDashRemaining, meleeDashSpeed * Time.fixedDeltaTime);
+                meleeDashTimeRemaining -= Time.fixedDeltaTime;
                 ContactFilter2D filter = new ContactFilter2D();
                 filter.SetLayerMask(Physics2D.GetLayerCollisionMask(gameObject.layer));
                 filter.useTriggers = false;
-                int count = _rb.Cast(meleeDashDirection, filter, meleeDashHits, distance);
+                meleeDashHits.Clear();
+                int count = _rb.Cast(meleeDashDirection, filter, meleeDashHits, distance + MeleeDashSkin);
+                bool blocked = false;
                 for (int i = 0; i < count; i++)
                 {
                     Collider2D hit = meleeDashHits[i].collider;
-                    if (hit.GetComponentInParent<EnemyChase>() != null || hit.attachedRigidbody == _rb) continue;
-                    distance = Mathf.Min(distance, Mathf.Max(0f, meleeDashHits[i].distance - 0.01f));
+                    if (hit == null || hit.GetComponentInParent<EnemyChase>() != null || hit.attachedRigidbody == _rb) continue;
+                    // Touching a wall behind or beside us must not block moving away.
+                    if (Vector2.Dot(meleeDashDirection, meleeDashHits[i].normal) >= -0.001f) continue;
+                    blocked = true;
+                    distance = Mathf.Min(distance, Mathf.Max(0f, meleeDashHits[i].distance - MeleeDashSkin));
+                }
+                // Finish after the safe partial step; never keep pushing toward the wall.
+                meleeDashRemaining = blocked ? 0f : Mathf.Max(0f, meleeDashRemaining - distance);
+                if (distance <= 0.0001f)
+                {
+                    EndMeleeDash();
+                    return;
                 }
                 _rb.linearVelocity = meleeDashDirection * (distance / Time.fixedDeltaTime);
-                meleeDashRemaining -= distance;
-                if (distance <= 0f) meleeDashRemaining = 0f;
                 return;
             }
         }
@@ -166,7 +188,8 @@ public class Player : MonoBehaviour, IEffectSource
         if (isKnockedBack)
             return;
 
-        float effectiveMoveSpeed = moveSpeed * EffectRuntime.GetMovementMultiplier(activeEffects);
+        float effectiveMoveSpeed = moveSpeed * EffectRuntime.GetMovementMultiplier(activeEffects) *
+            (regionTracker != null ? regionTracker.MovementMultiplier : 1f);
         _rb.linearVelocity = _inputVector * effectiveMoveSpeed;
     }
 
@@ -228,6 +251,13 @@ public class Player : MonoBehaviour, IEffectSource
             EffectsChanged?.Invoke();
     }
 
+    public void ClearPositiveEffects()
+    {
+        if (activeEffects.RemoveAll(effect => effect != null && effect.effectID > 0) == 0) return;
+        if (activeEffects.Count == 0) effectTickElapsed = 0f;
+        EffectsChanged?.Invoke();
+    }
+
     public bool RemoveEffect(int effectID)
     {
         bool removed = EffectRuntime.Remove(activeEffects, effectID);
@@ -238,9 +268,9 @@ public class Player : MonoBehaviour, IEffectSource
         return removed;
     }
 
-    public void ApplyEffects(EffectDefinition[] effects, System.Action<int, int> restoreAttacker = null)
+    public void ApplyEffects(EffectDefinition[] effects, System.Action<int, int> restoreAttacker = null, bool stackMatchingLevels = true)
     {
-        if (EffectRuntime.Apply(activeEffects, effects, restoreAttacker: restoreAttacker))
+        if (EffectRuntime.Apply(activeEffects, effects, restoreAttacker: restoreAttacker, stackMatchingLevels: stackMatchingLevels))
             EffectsChanged?.Invoke();
     }
 

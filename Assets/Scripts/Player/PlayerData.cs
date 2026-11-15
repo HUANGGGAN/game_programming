@@ -21,7 +21,7 @@ public class PlayerData : ScriptableObject
     public float currentHealth;
     public float maxHealth = 100f;
     public int currentMP;
-    public int maxMP = 100;
+    public int maxMP = 200;
 
     public event Action OnScoreChanged;
     public event Action OnMoneyChanged;

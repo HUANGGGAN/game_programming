@@ -6,6 +6,55 @@ public class BulletPool : MonoBehaviour
 {
     public static BulletPool Instance { get; private set; }
 
+    [Header("Enemy Bullets")]
+    [SerializeField] private EnemyBullet enemyBulletPrefab;
+    [SerializeField, Min(0)] private int initialEnemyBulletPoolSize = 10;
+    private readonly Dictionary<EnemyBulletSO, List<EnemyBullet>> enemyBulletPools = new Dictionary<EnemyBulletSO, List<EnemyBullet>>();
+    public bool CanFireEnemyBullet => enemyBulletPrefab != null && isActiveAndEnabled;
+
+    public void ScheduleDeathBurst(EnemyBulletSO data, Vector2 origin, EnemyChase owner, float delay)
+    {
+        if (data == null || !CanFireEnemyBullet) return;
+        StartCoroutine(DeathBurst(data, origin, owner, delay));
+    }
+
+    private IEnumerator DeathBurst(EnemyBulletSO data, Vector2 origin, EnemyChase owner, float delay)
+    {
+        if (delay > 0f) yield return new WaitForSeconds(delay);
+        if (data == null || !CanFireEnemyBullet) yield break;
+        for (int i = 0; i < 8; i++)
+        {
+            float angle = i * Mathf.PI / 4f;
+            Vector2 direction = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
+            EnemyBullet bullet = GetEnemyBullet(data);
+            if (bullet != null) bullet.Launch(origin, direction, owner);
+        }
+    }
+
+    public EnemyBullet GetEnemyBullet(EnemyBulletSO data)
+    {
+        if (data == null || !CanFireEnemyBullet) return null;
+        if (!enemyBulletPools.TryGetValue(data, out List<EnemyBullet> pool))
+        {
+            pool = new List<EnemyBullet>();
+            enemyBulletPools.Add(data, pool);
+            for (int i = 0; i < initialEnemyBulletPoolSize; i++) pool.Add(CreateEnemyBullet(data));
+        }
+        foreach (EnemyBullet bullet in pool)
+            if (bullet != null && !bullet.gameObject.activeSelf) { bullet.Initialize(data); return bullet; }
+        EnemyBullet created = CreateEnemyBullet(data);
+        pool.Add(created);
+        return created;
+    }
+
+    private EnemyBullet CreateEnemyBullet(EnemyBulletSO data)
+    {
+        EnemyBullet bullet = Instantiate(enemyBulletPrefab, transform);
+        bullet.gameObject.SetActive(false);
+        bullet.Initialize(data);
+        return bullet;
+    }
+
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private GameObject arcBulletPrefab;
     [SerializeField] private Meteorite meteoritePrefab;

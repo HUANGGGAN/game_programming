@@ -457,7 +457,7 @@ public class Bullet2D : MonoBehaviour
     private void Explode(Vector2 origin)
     {
         Explosion.Perform(origin, bulletData.explosionRadius, bulletData.explosiveDamage,
-            KnockbackForce, Effects, AttackAttributes, Attacker, EffectProbabilityMultiplier, TravelDirection);
+            KnockbackForce, Effects, AttackAttributes, Attacker, EffectProbabilityMultiplier, TravelDirection, bulletData.explosionParticleId);
     }
 
     public virtual void Deactivate()

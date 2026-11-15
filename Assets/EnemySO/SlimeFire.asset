@@ -1,0 +1,43 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 1bad93a88726efe32ac8a9dfb5185349, type: 3}
+  m_Name: SlimeFire
+  m_EditorClassIdentifier: Assembly-CSharp::EnemySO
+  sprite: {fileID: 5929473101655292064, guid: 55280867c03fb96aa80d440049518ea6, type: 3}
+  spriteFacesRightByDefault: 1
+  effects:
+  - effectID: 1
+    duration: 3
+    probability: 0.75
+    level: 1
+  resistances: 
+  weaknesses: 
+  enemy_point: 1
+  enemy_difficulty: 1
+  money: 1
+  DieEffectID: 1
+  deathEffectBullet: {fileID: 11400000, guid: 0886fa27a6a7f4a43be48188e656819b, type: 2}
+  deathEffectDelay: 0.5
+  attackType: 0
+  rangedBullet: {fileID: 0}
+  obstacleLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  attackRange: 1.2
+  damage: 2
+  knockbackForce: 3
+  attackInterval: 0.8
+  attackDuration: 0.2
+  attackAttributes: 
+  speed: 2
+  HP: 20
+  knockbackResistance: 0

@@ -24,7 +24,12 @@ MonoBehaviour:
   enemy_point: 2
   enemy_difficulty: 4
   money: 1
-  attackRange: 1.2
+  attackType: 1
+  rangedBullet: {fileID: 11400000, guid: b28a69546fbec8325b5ea36e06facc9b, type: 2}
+  obstacleLayers:
+    serializedVersion: 2
+    m_Bits: 0
+  attackRange: 5
   damage: 5
   knockbackForce: 4
   knockbackResistance: 0

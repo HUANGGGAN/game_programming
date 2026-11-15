@@ -14,56 +14,58 @@ public class EnemyChase : MonoBehaviour, IEffectSource
     [Header("Enemy Data")]
     [SerializeField] private EnemySO enemyData;
 
-    [Header("Spawn Settings")]
-    [SerializeField, Min(0.01f)] private float enemy_point = 1f;
-    [SerializeField, Min(0f)] private float enemy_difficulty = 1f;
+    [Header("Despawn Settings")]
     [SerializeField, Min(0f)] private float maxDistance = 50f;
 
     protected virtual bool DespawnWhenFarAway => true;
     protected NavMeshAgent Agent => agent;
     protected Transform PlayerTarget => player;
-    protected SpriteRenderer EnemySprite => spriteRenderer;
+    protected SpriteRenderer EnemySprite { get => spriteRenderer; set => spriteRenderer = value; }
+    protected bool IsKnockedBack => isKnockedBack;
+    protected virtual void OnKnockbackStarting() { }
     protected virtual float MovementSpeed => speed;
+    protected virtual EnemyAttackType AttackType => enemyData != null ? enemyData.attackType : EnemyAttackType.Melee;
+    private IEnemyAttackModule attackModule;
+
     protected virtual float AttackDamage => damage;
     protected virtual float AttackKnockback => knockbackForce;
     protected virtual bool CanReceiveKnockback => true;
     protected virtual bool CanFlashOnHit => true;
 
-    public float EnemyPoint => enemyData != null ? enemyData.enemy_point : enemy_point;
-    public float EnemyDifficulty => enemyData != null ? enemyData.enemy_difficulty : enemy_difficulty;
+    public float EnemyPoint => enemyData != null ? enemyData.enemy_point : 1f;
+    public float EnemyDifficulty => enemyData != null ? enemyData.enemy_difficulty : 1f;
     public float CurrentHealth => currentHealth;
     public float MaxHealth => maxHealth;
 
-    [Header("Combat Stats")]
-    [SerializeField] private float attackRange = 1.5f;
-    [SerializeField] private float damage = 10f;
-    [SerializeField] private float knockbackForce = 4f;
-    [SerializeField] private float knockbackResistance = 0f;
-    [SerializeField] private float speed = 2.5f;
-    [SerializeField] private float attackInterval = 1.2f;
-    [SerializeField, Min(0f)] private float attackDuration = 0.4f;
+    [Header("Attack Visual")]
     [SerializeField] private AttackIndicator attackIndicator;
-    [SerializeField] private float maxHealth = 35f;
-    [SerializeField] private float hitCooldownDuration = 0.2f;
+
+    [Header("Hit Response")]
+    [SerializeField, Min(0f)] private float hitCooldownDuration = 0.2f;
     [SerializeField, Min(0f)] private float playerContactPushForce = 1.5f;
+    [SerializeField, Min(0f)] private float knockbackDuration = 0.12f;
+
+    // EnemySO owns shared enemy stats. Defaults keep enemies without data usable.
+    private float attackRange => enemyData != null ? enemyData.attackRange : 1.5f;
+    private float damage => enemyData != null ? enemyData.damage : 10f;
+    private float knockbackForce => enemyData != null ? enemyData.knockbackForce : 4f;
+    private float knockbackResistance => enemyData != null ? enemyData.knockbackResistance : 0f;
+    private float speed => enemyData != null ? enemyData.speed : 2.5f;
+    private float attackInterval => enemyData != null ? enemyData.attackInterval : 1.2f;
+    private float attackDuration => enemyData != null ? enemyData.attackDuration : 0.4f;
+    private float maxHealth => enemyData != null ? enemyData.HP : 35f;
 
     private NavMeshAgent agent;
     private SpriteRenderer spriteRenderer;
     private bool spriteFacesRightByDefault = true;
     private Color originalSpriteColor;
     private float currentHealth;
-    [Header("Knockback")]
-    [SerializeField, Min(0f)] private float knockbackDuration = 0.12f;
     private Rigidbody2D body;
     private Coroutine knockbackRoutine;
     private bool isKnockedBack;
     private bool agentUpdatePositionBeforeKnockback;
     private bool agentStoppedBeforeKnockback;
     private Vector2? lethalKnockbackVelocity;
-    private float lastAttackTime;
-    private bool isAttacking;
-    private float attackElapsed;
-    private bool agentStoppedBeforeAttack;
     private Coroutine hitFlashRoutine;
     private Coroutine deathRoutine;
     private bool isDying;
@@ -99,13 +101,21 @@ public class EnemyChase : MonoBehaviour, IEffectSource
         if (attackIndicator != null)
             attackIndicator.Hide();
 
-        ApplyEnemyData();
+        ApplyEnemyVisuals();
 
         // 2D settings
         agent.updateRotation = false;
         agent.updateUpAxis = false;
         agent.speed = speed;
         agent.stoppingDistance = attackRange;
+    }
+
+    protected virtual IEnemyAttackModule CreateAttackModule()
+    {
+        return AttackType == EnemyAttackType.Ranged
+            ? new EnemyRangedAttackModule(this, agent, attackIndicator, attackRange, attackInterval, attackDuration,
+                FaceDirection, enemyData != null ? enemyData.rangedBullet : null, enemyData != null ? enemyData.obstacleLayers : (LayerMask)0)
+            : new EnemyMeleeAttackModule(this, agent, attackIndicator, attackRange, attackInterval, attackDuration, FaceDirection, Attack);
     }
 
     protected virtual void OnEnable()
@@ -126,7 +136,13 @@ public class EnemyChase : MonoBehaviour, IEffectSource
             }
         }
         isDying = false;
-        lastAttackTime = Time.time - Mathf.Max(0f, attackInterval);
+        // Re-read data on pool reuse, including changes to attack type or timing.
+        attackModule?.Cancel();
+        ApplyEnemyVisuals();
+        agent.speed = speed;
+        agent.stoppingDistance = attackRange;
+        attackModule = CreateAttackModule();
+        attackModule?.Reset();
         deathVelocity = Vector2.zero;
 
         // Reset health every time the enemy is spawned/reactivated
@@ -149,7 +165,7 @@ public class EnemyChase : MonoBehaviour, IEffectSource
         }
     }
 
-    private void ApplyEnemyData()
+    private void ApplyEnemyVisuals()
     {
         if (enemyData == null)
             return;
@@ -157,16 +173,6 @@ public class EnemyChase : MonoBehaviour, IEffectSource
         if (spriteRenderer != null && enemyData.sprite != null)
             spriteRenderer.sprite = enemyData.sprite;
         spriteFacesRightByDefault = enemyData.spriteFacesRightByDefault;
-        attackRange = enemyData.attackRange;
-        damage = enemyData.damage;
-        knockbackForce = enemyData.knockbackForce;
-        knockbackResistance = enemyData.knockbackResistance;
-        speed = enemyData.speed;
-        attackInterval = enemyData.attackInterval;
-        attackDuration = enemyData.attackDuration;
-        maxHealth = enemyData.HP;
-        enemy_point = enemyData.enemy_point;
-        enemy_difficulty = enemyData.enemy_difficulty;
     }
 
     protected virtual void Update()
@@ -198,9 +204,9 @@ public class EnemyChase : MonoBehaviour, IEffectSource
             return;
 
         agent.speed = MovementSpeed * EffectRuntime.GetMovementMultiplier(activeEffects);
-        if (isAttacking)
+        if (attackModule != null && attackModule.IsAttacking)
         {
-            UpdateAttack();
+            attackModule.Tick(player);
             CleanupExpiredDamageSources();
             return;
         }
@@ -211,62 +217,29 @@ public class EnemyChase : MonoBehaviour, IEffectSource
 
     protected virtual void UpdateMovement()
     {
-        if (player != null)
+        if (player == null) return;
+        float distance = Vector2.Distance(transform.position, player.position);
+        bool clearShot = attackModule == null || attackModule.HasLineOfSight(player);
+        // A blocked ranged enemy must keep approaching instead of stopping at its firing distance.
+        agent.stoppingDistance = AttackType == EnemyAttackType.Ranged && !clearShot ? 0f : attackRange;
+        if (distance <= attackRange && clearShot)
         {
-            float distanceToPlayer = Vector2.Distance(transform.position, player.position);
-            if (distanceToPlayer <= attackRange)
-                TryAttackPlayer();
-            else
-                agent.SetDestination(player.position);
+            if (AttackType == EnemyAttackType.Ranged)
+            {
+                agent.SetDestination(transform.position);
+                agent.velocity = Vector3.zero;
+            }
+            TryAttackPlayer();
         }
+        else agent.SetDestination(player.position);
     }
 
     protected void TryAttackPlayer()
     {
-        if (!isAttacking && !isKnockedBack && attackIndicator != null && player != null &&
-            Vector2.Distance(transform.position, player.position) <= attackRange &&
-            Time.time >= lastAttackTime + attackInterval)
-            BeginAttack();
+        if (!isKnockedBack) attackModule?.TryBegin(player);
     }
 
-    private void BeginAttack()
-    {
-        isAttacking = true;
-        attackElapsed = 0f;
-        agentStoppedBeforeAttack = agent.isStopped;
-        agent.isStopped = true;
-        agent.velocity = Vector3.zero;
-        Vector2 direction = (Vector2)player.position - (Vector2)transform.position;
-        if (direction.sqrMagnitude <= Mathf.Epsilon)
-            direction = Vector2.right;
-        FaceDirection(direction);
-        attackIndicator.Begin(direction);
-    }
-
-    private void UpdateAttack()
-    {
-        agent.velocity = Vector3.zero;
-        attackElapsed += Time.deltaTime;
-        attackIndicator.SetProgress(attackDuration > 0f ? attackElapsed / attackDuration : 1f);
-        if (attackElapsed < Mathf.Max(0f, attackDuration))
-            return;
-
-        if (player != null && attackIndicator.Contains(player.position))
-            Attack();
-        CancelAttack();
-    }
-
-    private void CancelAttack()
-    {
-        if (attackIndicator != null)
-            attackIndicator.Hide();
-        if (!isAttacking)
-            return;
-        isAttacking = false;
-        lastAttackTime = Time.time;
-        if (agent.enabled && agent.isOnNavMesh)
-            agent.isStopped = agentStoppedBeforeAttack;
-    }
+    private void CancelAttack() => attackModule?.Cancel();
 
     private void ApplyKnockback(Vector2 direction, float force)
     {
@@ -277,6 +250,7 @@ public class EnemyChase : MonoBehaviour, IEffectSource
             return;
 
         CancelAttack();
+        OnKnockbackStarting();
         if (!isKnockedBack)
         {
             agentUpdatePositionBeforeKnockback = agent.updatePosition;
@@ -396,7 +370,6 @@ public class EnemyChase : MonoBehaviour, IEffectSource
             playerComponent.ApplyKnockback(knockbackDirection, AttackKnockback);
         }
 
-        lastAttackTime = Time.time;
     }
 
     public void TakeBulletHit(Bullet2D bullet)
@@ -485,7 +458,7 @@ public class EnemyChase : MonoBehaviour, IEffectSource
             EffectsChanged?.Invoke();
     }
 
-    private void RestoreEffectResource(int effectID, int amount)
+    public void RestoreEffectResource(int effectID, int amount)
     {
         if (!isDying && effectID == EffectRuntime.HPStealing && amount > 0)
             currentHealth = Mathf.Min(maxHealth, currentHealth + amount);
@@ -616,6 +589,7 @@ public class EnemyChase : MonoBehaviour, IEffectSource
         if (isDying)
             return;
         isDying = true;
+        PerformDeathEffect();
         ClearEffects();
         Player playerComponent = player != null ? player.GetComponentInParent<Player>() : null;
         int money = enemyData != null ? enemyData.money : 1;
@@ -657,6 +631,15 @@ public class EnemyChase : MonoBehaviour, IEffectSource
             deathBody.simulated = false;
         }
         deathRoutine = StartCoroutine(DeactivateAfterDeath());
+    }
+
+    private void PerformDeathEffect()
+    {
+        if (enemyData == null || enemyData.DieEffectID != 1 || enemyData.deathEffectBullet == null ||
+            BulletPool.Instance == null || !BulletPool.Instance.CanFireEnemyBullet) return;
+
+        BulletPool.Instance.ScheduleDeathBurst(enemyData.deathEffectBullet, transform.position, this,
+            Mathf.Max(0f, enemyData.deathEffectDelay));
     }
 
     private IEnumerator DeactivateAfterDeath()

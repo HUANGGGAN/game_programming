@@ -1,0 +1,5 @@
+- Water: Disable attack, Player speed -40%, clear effect ID:1 for all level
+- Fire: Apply effect ID:1(Fire) lv:1 5 second (Find a way to avoid giving effect for every fixed update)
+- Lavarock: Apply effect ID:1(Fire) lv:2 2 second
+- Frozen: Apply effect ID:5(Freeze) lv:1 5 second
+- Lava: Apply effect ID:1(Fire) lv:3 5 second, Player speed -70%

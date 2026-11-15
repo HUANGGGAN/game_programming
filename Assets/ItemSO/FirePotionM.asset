@@ -1,0 +1,25 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f22712a39be00187d950d83a05b49ea1, type: 3}
+  m_Name: FirePotionM
+  m_EditorClassIdentifier: Assembly-CSharp::ConsumableSO
+  itemName: Fire Potion
+  itemID: 0
+  rarity: 3
+  icon: {fileID: -2278921326555189276, guid: 39630e32376104b338aa6a499112e129, type: 3}
+  maxStackSize: 5
+  tag: 0
+  description: Fire Resistance lv:1 30s
+  minPiece: 0
+  maxPiece: 0
+  id: 11
+  cooldown: 1

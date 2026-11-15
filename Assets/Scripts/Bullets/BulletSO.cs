@@ -31,6 +31,7 @@ public class BulletSO : ScriptableObject
     [Tooltip("Type 0: 0 normal, 1 target explosion, 2 reflect off enemies/obstacles/screen edges, 3 random direction on hits.")]
     public int bulletMode = 0;
     public bool isExplosive = false; // If true, bullet can explode on impact
+    [Min(0)] public int explosionParticleId = 0;
     public float explosionRadius = 2f; // Only relevant if isExplosive is true
     public float knockbackForce = 5f; // Force applied to enemies on hit
     public float explosiveDamage = 20f; // Damage dealt by the explosion

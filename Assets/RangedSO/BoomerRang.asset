@@ -14,16 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GunSO
   itemName: BoomerRang
   itemID: 0
-  rarity: 3
+  rarity: 2
   icon: {fileID: 5718304784226621280, guid: df74bcfc61b51ba3a9accb68d6b89bf4, type: 3}
   maxStackSize: 1
   tag: 1
   description: 
+  minPiece: 0
+  maxPiece: 0
   shootInterval: 1
+  MPCost: 0
   consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
-  animatorOverrideController: {fileID: 0}
   capacity: 30
   reloadTime: 2
   spread: 0

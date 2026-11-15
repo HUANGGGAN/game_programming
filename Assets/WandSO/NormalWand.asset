@@ -12,10 +12,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ec186d1a765adae3aa6d3343c7dd524, type: 3}
   m_Name: NormalWand
   m_EditorClassIdentifier: Assembly-CSharp::GunSO
-  itemName: New Item
+  itemName: Normal Wand
   itemID: 0
-  rarity: 0
-  icon: {fileID: 0}
+  rarity: 3
+  icon: {fileID: 5322588925510575024, guid: dda145a4ac69ba446801745487c947da, type: 3}
   maxStackSize: 1
   tag: 0
   description: 
@@ -23,11 +23,11 @@ MonoBehaviour:
   maxPiece: 0
   shootInterval: 1
   MPCost: 0
-  consumeAmmo: 1
+  consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
   capacity: 30
   reloadTime: 2
   spread: 5
   burstCount: 1
-  bulletData: {fileID: 0}
+  bulletData: {fileID: 11400000, guid: aa9b82d2472afb8b39d1eecfbd79869b, type: 2}

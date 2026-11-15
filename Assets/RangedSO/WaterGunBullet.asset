@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: WaterGunBullet
   m_EditorClassIdentifier: Assembly-CSharp::BulletSO
   bulletId: 0
-  bulletSprite: {fileID: 6162212308415976321, guid: 0b31779cde4925e7e8eb42cf06fe65c2, type: 3}
+  bulletSprite: {fileID: -3427126441530014940, guid: dd724e59f370685f8a495b28ef69a6e7, type: 3}
   ParticleID: 3
   tint: {r: 1, g: 1, b: 1, a: 1}
   spinningSpeed: 0

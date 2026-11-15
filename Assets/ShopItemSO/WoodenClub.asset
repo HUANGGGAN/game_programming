@@ -20,8 +20,9 @@ MonoBehaviour:
     item: {fileID: 11400000, guid: bb09c3e164adc2d1a971dde7051f026a, type: 2}
     count: 1
     ammoCount: 0
+    attackModeIndex: -1
   objectIcon: {fileID: 0}
-  objectName: Club
+  objectName: 
   buyOneAtOnce: 1
-  description: ccc
+  description: 
   randomItemGroupID: 0

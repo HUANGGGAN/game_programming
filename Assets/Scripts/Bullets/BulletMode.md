@@ -22,4 +22,4 @@ Usually curve
 Mode:
 - 0: Parabolic trail to clicked target, ignore obstacles(done)
 - 1: Boomer rang(done)
-
+- 2: Orbit(done)

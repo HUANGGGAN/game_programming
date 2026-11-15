@@ -14,5 +14,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::ItemCategory
   categoryName: Rare Weapon
   items:
-  - {fileID: 11400000, guid: 3e5b0d0a1936a8f7c91cf352f7df5be2, type: 2}
   - {fileID: 11400000, guid: 19aa54060d9ff7133b840258a9bb6c69, type: 2}
+  - {fileID: 11400000, guid: 21621542819cfa555b776939b422dca8, type: 2}
+  - {fileID: 11400000, guid: b6766445919ff2b82a70b301c541a029, type: 2}
+  - {fileID: 11400000, guid: 6d2dbf45e826ef4bd88cce885a9556f2, type: 2}
+  - {fileID: 11400000, guid: 8369980fbdb58f06c97820c30d236337, type: 2}
+  - {fileID: 11400000, guid: b1340c1ae9eeb9ed7bbb5b9e4f750c48, type: 2}
+  - {fileID: 11400000, guid: e63ce1139123deb199fbe6f55f4fe6fd, type: 2}
+  - {fileID: 11400000, guid: 3b840bf4ccae39aab9ce3b6ada920d50, type: 2}
+  - {fileID: 11400000, guid: c01e752d0010777119c962c94af0291e, type: 2}

@@ -115,6 +115,8 @@ public class Player : MonoBehaviour, IEffectSource
             _inputVector = Vector2.zero;
             return;
         }
+        if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
+            addMoney(10);
         Interactable.UpdateInteraction(transform);
         if (EffectRuntime.Tick(activeEffects, Time.deltaTime, amount => TakeDamage(amount), ref effectTickElapsed))
             EffectsChanged?.Invoke();

@@ -12,17 +12,17 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 60cb8d2a654d011e49bd6b6c11263e2a, type: 3}
   m_Name: NormalWandBullet
   m_EditorClassIdentifier: Assembly-CSharp::BulletSO
-  bulletId: 
-  bulletSprite: {fileID: 0}
+  bulletId: 1
+  bulletSprite: {fileID: -2082787267449734457, guid: 29f3b4e049eb92a8197635c61427c72c, type: 3}
   ParticleID: 0
   tint: {r: 1, g: 1, b: 1, a: 1}
   spinningSpeed: 0
   colliderSize: {x: 0.2, y: 0.2}
-  damage: 10
-  speed: 15
-  lifetime: 3
-  isPiercing: 0
-  bulletMode: 0
+  damage: 5
+  speed: 8
+  lifetime: 8
+  isPiercing: 64
+  bulletMode: 2
   isExplosive: 0
   explosionRadius: 2
   knockbackForce: 5

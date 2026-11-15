@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::GunSO
   itemName: New Item
   itemID: 0
-  rarity: 4
+  rarity: 3
   icon: {fileID: 6225818281361698569, guid: f4caba175db4d0c4cbbc7fbc9a945443, type: 3}
   maxStackSize: 1
   tag: 1

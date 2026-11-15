@@ -11,6 +11,8 @@ public class ShopManager : MonoBehaviour
     [SerializeField] private SellingObjectSO[] SellingObjects;
     [SerializeField] private InventorySO inventoryData;
     [SerializeField] private PlayerData playerData;
+    [SerializeField] private ItemDatabaseSO itemDatabase;
+    private ItemSO lastPurchasedItem;
     [SerializeField] private InventoryUIController inventoryUIController;
 
     [Header("Shop UI")]
@@ -95,7 +97,10 @@ public class ShopManager : MonoBehaviour
                     SetImage(button.transform, "ItemFrame/ItemImage", offer.@object.item.icon);
                 else
                     SetImage(button.transform, "ItemFrame/ItemImage", offer.objectIcon);
-                SetText(button.transform, "ItemText", offer.objectName);
+                SetText(button.transform, "ItemText",
+                    !offer.isRandom && offer.@object?.item != null
+                        ? offer.@object.item.itemName
+                        : offer.objectName);
                 SetText(button.transform, "ItemFrame/ItemQuantity", $"\u00d7 {offer.@object?.count ?? 1}");
                 if (offer.currencyIcon == null && offer.currency != null && offer.currency.icon != null)
                     SetImage(button.transform, "PricePanel/PriceFrame/PriceImage", offer.currency.icon);
@@ -233,7 +238,10 @@ public class ShopManager : MonoBehaviour
             : (playerData != null ? playerData.money : 0);
         Transform root = purchasePanel.transform;
         SetImage(root, "ItemFrame/ItemImage", offer.objectIcon != null ? offer.objectIcon : offer.@object?.item?.icon);
-        SetText(root, "ItemText", offer.objectName);
+        SetText(root, "ItemText",
+            !offer.isRandom && offer.@object?.item != null
+                ? offer.@object.item.itemName
+                : offer.objectName);
         SetText(root, "DescriptionText", offer.description);
         Sprite currencyIcon = offer.currencyIcon != null ? offer.currencyIcon : offer.currency?.icon;
         SetImage(root, "PlayerOwnPanel/PriceFrame/PriceImage", currencyIcon);
@@ -292,7 +300,7 @@ public class ShopManager : MonoBehaviour
             return;
         }
         if (gainItemPanel != null)
-            SetImage(gainItemPanel.transform, "Image", selectedOffer.@object?.item?.icon ?? selectedOffer.objectIcon);
+            SetImage(gainItemPanel.transform, "Image", lastPurchasedItem != null ? lastPurchasedItem.icon : selectedOffer.objectIcon);
         gainItemVisible = true;
         StateManager.Instance.CloseState(GameState.Purchase);
     }
@@ -349,8 +357,9 @@ public class ShopManager : MonoBehaviour
 
     public bool TryBuy(SellingObjectSO offer, int quantity = 1)
     {
+        lastPurchasedItem = null;
         if ((StateManager.Instance.CurrentState != GameState.Merchant && StateManager.Instance.CurrentState != GameState.Purchase) || offer == null ||
-            quantity <= 0 || offer.price < 0 || offer.randomItemGroupID != 0)
+            quantity <= 0 || offer.price < 0)
             return false;
         if (offer.buyOneAtOnce)
             quantity = 1;
@@ -364,11 +373,19 @@ public class ShopManager : MonoBehaviour
             (playerData == null || playerData.money < totalPrice)))
             return false;
 
+        if (offer.currency != null && inventoryData.GetItemCount(offer.currency) < totalPrice)
+            return false;
+        ItemSO purchasedItem = !offer.isRandom
+            ? offer.@object?.item
+            : itemDatabase != null ? itemDatabase.GetRandomItem(offer.randomCategories, offer.randomTags) : null;
+        if (purchasedItem == null) return false;
+
         if (!inventoryData.TryExchangeItems(offer.currency, offer.currency != null ? (int)totalPrice : 0,
-            offer.@object?.item, (int)totalCount, ammoCount))
+            purchasedItem, (int)totalCount, ammoCount))
             return false;
         if (offer.currency == null && totalPrice > 0)
             playerData.AddMoney(-(int)totalPrice);
+        lastPurchasedItem = purchasedItem;
         inventoryUIController?.RefreshUI();
         return true;
     }

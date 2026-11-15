@@ -156,8 +156,20 @@ public class InventorySlot : MonoBehaviour,
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (eventData.button != PointerEventData.InputButton.Left || DraggedSlot != null || eventData.dragging)
+        if (DraggedSlot != null || eventData.dragging) return;
+        if (eventData.button == PointerEventData.InputButton.Right)
+        {
+            uiController?.HideItemDescription(this);
+            uiController?.SplitItemStack(slotType, slotIndex);
             return;
+        }
+        if (eventData.button != PointerEventData.InputButton.Left) return;
+        if (eventData.clickCount == 2)
+        {
+            uiController?.HideItemDescription(this);
+            uiController?.QuickMoveItem(slotType, slotIndex);
+            return;
+        }
         GetComponentInParent<Frame>()?.Select();
         hoverEvent = eventData;
         hoverStartedAt = Time.unscaledTime - descriptionHoverDelay;

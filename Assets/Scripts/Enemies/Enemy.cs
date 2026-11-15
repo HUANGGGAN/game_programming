@@ -620,6 +620,7 @@ public class EnemyChase : MonoBehaviour, IEffectSource
         Player playerComponent = player != null ? player.GetComponentInParent<Player>() : null;
         int money = enemyData != null ? enemyData.money : 1;
         playerComponent?.addMoney(money);
+        if (playerComponent != null && playerComponent.Data != null) playerComponent.Data.AddKill();
         EnemyFeedbackPool.Died(this, money);
         CancelAttack();
         currentHealth = 0f;

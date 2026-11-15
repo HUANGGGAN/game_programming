@@ -18,7 +18,7 @@ MonoBehaviour:
   tint: {r: 1, g: 1, b: 1, a: 1}
   spinningSpeed: 0
   colliderSize: {x: 0.2, y: 0.2}
-  damage: 14
+  damage: 9
   speed: 12
   lifetime: 3
   isPiercing: 0

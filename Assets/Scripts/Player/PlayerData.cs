@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "PlayerData", menuName = "Game/Player Data")]
@@ -6,6 +7,17 @@ public class PlayerData : ScriptableObject
 {
     public int currentScore;
     public int money;
+    public int killCount;
+    public int uniqueWeapon => acquiredWeapons.Count;
+    [SerializeField] private List<WeaponSO> acquiredWeapons = new List<WeaponSO>();
+
+    public void AddKill() => killCount++;
+
+    public void RegisterWeapon(ItemSO item)
+    {
+        if (item is WeaponSO weapon && !acquiredWeapons.Contains(weapon)) acquiredWeapons.Add(weapon);
+    }
+
     public float currentHealth;
     public float maxHealth = 100f;
     public int currentMP;
@@ -22,6 +34,8 @@ public class PlayerData : ScriptableObject
 
     public void Reset()
     {
+        killCount = 0;
+        acquiredWeapons.Clear();
         currentScore = 0;
         money = 0;
         currentHealth = maxHealth;

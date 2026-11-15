@@ -25,7 +25,7 @@ MonoBehaviour:
   bulletMode: 2
   isExplosive: 0
   explosionRadius: 2
-  knockbackForce: 5
+  knockbackForce: 0
   explosiveDamage: 20
   critRate: 0.05
   critMul: 3

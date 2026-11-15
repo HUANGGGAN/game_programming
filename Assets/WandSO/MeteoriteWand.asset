@@ -15,14 +15,14 @@ MonoBehaviour:
   itemName: Meteorite Wand
   itemID: 0
   rarity: 4
-  icon: {fileID: -6050681724089839600, guid: eaa81d48a6ceb467b82e1e61a0f8da45, type: 3}
+  icon: {fileID: -7320664511521326006, guid: e27c245347f03d2feb01da41c3b3a1dc, type: 3}
   maxStackSize: 1
   tag: 0
   description: 
   minPiece: 0
   maxPiece: 0
   shootInterval: 1.5
-  MPCost: 5
+  MPCost: 10
   consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}

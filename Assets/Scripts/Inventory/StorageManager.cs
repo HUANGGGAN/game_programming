@@ -117,6 +117,37 @@ public class StorageManager : MonoBehaviour
         stateManager != null && stateManager.CurrentState == GameState.Storage && storageData != null &&
         storageData.CanMove(inventoryData, source.IsStorage, source.Index, destination.IsStorage, destination.Index);
 
+    public bool QuickMove(StorageSlot source)
+    {
+        if (source == null || source.Manager != this || StorageSlot.DraggedSlot != null ||
+            stateManager == null || stateManager.CurrentState != GameState.Storage) return false;
+        foreach (StorageSlot destination in slots)
+        {
+            if (destination.IsStorage == source.IsStorage) continue;
+            InventorySlotData data = GetSlot(destination.IsStorage, destination.Index);
+            if (data == null || data.item != null || !CanMove(source, destination)) continue;
+            Move(source, destination);
+            return true;
+        }
+        return false;
+    }
+
+    public bool SplitStack(StorageSlot source)
+    {
+        if (source == null || source.Manager != this || StorageSlot.DraggedSlot != null ||
+            stateManager == null || stateManager.CurrentState != GameState.Storage) return false;
+        InventorySlotData data = GetSlot(source.IsStorage, source.Index);
+        foreach (StorageSlot destination in slots)
+        {
+            if (destination.IsStorage != source.IsStorage) continue;
+            if (!InventorySlotData.TrySplitHalf(data, GetSlot(destination.IsStorage, destination.Index))) continue;
+            Refresh();
+            inventoryUI?.RefreshUI();
+            return true;
+        }
+        return false;
+    }
+
     public void Move(StorageSlot source, StorageSlot destination)
     {
         if (CanMove(source, destination) && storageData.TryMove(inventoryData,

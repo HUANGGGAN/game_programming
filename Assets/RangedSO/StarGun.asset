@@ -28,6 +28,6 @@ MonoBehaviour:
   firePointOffset: {x: 0.5, y: 0.1}
   capacity: 48
   reloadTime: 1.5
-  spread: 25
+  spread: 20
   burstCount: 1
   bulletData: {fileID: 11400000, guid: 86760893c4ea18a099dbb1857142385b, type: 2}

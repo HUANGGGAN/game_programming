@@ -8,6 +8,19 @@ public class InventorySlotData
     public int ammoCount;
     public int attackModeIndex = -1;
 
+    public static bool TrySplitHalf(InventorySlotData source, InventorySlotData destination)
+    {
+        if (source == null || destination == null || source == destination || source.item == null ||
+            source.count <= 1 || destination.item != null) return false;
+        int amount = source.count / 2;
+        destination.item = source.item;
+        destination.count = amount;
+        destination.ammoCount = source.ammoCount;
+        destination.attackModeIndex = source.attackModeIndex;
+        source.count -= amount;
+        return true;
+    }
+
     public WeaponSO ResolveWeapon()
     {
         if (item is not MultiWeaponSO multi)
@@ -36,6 +49,23 @@ public enum InventorySlotType
 [CreateAssetMenu(fileName = "NewInventory", menuName = "Inventory/Inventory Storage")]
 public class InventorySO : ScriptableObject
 {
+    private PlayerData acquisitionData;
+
+    public void BindPlayerData(PlayerData data)
+    {
+        acquisitionData = data;
+        RegisterOwnedWeapons();
+    }
+
+    public void RegisterOwnedWeapons()
+    {
+        if (acquisitionData == null) return;
+        EnsureDefaults();
+        foreach (InventorySlotType type in System.Enum.GetValues(typeof(InventorySlotType)))
+            foreach (InventorySlotData slot in GetSlotsForType(type))
+                if (slot.count > 0) acquisitionData.RegisterWeapon(slot.item);
+    }
+
     public const int universalSlotCount = 12;
     public const int weaponSlotCount = 3;
     public const int armorSlotCount = 4;
@@ -91,6 +121,42 @@ public class InventorySO : ScriptableObject
             default:
                 return slots;
         }
+    }
+
+    public bool TryQuickMove(InventorySlotType sourceType, int sourceIndex,
+        out InventorySlotType destinationType, out int destinationIndex)
+    {
+        destinationType = InventorySlotType.Universal;
+        destinationIndex = -1;
+        EnsureDefaults();
+        InventorySlotData[] sourceSlots = GetSlotsForType(sourceType);
+        if (sourceIndex < 0 || sourceIndex >= sourceSlots.Length) return false;
+        InventorySlotData source = sourceSlots[sourceIndex];
+        if (source.item == null || source.count <= 0) return false;
+        if (sourceType == InventorySlotType.Universal)
+        {
+            if (source.item is WeaponSO) destinationType = InventorySlotType.Weapon;
+            else if (source.item is ConsumableSO) destinationType = InventorySlotType.Consumable;
+            else return false;
+        }
+        InventorySlotData[] destinations = GetSlotsForType(destinationType);
+        for (int i = 0; i < destinations.Length; i++)
+        {
+            if (destinations[i].item != null) continue;
+            if (!TrySwapSlots(sourceType, sourceIndex, destinationType, i)) return false;
+            destinationIndex = i;
+            return true;
+        }
+        return false;
+    }
+
+    public bool TrySplitUniversal(int index)
+    {
+        EnsureDefaults();
+        if (index < 0 || index >= slots.Length) return false;
+        foreach (InventorySlotData destination in slots)
+            if (InventorySlotData.TrySplitHalf(slots[index], destination)) return true;
+        return false;
     }
 
     public bool TrySwapSlots(InventorySlotType typeA, int indexA, InventorySlotType typeB, int indexB)
@@ -301,6 +367,7 @@ public class InventorySO : ScriptableObject
                 slot.ammoCount = ammoCount;
             givenCount += added;
         }
+        if (givenCount > 0 && acquisitionData != null) acquisitionData.RegisterWeapon(item);
         return givenCount > 0;
     }
 
@@ -329,6 +396,7 @@ public class InventorySO : ScriptableObject
             CopySlotContents(preview.weaponSlots, weaponSlots);
             CopySlotContents(preview.armorSlots, armorSlots);
             CopySlotContents(preview.consumableSlots, consumableSlots);
+            if (acquisitionData != null) acquisitionData.RegisterWeapon(purchasedItem);
             return true;
         }
         finally

@@ -5,6 +5,27 @@ using UnityEngine.UI;
 public class InventoryUIController : MonoBehaviour
 {
     [SerializeField] private InventorySO inventoryData;
+    [Header("Inventory Stats")]
+    [SerializeField] private PlayerData playerData;
+    [SerializeField] private TMP_Text HPText;
+    [SerializeField] private TMP_Text MPText;
+    [SerializeField] private TMP_Text CoinText;
+    [SerializeField] private TMP_Text KillText;
+    [SerializeField] private TMP_Text UniqueWeaponText;
+    [SerializeField] private GameObject topLeftStats;
+
+    private void LateUpdate() => RefreshStats();
+
+    private void RefreshStats()
+    {
+        if (playerData == null) return;
+        if (HPText != null) HPText.text = $"{playerData.currentHealth:0.#}/{playerData.maxHealth:0.#}";
+        if (MPText != null) MPText.text = $"{playerData.currentMP}/{playerData.maxMP}";
+        if (CoinText != null) CoinText.text = playerData.money.ToString();
+        if (KillText != null) KillText.text = playerData.killCount.ToString();
+        if (UniqueWeaponText != null) UniqueWeaponText.text = $"{playerData.uniqueWeapon}/34";
+    }
+
     public InventorySO InventoryData => inventoryData;
     [SerializeField] private PlayerShooter2D playerShooter;
     [SerializeField] private Transform universalSlotGridTransform;
@@ -42,6 +63,8 @@ public class InventoryUIController : MonoBehaviour
     private InventorySlot[] universalSlots;
     private InventorySlot[] weaponSlots;
     private WeaponSlot[] weaponGuiSlots;
+    private TMP_Text[] weaponMPCostTexts;
+    private TMP_Text[] weaponTypeTexts;
     private InventorySlot[] armorSlots;
     private InventorySlot[] consumableSlots;
     private int equippedWeaponIndex = -1;
@@ -67,6 +90,12 @@ public class InventoryUIController : MonoBehaviour
         if (isInitialized)
             return;
         isInitialized = true;
+        if (playerData == null)
+        {
+            Player player = FindFirstObjectByType<Player>(FindObjectsInactive.Include);
+            if (player != null) playerData = player.Data;
+        }
+        if (inventoryData != null && playerData != null) inventoryData.BindPlayerData(playerData);
         if (descriptionPanel != null)
         {
             if (descriptionText == null)
@@ -96,6 +125,10 @@ public class InventoryUIController : MonoBehaviour
         if (weaponSlotPanelTransform != null)
         {
             weaponGuiSlots = weaponSlotPanelTransform.GetComponentsInChildren<WeaponSlot>(true);
+            Transform mpCost = weaponSlotPanelTransform.Find("WeaponMPCost");
+            Transform weaponType = weaponSlotPanelTransform.Find("WeaponType");
+            weaponMPCostTexts = mpCost != null ? mpCost.GetComponentsInChildren<TMP_Text>(true) : null;
+            weaponTypeTexts = weaponType != null ? weaponType.GetComponentsInChildren<TMP_Text>(true) : null;
             CacheWeaponSlotCanvasGroup();
         }
         ResolveConsumableHUD();
@@ -258,6 +291,8 @@ public class InventoryUIController : MonoBehaviour
 
         inventoryData.EnsureDefaults();
         inventoryData.RemoveItemsWithNoCount();
+        inventoryData.RegisterOwnedWeapons();
+        RefreshStats();
 
         RefreshUniversalSlots();
         RefreshArmorSlots();
@@ -340,6 +375,7 @@ public class InventoryUIController : MonoBehaviour
 
     public void SetWeaponSlotPanelVisible(bool visible) // Toggle
     {
+        if (topLeftStats != null) topLeftStats.SetActive(visible);
         SetConsumablePanelVisible(visible);
         if (weaponSlotPanelTransform == null)
             return;
@@ -407,6 +443,7 @@ public class InventoryUIController : MonoBehaviour
 
     private void RefreshWeaponSlots()
     {
+        RefreshWeaponDetails();
         if (weaponSlots == null)
             return;
 
@@ -428,6 +465,40 @@ public class InventoryUIController : MonoBehaviour
                 weaponGuiSlots[i].SetEquipped(isEquipped);
             }
         }
+    }
+
+    private void RefreshWeaponDetails()
+    {
+        if (weaponMPCostTexts != null)
+        {
+            for (int i = 0; i < weaponMPCostTexts.Length; i++)
+            {
+                InventorySlotData slot = GetSlotData(InventorySlotType.Weapon, i);
+                WeaponSO weapon = slot != null && slot.count > 0 ? slot.ResolveWeapon() : null;
+                weaponMPCostTexts[i].text = weapon != null ? Mathf.Max(0, weapon.MPCost).ToString() : string.Empty;
+            }
+        }
+        if (weaponTypeTexts != null)
+        {
+            for (int i = 0; i < weaponTypeTexts.Length; i++)
+            {
+                InventorySlotData slot = GetSlotData(InventorySlotType.Weapon, i);
+                bool showMode = slot != null && slot.count > 0 && slot.item is MultiWeaponSO && slot.ResolveWeapon() != null;
+                weaponTypeTexts[i].text = showMode ? GetWeaponModeLabel(slot.attackModeIndex) : string.Empty;
+                weaponTypeTexts[i].enabled = showMode;
+            }
+        }
+    }
+
+    private static string GetWeaponModeLabel(int index)
+    {
+        string label = string.Empty;
+        do
+        {
+            label = (char)('A' + index % 26) + label;
+            index = index / 26 - 1;
+        } while (index >= 0);
+        return label;
     }
 
     private void RefreshArmorSlots()
@@ -605,6 +676,24 @@ public class InventoryUIController : MonoBehaviour
             return 0;
 
         return inventoryData.weaponSlots[slotIndex].ammoCount;
+    }
+
+    public bool QuickMoveItem(InventorySlotType type, int index)
+    {
+        if (StateManager.Instance.CurrentState != GameState.Inventory || inventoryData == null ||
+            !inventoryData.TryQuickMove(type, index, out InventorySlotType destinationType, out int destinationIndex))
+            return false;
+        RefreshUI();
+        if (destinationType == InventorySlotType.Weapon) SetEquippedWeapon(destinationIndex);
+        return true;
+    }
+
+    public bool SplitItemStack(InventorySlotType type, int index)
+    {
+        if (StateManager.Instance.CurrentState != GameState.Inventory || type != InventorySlotType.Universal ||
+            inventoryData == null || !inventoryData.TrySplitUniversal(index)) return false;
+        RefreshUI();
+        return true;
     }
 
     // For InventorySlot drag-and-drop swapping

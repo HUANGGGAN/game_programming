@@ -106,7 +106,18 @@ public class DecompositionSlot : MonoBehaviour, IBeginDragHandler, IDragHandler,
 
     public void OnPointerClick(PointerEventData data)
     {
-        if (data.button != PointerEventData.InputButton.Left || data.dragging || DraggedSlot != null) return;
+        if (data.dragging || DraggedSlot != null) return;
+        if (data.button == PointerEventData.InputButton.Right)
+        {
+            Manager?.SplitStack(this);
+            return;
+        }
+        if (data.button != PointerEventData.InputButton.Left) return;
+        if (data.clickCount == 2)
+        {
+            Manager?.QuickMove(this);
+            return;
+        }
         GetComponentInParent<Frame>()?.Select();
     }
 

@@ -13,24 +13,24 @@ MonoBehaviour:
   m_Name: RandomRare
   m_EditorClassIdentifier: Assembly-CSharp::SellingObjectSO
   type: 1
-  currency: {fileID: 11400000, guid: 698988ad1135bdd91a9c8b7fdf0693b6, type: 2}
+  currency: {fileID: 11400000, guid: d6ea3a4312081f1b386018b6e68f22df, type: 2}
   currencyIcon: {fileID: 0}
-  price: 0
+  price: 1
   object:
     item: {fileID: 0}
     count: 1
     ammoCount: 0
     attackModeIndex: -1
   objectIcon: {fileID: -855298285791758126, guid: ee46af6b762eef1d7b2310cce8c7ddb4, type: 3}
-  objectName: Random Normal Weapon
+  objectName: Random Rare Weapon
   buyOneAtOnce: 1
   description: 
   isRandom: 1
   randomCategories:
-  - categoryID: 0
-    probability: 0.6
-  - categoryID: 1
-    probability: 0.3
   - categoryID: 2
+    probability: 0.6
+  - categoryID: 3
+    probability: 0.3
+  - categoryID: 4
     probability: 0.1
   randomTags: 

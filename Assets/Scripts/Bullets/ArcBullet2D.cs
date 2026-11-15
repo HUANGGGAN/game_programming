@@ -15,6 +15,7 @@ public class ArcBullet2D : Bullet2D
     private bool isOrbiting;
     private Transform orbitTarget;
     private float orbitAngle;
+    private float orbitRevolutionAngle;
     private float orbitSpeed;
     private float activeOrbitRadius;
     private Vector2 orbitDirection;
@@ -94,6 +95,7 @@ public class ArcBullet2D : Bullet2D
             activeOrbitRadius = Mathf.Max(0.01f, orbitRadius);
             orbitSpeed = Mathf.Max(0f, speed);
             orbitAngle = Mathf.Atan2(direction.y, direction.x);
+            orbitRevolutionAngle = 0f;
             previousOrbitCenter = orbitTarget.position;
             rb.position = previousOrbitCenter + new Vector2(Mathf.Cos(orbitAngle), Mathf.Sin(orbitAngle)) * activeOrbitRadius;
             transform.position = new Vector3(rb.position.x, rb.position.y, transform.position.z);
@@ -215,6 +217,12 @@ public class ArcBullet2D : Bullet2D
                 new Vector2(-Mathf.Sin(angle), Mathf.Cos(angle));
             if (!SweepForImpacts(movement)) return;
             rb.position = next;
+            orbitRevolutionAngle += angleStep / steps;
+            if (orbitRevolutionAngle >= Mathf.PI * 2f)
+            {
+                orbitRevolutionAngle -= Mathf.PI * 2f;
+                BeginDamageSource();
+            }
         }
         orbitAngle = Mathf.Repeat(startAngle + angleStep, Mathf.PI * 2f);
         previousOrbitCenter = center;
@@ -242,6 +250,7 @@ public class ArcBullet2D : Bullet2D
         isBoomerang = false;
         isReturning = false;
         isOrbiting = false;
+        orbitRevolutionAngle = 0f;
         orbitTarget = null;
         if (visualSprite != null)
         {

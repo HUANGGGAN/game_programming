@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5ec186d1a765adae3aa6d3343c7dd524, type: 3}
   m_Name: FIreWand
   m_EditorClassIdentifier: Assembly-CSharp::GunSO
-  itemName: New Item
+  itemName: Fire Wand
   itemID: 0
   rarity: 3
   icon: {fileID: 6225818281361698569, guid: f4caba175db4d0c4cbbc7fbc9a945443, type: 3}
@@ -22,7 +22,7 @@ MonoBehaviour:
   minPiece: 0
   maxPiece: 0
   shootInterval: 0.7
-  MPCost: 2
+  MPCost: 5
   consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}

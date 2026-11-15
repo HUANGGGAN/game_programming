@@ -27,13 +27,17 @@ MonoBehaviour:
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
   attackAnimation: 1
+  attackType: 0
+  attackRadius: 1
+  attackCount: 1
   attackRange: 4
   attackAngle: 20
-  attackDamage: 6
+  attackDamage: 8
   attackDuration: 0.2
   knockbackForce: 2
   critRate: 0.05
   critMul: 3
   drawAttackRange: 1
+  ParticleID: 0
   effects: []
   attackAttributes: 

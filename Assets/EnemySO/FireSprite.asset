@@ -31,5 +31,5 @@ MonoBehaviour:
   speed: 3
   attackInterval: 1
   attackDuration: 0.4
-  HP: 25
+  HP: 35
   attackAttributes: 

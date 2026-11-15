@@ -22,19 +22,23 @@ MonoBehaviour:
   minPiece: 0
   maxPiece: 0
   shootInterval: 0.5
-  MPCost: 1
+  MPCost: 2
   consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
   attackAnimation: 0
-  attackRange: 2
-  attackAngle: 90
-  attackDamage: 10
+  attackType: 0
+  attackRadius: 1
+  attackCount: 1
+  attackRange: 2.5
+  attackAngle: 110
+  attackDamage: 12
   attackDuration: 0.1
-  knockbackForce: 1
+  knockbackForce: 1.5
   critRate: 0.05
   critMul: 3
   drawAttackRange: 1
+  ParticleID: 0
   effects:
   - effectID: 5
     duration: 3

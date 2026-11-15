@@ -16,16 +16,17 @@ MonoBehaviour:
   bulletSprite: {fileID: -7347005574332179345, guid: 4a0d5b94a9f8e22af9d76f0e3fb3f206, type: 3}
   ParticleID: 1
   tint: {r: 1, g: 1, b: 1, a: 1}
+  spinningSpeed: 0
   colliderSize: {x: 0.2, y: 0.2}
-  damage: 2
+  damage: 5
   speed: 10
   lifetime: 4
   isPiercing: 0
   bulletMode: 1
   isExplosive: 1
   explosionRadius: 3
-  knockbackForce: 4
-  explosiveDamage: 12
+  knockbackForce: 2.6
+  explosiveDamage: 14
   critRate: 0.05
   critMul: 3
   effects:

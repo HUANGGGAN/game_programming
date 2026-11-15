@@ -16,16 +16,16 @@ MonoBehaviour:
   spriteFacesRightByDefault: 1
   effects: []
   resistances: 
-  weaknesses: 01000000
+  weaknesses: 
   enemy_point: 1
   enemy_difficulty: 1
   money: 1
   attackRange: 1.2
   damage: 2
-  knockbackForce: 4
+  knockbackForce: 3
   knockbackResistance: 0
   speed: 2
   attackInterval: 0.8
   attackDuration: 0.2
-  HP: 150
+  HP: 20
   attackAttributes: 

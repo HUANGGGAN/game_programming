@@ -21,7 +21,7 @@ MonoBehaviour:
   description: 
   minPiece: 0
   maxPiece: 0
-  shootInterval: 2
+  shootInterval: 1.85
   MPCost: 1
   consumeAmmo: 0
   hasLimitedAmmo: 0
@@ -30,9 +30,9 @@ MonoBehaviour:
   attackType: 2
   attackRadius: 1
   attackCount: 3
-  attackRange: 2.5
+  attackRange: 3
   attackAngle: 360
-  attackDamage: 9
+  attackDamage: 8
   attackDuration: 0.4
   knockbackForce: 4
   critRate: 0.05

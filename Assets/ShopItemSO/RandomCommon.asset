@@ -15,14 +15,14 @@ MonoBehaviour:
   type: 1
   currency: {fileID: 11400000, guid: 698988ad1135bdd91a9c8b7fdf0693b6, type: 2}
   currencyIcon: {fileID: 0}
-  price: 0
+  price: 1
   object:
     item: {fileID: 0}
     count: 1
     ammoCount: 0
     attackModeIndex: -1
   objectIcon: {fileID: -855298285791758126, guid: ee46af6b762eef1d7b2310cce8c7ddb4, type: 3}
-  objectName: Random Normal Weapon
+  objectName: Random Common Weapon
   buyOneAtOnce: 1
   description: 
   isRandom: 1

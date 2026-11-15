@@ -173,9 +173,9 @@ public class Frame : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler, I
 
     public void OnPointerClick(PointerEventData eventData)
     {
-        if (eventData.button != PointerEventData.InputButton.Left || HasActiveDrag || eventData.dragging)
+        if (HasActiveDrag || eventData.dragging)
             return;
-        Select();
+        if (eventData.button == PointerEventData.InputButton.Left) Select();
         slot?.OnPointerClick(eventData);
         decompositionSlot?.OnPointerClick(eventData);
         storageSlot?.OnPointerClick(eventData);

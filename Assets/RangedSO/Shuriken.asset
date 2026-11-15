@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7e06f990e0bf49e09eaf7073c948a08f, type: 3}
   m_Name: Shuriken
   m_EditorClassIdentifier: Assembly-CSharp::MultiWeaponSO
-  itemName: New Item
+  itemName: Shuriken
   itemID: 0
   rarity: 1
   icon: {fileID: 6348385188075547880, guid: 6b5a14228c74602439b8ad92bc82fb01, type: 3}

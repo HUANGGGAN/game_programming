@@ -19,13 +19,15 @@ MonoBehaviour:
   maxStackSize: 1
   tag: 1
   description: 
+  minPiece: 0
+  maxPiece: 0
   shootInterval: 0.1
+  MPCost: 2
   consumeAmmo: 1
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0}
-  animatorOverrideController: {fileID: 0}
   capacity: 1
-  reloadTime: 0.6
+  reloadTime: 0.9
   spread: 3
   burstCount: 1
   bulletData: {fileID: 11400000, guid: 48f6761f42aec5f6db36a946bbfa7fd5, type: 2}

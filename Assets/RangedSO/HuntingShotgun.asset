@@ -19,12 +19,13 @@ MonoBehaviour:
   maxStackSize: 1
   tag: 0
   description: 
-  shootInterval: 0.35
-  MPCost: 1
+  minPiece: 0
+  maxPiece: 0
+  shootInterval: 0.6
+  MPCost: 2
   consumeAmmo: 1
   hasLimitedAmmo: 0
   firePointOffset: {x: 3, y: 0}
-  animatorOverrideController: {fileID: 0}
   capacity: 15
   reloadTime: 1
   spread: 25

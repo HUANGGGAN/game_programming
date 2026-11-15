@@ -21,7 +21,7 @@ MonoBehaviour:
   description: 
   minPiece: 0
   maxPiece: 0
-  shootInterval: 0.15
+  shootInterval: 0.2
   MPCost: 1
   consumeAmmo: 0
   hasLimitedAmmo: 0

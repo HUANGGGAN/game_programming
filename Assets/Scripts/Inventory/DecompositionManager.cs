@@ -118,6 +118,37 @@ public class DecompositionManager : MonoBehaviour
         stateManager != null && stateManager.CurrentState == GameState.Decomposition && decompositionInventory != null &&
         decompositionInventory.CanMove(inventoryData, source.IsDecomposition, source.Index, destination.IsDecomposition, destination.Index);
 
+    public bool QuickMove(DecompositionSlot source)
+    {
+        if (source == null || source.Manager != this || DecompositionSlot.DraggedSlot != null ||
+            stateManager == null || stateManager.CurrentState != GameState.Decomposition) return false;
+        foreach (DecompositionSlot destination in slots)
+        {
+            if (destination.IsDecomposition == source.IsDecomposition) continue;
+            InventorySlotData data = GetSlot(destination.IsDecomposition, destination.Index);
+            if (data == null || data.item != null || !CanMove(source, destination)) continue;
+            Move(source, destination);
+            return true;
+        }
+        return false;
+    }
+
+    public bool SplitStack(DecompositionSlot source)
+    {
+        if (source == null || source.Manager != this || DecompositionSlot.DraggedSlot != null ||
+            stateManager == null || stateManager.CurrentState != GameState.Decomposition) return false;
+        InventorySlotData data = GetSlot(source.IsDecomposition, source.Index);
+        foreach (DecompositionSlot destination in slots)
+        {
+            if (destination.IsDecomposition != source.IsDecomposition) continue;
+            if (!InventorySlotData.TrySplitHalf(data, GetSlot(destination.IsDecomposition, destination.Index))) continue;
+            Refresh();
+            inventoryUI?.RefreshUI();
+            return true;
+        }
+        return false;
+    }
+
     public void Move(DecompositionSlot source, DecompositionSlot destination)
     {
         if (CanMove(source, destination) && decompositionInventory.TryMove(inventoryData,

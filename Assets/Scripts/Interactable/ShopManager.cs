@@ -93,15 +93,15 @@ public class ShopManager : MonoBehaviour
                 if (offer == null)
                     continue;
                 Button button = Instantiate(buttonPrefab, buttonSlotGrid, false);
-                if (offer.objectIcon == null && offer.@object?.item != null && offer.@object.item.icon != null)
+                if (offer.SpecialID == 0 && offer.objectIcon == null && offer.@object?.item != null && offer.@object.item.icon != null)
                     SetImage(button.transform, "ItemFrame/ItemImage", offer.@object.item.icon);
                 else
                     SetImage(button.transform, "ItemFrame/ItemImage", offer.objectIcon);
                 SetText(button.transform, "ItemText",
-                    !offer.isRandom && offer.@object?.item != null
+                    offer.SpecialID == 0 && !offer.isRandom && offer.@object?.item != null
                         ? offer.@object.item.itemName
                         : offer.objectName);
-                SetText(button.transform, "ItemFrame/ItemQuantity", $"\u00d7 {offer.@object?.count ?? 1}");
+                SetText(button.transform, "ItemFrame/ItemQuantity", $"x {(offer.SpecialID != 0 ? 1 : offer.@object?.count ?? 1)}");
                 if (offer.currencyIcon == null && offer.currency != null && offer.currency.icon != null)
                     SetImage(button.transform, "PricePanel/PriceFrame/PriceImage", offer.currency.icon);
                 else
@@ -237,9 +237,9 @@ public class ShopManager : MonoBehaviour
             ? (inventoryData != null ? inventoryData.GetItemCount(offer.currency) : 0)
             : (playerData != null ? playerData.money : 0);
         Transform root = purchasePanel.transform;
-        SetImage(root, "ItemFrame/ItemImage", offer.objectIcon != null ? offer.objectIcon : offer.@object?.item?.icon);
+        SetImage(root, "ItemFrame/ItemImage", offer.objectIcon != null ? offer.objectIcon : offer.SpecialID == 0 ? offer.@object?.item?.icon : null);
         SetText(root, "ItemText",
-            !offer.isRandom && offer.@object?.item != null
+            offer.SpecialID == 0 && !offer.isRandom && offer.@object?.item != null
                 ? offer.@object.item.itemName
                 : offer.objectName);
         SetText(root, "DescriptionText", offer.description);
@@ -268,8 +268,8 @@ public class ShopManager : MonoBehaviour
     private void UpdatePurchaseUI()
     {
         Transform root = purchasePanel.transform;
-        long itemCount = (long)(selectedOffer.@object?.count ?? 1) * purchase_quantity;
-        SetText(root, "ItemFrame/ItemQuantity", $"\u00d7 {itemCount}");
+        long itemCount = (long)(selectedOffer.SpecialID != 0 ? 1 : selectedOffer.@object?.count ?? 1) * purchase_quantity;
+        SetText(root, "ItemFrame/ItemQuantity", $"x {itemCount}");
         SetText(root, "CounterPanel/QuantityText", purchase_quantity.ToString());
         long cost = (long)selectedOffer.price * purchase_quantity;
         TMP_Text price = FindComponent<TMP_Text>(root, "PurchaseButton/PriceFrame/PriceText");
@@ -364,11 +364,13 @@ public class ShopManager : MonoBehaviour
         if (offer.buyOneAtOnce)
             quantity = 1;
         long totalPrice = (long)offer.price * quantity;
+        if (totalPrice > int.MaxValue) return false;
+        ResolveInventory();
+        if (offer.SpecialID != 0) return TryBuySpecial(offer, quantity, (int)totalPrice);
         long totalCount = (long)(offer.@object?.count ?? 1) * quantity;
         int ammoCount = offer.@object?.ammoCount ?? 0;
         if (totalPrice > int.MaxValue || totalCount <= 0 || totalCount > int.MaxValue || ammoCount < 0)
             return false;
-        ResolveInventory();
         if (inventoryData == null || (offer.currency == null &&
             (playerData == null || playerData.money < totalPrice)))
             return false;
@@ -386,6 +388,31 @@ public class ShopManager : MonoBehaviour
         if (offer.currency == null && totalPrice > 0)
             playerData.AddMoney(-(int)totalPrice);
         lastPurchasedItem = purchasedItem;
+        inventoryUIController?.RefreshUI();
+        return true;
+    }
+
+    private bool TryBuySpecial(SellingObjectSO offer, int quantity, int price)
+    {
+        if (playerData == null || (offer.SpecialID != 1 && offer.SpecialID != 2)) return false;
+        long increase = 5L * quantity;
+        if (offer.SpecialID == 2 && (long)playerData.maxMP + increase > int.MaxValue) return false;
+        float newMaxHealth = playerData.maxHealth + increase;
+        if (offer.SpecialID == 1 && (float.IsInfinity(newMaxHealth) || float.IsNaN(newMaxHealth) || newMaxHealth <= playerData.maxHealth)) return false;
+
+        if (offer.currency != null)
+        {
+            if (inventoryData == null || !inventoryData.TryExchangeItems(offer.currency, price, null, 1)) return false;
+        }
+        else
+        {
+            if (playerData.money < price) return false;
+            if (price > 0) playerData.AddMoney(-price);
+        }
+        if (offer.SpecialID == 1) playerData.SetMaxHealth(newMaxHealth);
+        else playerData.SetMaxMP((int)(playerData.maxMP + increase));
+        Player player = FindFirstObjectByType<Player>();
+        if (player != null && player.Data == playerData) player.UpdatePlayerBarsFromData();
         inventoryUIController?.RefreshUI();
         return true;
     }

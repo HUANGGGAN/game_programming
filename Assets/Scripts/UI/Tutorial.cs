@@ -20,6 +20,46 @@ public class Tutorial : MonoBehaviour
         public Sprite image;
     }
 
+    private static readonly Dictionary<string, Request> pendingRequests = new Dictionary<string, Request>();
+
+    [RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.SubsystemRegistration)]
+    private static void ResetPendingRequests() => pendingRequests.Clear();
+
+    public static void RequestTutorial(string id, string text)
+    {
+        if (string.IsNullOrWhiteSpace(id)) return;
+        if (Instance != null && Instance.isActiveAndEnabled)
+            Instance.ShowTutorial(id, text);
+        else
+            pendingRequests[id] = new Request { id = id, text = text };
+    }
+
+    public static void NotifyItemObtained(ItemSO item)
+    {
+        if (item == null) return;
+        if (item is MultiWeaponSO)
+            RequestTutorial("multi-weapon", "Press T to switch attack mode (A/B)");
+        if (item is WeaponSO && (item.tag == ItemTag.Fire || item.tag == ItemTag.Frost))
+            RequestTutorial("weapon-elements", "Enemies have resistances and weaknesses.\nFind suitable weapons to attack them.");
+        if (item.tag == ItemTag.Chest)
+            RequestTutorial("locked-chests", "Some chests are locked.\nFind the merchant at home to open them.");
+    }
+
+    private void Update()
+    {
+        foreach (Request request in pendingRequests.Values)
+            ShowTutorial(request.id, request.text, request.image);
+        pendingRequests.Clear();
+        if (IsShowing && stateManager != null && stateManager.CurrentState != GameState.Tutorial)
+            Close();
+        if (IsShowing || requests.Count == 0) return;
+        stateManager = StateManager.Instance;
+        if (!stateManager.RequestState(GameState.Tutorial)) return;
+        Request next = requests.Dequeue();
+        queuedIds.Remove(next.id);
+        Display(next);
+    }
+
     private readonly HashSet<string> readTutorials = new HashSet<string>();
     private readonly HashSet<string> queuedIds = new HashSet<string>();
     private readonly Queue<Request> requests = new Queue<Request>();
@@ -58,17 +98,9 @@ public class Tutorial : MonoBehaviour
         }
 
         Request request = new Request { id = tutorialId, text = text, image = image };
-        if (IsShowing)
-        {
-            requests.Enqueue(request);
-            queuedIds.Add(tutorialId);
-        }
-        else
-        {
-            stateManager = StateManager.Instance;
-            stateManager.RequestState(GameState.Tutorial);
-            Display(request);
-        }
+        // Display in Update so a tutorial cannot interrupt another state transition.
+        requests.Enqueue(request);
+        queuedIds.Add(tutorialId);
         return true;
     }
 

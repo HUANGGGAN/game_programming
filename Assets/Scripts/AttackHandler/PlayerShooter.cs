@@ -437,8 +437,6 @@ public class PlayerShooter2D : MonoBehaviour
         if (shouldConsumeAmmo && !inventoryUIController.HasEquippedWeaponAmmo())
         {
             StartReload();
-            if (!equippedWeapon.hasLimitedAmmo)
-                Tutorial.Instance?.ShowTutorial("reload", "You are out of ammo! Press R to reload your weapon. Don't worry, ammo is unlimited");
             return false;
         }
 

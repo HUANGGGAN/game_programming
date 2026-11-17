@@ -6,6 +6,7 @@ public class RegionTracker : MonoBehaviour
 {
     private Collider2D[] playerColliders;
     private Player player;
+    [SerializeField] private RegionEnemySpawner regionEnemySpawner;
     private float nextEffectRefresh;
     private const float EffectRefreshInterval = 1f;
     public RegionType CurrentRegions { get; private set; }
@@ -19,6 +20,8 @@ public class RegionTracker : MonoBehaviour
     {
         playerColliders = GetComponentsInChildren<Collider2D>(true);
         player = GetComponent<Player>();
+        if (regionEnemySpawner == null)
+            regionEnemySpawner = FindFirstObjectByType<RegionEnemySpawner>(FindObjectsInactive.Include);
         nextEffectRefresh = 0f;
         RefreshRegions();
     }
@@ -47,7 +50,7 @@ public class RegionTracker : MonoBehaviour
         // Water extinguishes every fire level, including fire from overlapping regions.
         if (!IsInWater)
         {
-            if (IsInRegion(RegionType.Lava)) ApplyHazard(EffectRuntime.Fire, 3, 5f);
+            if (IsInRegion(RegionType.Lava)) ApplyHazard(EffectRuntime.Fire, 4, 5f);
             else if (IsInRegion(RegionType.Lavarock)) ApplyHazard(EffectRuntime.Fire, 2, 2f);
             else if (IsInRegion(RegionType.Fire)) ApplyHazard(EffectRuntime.Fire, 1, 5f);
         }
@@ -63,7 +66,22 @@ public class RegionTracker : MonoBehaviour
     private void SetRegions(RegionType regions)
     {
         if (CurrentRegions == regions) return;
+        bool wasHome = IsInRegion(RegionType.Home);
         CurrentRegions = regions;
+        bool isHome = IsInRegion(RegionType.Home);
+        if (wasHome != isHome)
+        {
+            if (regionEnemySpawner != null) regionEnemySpawner.SetHomeRegionActive(isHome);
+            if (isHome) EnemyPoolSpawner.Instance?.DespawnAll();
+            if (isHome && player != null && player.Data != null && !player.IsDying)
+            {
+                player.Data.Heal(player.Data.maxHealth);
+                player.Data.RestoreMP(player.Data.maxMP);
+                player.UpdatePlayerBarsFromData();
+            }
+        }
+        if (wasHome && !isHome && isActiveAndEnabled && player != null && !player.IsDying)
+            Tutorial.RequestTutorial("leave-home", "Find the tree boss and kill it.\nFeel free to explore the world and arm yourself.\nReturn home to restore HP/MP!");
         RegionsChanged?.Invoke(regions);
     }
 

@@ -77,7 +77,7 @@ public sealed class LazerAttack : IWeaponAttackHandler
             if (hit.collider == null || !hit.collider.enabled || !hit.collider.gameObject.activeInHierarchy)
                 continue;
             bool obstacle = IsObstacle(hit.collider, weapon);
-            EnemyChase enemy = hit.collider.GetComponentInParent<EnemyChase>();
+            EnemyChase enemy = EnemyChase.FindDamageTarget(hit.collider);
             if (!obstacle && (enemy == null || !enemy.isActiveAndEnabled || enemy.CurrentHealth <= 0f))
                 continue;
             endpoint = hit.point;

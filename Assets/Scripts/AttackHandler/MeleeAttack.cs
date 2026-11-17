@@ -123,7 +123,8 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
         if (weapon is not MeleeSO meleeWeapon || meleeWeapon.attackRange <= 0f || meleeWeapon.attackDamage <= 0f || direction.sqrMagnitude <= Mathf.Epsilon)
             return false;
 
-        if (meleeWeapon.attackType == 1 && (attacker == null || !attacker.CanMeleeDash || meleeWeapon.attackRadius <= 0f))
+        if (meleeWeapon.attackType == 1 && (attacker == null ||
+            (!attacker.CanMeleeDash && !attacker.IsMovementLocked) || meleeWeapon.attackRadius <= 0f))
             return false;
         if (activeWeapon != null)
             return false;
@@ -171,7 +172,12 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
             activeOrigin = activeAttacker.transform.position;
             ApplyAttack();
             previousDashOrigin = activeOrigin;
-            if (!activeAttacker.IsMeleeDashing) CancelAttack();
+            if (activeAttacker.IsMovementLocked)
+            {
+                elapsedDuration += deltaTime;
+                if (elapsedDuration >= activeDuration) CancelAttack();
+            }
+            else if (!activeAttacker.IsMeleeDashing) CancelAttack();
             return;
         }
 
@@ -214,11 +220,11 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
             colliders = Physics2D.OverlapCircleAll(activeOrigin, activeWeapon.attackRange);
         foreach (Collider2D collider in colliders)
         {
-            EnemyChase enemy = collider.GetComponentInParent<EnemyChase>();
+            EnemyChase enemy = EnemyChase.FindDamageTarget(collider);
             if (enemy == null || hitEnemies.Contains(enemy))
                 continue;
 
-            Vector2 directionToEnemy = (Vector2)enemy.transform.position - activeOrigin;
+            Vector2 directionToEnemy = collider.ClosestPoint(activeOrigin) - activeOrigin;
             if (Vector2.Angle(activeDirection, directionToEnemy) > halfAngle)
                 continue;
 

@@ -15,6 +15,7 @@ public class EnemyBullet : MonoBehaviour
     private float remainingLifetime;
     private int remainingPierces;
     private bool launched;
+    private float damageMultiplier = 1f;
     private readonly List<RaycastHit2D> hits = new List<RaycastHit2D>();
     private readonly HashSet<Player> hitPlayers = new HashSet<Player>();
 
@@ -53,12 +54,30 @@ public class EnemyBullet : MonoBehaviour
             visual.transform.localScale = new Vector3(data.imageScale.x, data.imageScale.y, 1f);
         }
         if (hitCollider is BoxCollider2D box) box.size = data.colliderSize;
+        else if (hitCollider is CircleCollider2D circle)
+            circle.radius = Mathf.Max(Mathf.Abs(data.colliderSize.x), Mathf.Abs(data.colliderSize.y)) * 0.5f;
+        else if (hitCollider is CapsuleCollider2D capsule) capsule.size = data.colliderSize;
     }
 
-    public void Launch(Vector2 origin, Vector2 aim, EnemyChase owner, Vector2? targetPosition = null)
+    public float GetClearanceRadius(EnemyBulletSO bulletData)
+    {
+        Collider2D shape = GetComponent<Collider2D>();
+        Vector3 scale = transform.lossyScale;
+        Vector2 size = new Vector2(Mathf.Abs(bulletData.colliderSize.x * scale.x), Mathf.Abs(bulletData.colliderSize.y * scale.y));
+        float radius = shape is CircleCollider2D ? Mathf.Max(size.x, size.y) * 0.5f : size.magnitude * 0.5f;
+        if (shape != null)
+        {
+            Vector2 offset = Vector2.Scale(shape.offset, new Vector2(scale.x, scale.y));
+            radius += offset.magnitude;
+        }
+        return Mathf.Max(0.01f, radius) + 0.02f;
+    }
+
+    public void Launch(Vector2 origin, Vector2 aim, EnemyChase owner, Vector2? targetPosition = null, float damageMultiplier = 1f)
     {
         if (data == null) return;
         attacker = owner;
+        this.damageMultiplier = Mathf.Max(0f, damageMultiplier);
         direction = aim.sqrMagnitude > Mathf.Epsilon ? aim.normalized : Vector2.right;
         target = data.bulletMode == 1 && data.isExplosive ? targetPosition : null;
         remainingLifetime = data.lifetime;
@@ -105,6 +124,8 @@ public class EnemyBullet : MonoBehaviour
         {
             Collider2D collider = hit.collider;
             if (collider == null || collider.attachedRigidbody == body || !collider.enabled || !collider.gameObject.activeInHierarchy) continue;
+            // Death bursts start with overlapping projectiles; they must never block each other.
+            if (collider.GetComponentInParent<EnemyBullet>() != null) continue;
             bool obstacle = collider.CompareTag(obstacleTag);
             Player player = obstacle ? null : collider.GetComponentInParent<Player>();
             if (!obstacle && (player == null || !player.isActiveAndEnabled || hitPlayers.Contains(player))) continue;
@@ -112,7 +133,7 @@ public class EnemyBullet : MonoBehaviour
             if (player != null)
             {
                 hitPlayers.Add(player);
-                if (player.TakeDamage(data.damage))
+                if (player.TakeDamage(Mathf.Round(data.damage * damageMultiplier)))
                 {
                     player.ApplyKnockback(direction, data.knockbackForce);
                     player.ApplyEffects(data.effects, attacker != null && attacker.isActiveAndEnabled ? attacker.RestoreEffectResource : null);
@@ -141,7 +162,7 @@ public class EnemyBullet : MonoBehaviour
 
     private void Detonate(Vector2 position)
     {
-        Explosion.PerformEnemy(position, data.explosionRadius, data.explosiveDamage, data.knockbackForce,
+        Explosion.PerformEnemy(position, data.explosionRadius, Mathf.Round(data.explosiveDamage * damageMultiplier), data.knockbackForce,
             data.effects, attacker, direction, data.explosionParticleId);
     }
 

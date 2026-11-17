@@ -70,10 +70,12 @@ internal static class ProjectileAttackExecutor
 
         int burstCount = 1;
         float spread = 0f;
+        float burstAngle = 0f;
         if (weapon is IProjectilePatternWeapon patternWeapon)
         {
             burstCount = Mathf.Max(1, patternWeapon.ProjectileBurstCount);
             spread = Mathf.Max(0f, patternWeapon.ProjectileSpread);
+            burstAngle = Mathf.Clamp(patternWeapon.ProjectileBurstAngle, 0f, 360f);
         }
 
         bool resourceConsumed = false;
@@ -105,9 +107,10 @@ internal static class ProjectileAttackExecutor
                 resourceConsumed = true;
             }
 
-            float spreadOffset = burstCount == 1
-                ? UnityEngine.Random.Range(-spread, spread)
-                : -spread + (2f * spread * i / (burstCount - 1));
+            float burstOffset = burstCount > 1
+                ? -burstAngle * 0.5f + burstAngle * i / (burstCount - 1)
+                : 0f;
+            float spreadOffset = burstOffset + UnityEngine.Random.Range(-spread, spread);
             Vector2 shotDirection = Quaternion.Euler(0f, 0f, spreadOffset) * direction.normalized;
             if (targetPosition.HasValue && ((bulletData.bulletMode == 1 && bulletData.isExplosive) ||
                 (bulletData.bulletMode == 0 && bulletData.bulletId == "1")))

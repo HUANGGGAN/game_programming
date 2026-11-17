@@ -2,7 +2,7 @@ using System;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
-public enum GameState { Playing, Inventory, Tutorial, Merchant, Purchase, Decomposition, Storage }
+public enum GameState { Playing, Inventory, Tutorial, Merchant, Purchase, Decomposition, Storage, Map, Boss }
 
 public class StateManager : MonoBehaviour
 {
@@ -22,6 +22,12 @@ public class StateManager : MonoBehaviour
     }
 
     public GameState CurrentState { get; private set; } = GameState.Playing;
+    public bool IsGameplay => CurrentState == GameState.Playing || CurrentState == GameState.Boss;
+    public bool IsBossEncounter => CurrentState == GameState.Boss ||
+        (CurrentState == GameState.Inventory && stateBeforeInventory == GameState.Boss) ||
+        (CurrentState == GameState.Tutorial && (stateBeforeTutorial == GameState.Boss ||
+            (stateBeforeTutorial == GameState.Inventory && stateBeforeInventory == GameState.Boss)));
+    private GameState stateBeforeInventory = GameState.Playing;
     private GameState stateBeforeTutorial = GameState.Playing;
     public event Action<GameState> StateChanged;
     public event Action<GameState> StateChanging;
@@ -41,20 +47,31 @@ public class StateManager : MonoBehaviour
     {
         if (CurrentState == state)
             return true;
+        if (IsBossEncounter && state != GameState.Inventory && state != GameState.Boss && state != GameState.Tutorial) return false;
         // Only closing the tutorial can restore the state underneath it.
         if (CurrentState == GameState.Tutorial)
             return false;
         if (state == GameState.Tutorial)
             stateBeforeTutorial = CurrentState;
+        if (state == GameState.Inventory)
+            stateBeforeInventory = CurrentState;
         SetState(state);
         return true;
     }
 
     public void CloseState(GameState state)
     {
+        if (state == GameState.Boss && IsBossEncounter)
+        {
+            stateBeforeInventory = GameState.Playing;
+            stateBeforeTutorial = GameState.Playing;
+            SetState(GameState.Playing);
+            return;
+        }
         if (CurrentState != state)
             return;
         SetState(state == GameState.Tutorial ? stateBeforeTutorial :
+            state == GameState.Inventory ? stateBeforeInventory :
             state == GameState.Purchase || state == GameState.Decomposition ? GameState.Merchant : GameState.Playing);
     }
 
@@ -68,16 +85,16 @@ public class StateManager : MonoBehaviour
 
     private void ApplyTimeScale()
     {
-        Time.timeScale = CurrentState == GameState.Playing ? 1f : 0f;
+        Time.timeScale = IsGameplay ? 1f : 0f;
     }
 
     private void Update()
     {
         if (Keyboard.current != null &&
             ((Keyboard.current.escapeKey.wasPressedThisFrame &&
-              (CurrentState == GameState.Inventory || CurrentState == GameState.Merchant || CurrentState == GameState.Purchase || CurrentState == GameState.Decomposition || CurrentState == GameState.Storage)) ||
+              (CurrentState == GameState.Inventory || CurrentState == GameState.Merchant || CurrentState == GameState.Purchase || CurrentState == GameState.Decomposition || CurrentState == GameState.Storage || CurrentState == GameState.Map)) ||
              (Keyboard.current.eKey.wasPressedThisFrame &&
-              (CurrentState == GameState.Merchant || CurrentState == GameState.Purchase || CurrentState == GameState.Decomposition || CurrentState == GameState.Storage))))
+              (CurrentState == GameState.Merchant || CurrentState == GameState.Purchase || CurrentState == GameState.Decomposition || CurrentState == GameState.Storage || CurrentState == GameState.Map))))
             CloseState(CurrentState);
     }
 

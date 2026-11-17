@@ -13,6 +13,8 @@ public class SellingObjectSO : ScriptableObject
     public string objectName;
     public bool buyOneAtOnce = true;
     [TextArea] public string description;
+    [Tooltip("0: Item/random item. 1: +5 max HP. 2: +5 max MP.")]
+    [Min(0)] public int SpecialID = 0;
     public bool isRandom;
     [Tooltip("Used for random offers. IDs are zero-based ItemDatabase category indices; positive weights are normalized.")]
     public List<ItemCategoryWeight> randomCategories = new List<ItemCategoryWeight>();

@@ -15,7 +15,8 @@ public enum ItemTag
     None = 1,
     Consumable = 2,
     Fire = 3,
-    Frost = 4
+    Frost = 4,
+    Chest = 5
 }
 
 [CreateAssetMenu(fileName = "NewItem", menuName = "Item/Normal")]

@@ -13,6 +13,12 @@ public class PlayerData : ScriptableObject
 
     public void AddKill() => killCount++;
 
+    public void RegisterItem(ItemSO item)
+    {
+        RegisterWeapon(item);
+        Tutorial.NotifyItemObtained(item);
+    }
+
     public void RegisterWeapon(ItemSO item)
     {
         if (item is WeaponSO weapon && !acquiredWeapons.Contains(weapon)) acquiredWeapons.Add(weapon);
@@ -35,6 +41,8 @@ public class PlayerData : ScriptableObject
     public void Reset()
     {
         killCount = 0;
+        maxHealth = 100f;
+        maxMP = 200;
         acquiredWeapons.Clear();
         currentScore = 0;
         money = 0;

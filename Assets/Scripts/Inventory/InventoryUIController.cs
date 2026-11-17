@@ -178,6 +178,11 @@ public class InventoryUIController : MonoBehaviour
 
     public void ShowItemDescription(InventorySlot owner, Vector2 cursor, Camera eventCamera)
     {
+        if (owner != null && owner.CurrentItem != null && string.IsNullOrWhiteSpace(owner.CurrentItem.description))
+        {
+            HideItemDescription();
+            return;
+        }
         if (descriptionPanel == null || descriptionText == null || owner == null || owner.CurrentItem == null ||
             InventorySlot.DraggedSlot != null || !isActiveAndEnabled)
             return;
@@ -778,7 +783,7 @@ public class InventoryUIController : MonoBehaviour
 
     public bool TrySwitchEquippedAttackMode()
     {
-        if (inventoryData == null || StateManager.Instance.CurrentState != GameState.Playing ||
+        if (inventoryData == null || !StateManager.Instance.IsGameplay ||
             equippedWeaponIndex < 0 || equippedWeaponIndex >= inventoryData.weaponSlots.Length)
             return false;
         InventorySlotData slot = inventoryData.weaponSlots[equippedWeaponIndex];

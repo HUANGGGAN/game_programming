@@ -15,6 +15,22 @@ public struct ItemCategoryWeight
     }
 }
 
+[Serializable]
+public class ItemDropChance
+{
+    public ItemSO item;
+    [Range(0f, 1f)] public float probability;
+    [Min(1)] public int count = 1;
+}
+
+[Serializable]
+public class ItemCategoryDropChance
+{
+    [Min(0)] public int categoryID;
+    [Range(0f, 1f)] public float probability;
+    public List<ItemTag> tags = new List<ItemTag>();
+}
+
 public interface IItemDatabase
 {
     ItemSO GetRandomItem(IReadOnlyList<ItemCategoryWeight> categories, IReadOnlyList<ItemTag> tags = null);
@@ -26,6 +42,68 @@ public class ItemDatabaseSO : ScriptableObject, IItemDatabase
 {
     [Header("Categorized Subsets")]
     public List<ItemCategory> categories = new List<ItemCategory>();
+
+    // Absolute chances: unused probability means no drop. Invalid entries retain
+    // their chance of producing nothing rather than increasing other chances.
+    public ItemSO GetRandomDrop(IReadOnlyList<ItemDropChance> items,
+        IReadOnlyList<ItemCategoryDropChance> categoryDrops)
+        => GetRandomDrop(items, categoryDrops, out _);
+
+    public ItemSO GetRandomDrop(IReadOnlyList<ItemDropChance> items,
+        IReadOnlyList<ItemCategoryDropChance> categoryDrops, out int count)
+    {
+        count = 0;
+        double total = 0;
+        if (items != null)
+            foreach (var entry in items)
+                if (entry != null && !AddDropChance(ref total, entry.probability)) return null;
+        if (categoryDrops != null)
+            foreach (var entry in categoryDrops)
+                if (entry != null && !AddDropChance(ref total, entry.probability)) return null;
+        if (total > 1.0000001)
+        {
+            Debug.LogWarning("Enemy drop probabilities must total no more than 1.", this);
+            return null;
+        }
+
+        double roll = UnityEngine.Random.value;
+        if (items != null)
+            foreach (var entry in items)
+            {
+                if (entry == null) continue;
+                if (roll < entry.probability)
+                {
+                    if (entry.item == null) return null;
+                    count = Math.Max(1, entry.count);
+                    return entry.item;
+                }
+                roll -= entry.probability;
+            }
+        if (categoryDrops != null)
+            foreach (var entry in categoryDrops)
+            {
+                if (entry == null) continue;
+                if (roll < entry.probability)
+                {
+                    ItemSO item = GetRandomFromCategory(entry.categoryID, entry.tags);
+                    count = item != null ? 1 : 0;
+                    return item;
+                }
+                roll -= entry.probability;
+            }
+        return null;
+    }
+
+    private bool AddDropChance(ref double total, float probability)
+    {
+        if (float.IsNaN(probability) || float.IsInfinity(probability) || probability < 0f || probability > 1f)
+        {
+            Debug.LogWarning("Enemy drop probabilities must be finite values between 0 and 1.", this);
+            return false;
+        }
+        total += probability;
+        return true;
+    }
 
     // Category IDs are zero-based indices into categories. Empty tags allow all items.
     public ItemSO GetRandomFromCategory(int categoryID, IReadOnlyList<ItemTag> tags = null)
@@ -78,7 +156,7 @@ public class ItemDatabaseSO : ScriptableObject, IItemDatabase
         if (item == null) return false;
         if (tags == null || tags.Count == 0) return true;
         for (int i = 0; i < tags.Count; i++)
-            if (item.tag == tags[i]) return true;
+            if (tags[i] == ItemTag.None || item.tag == tags[i]) return true;
         return false;
     }
 

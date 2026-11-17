@@ -103,20 +103,18 @@ public class InventoryManager : MonoBehaviour
     private void OnToggleInventoryPerformed(InputAction.CallbackContext context)
     {
         ToggleInventory();
-        if (IsInventoryOpen)
-            Tutorial.Instance?.ShowTutorial("inventory", "In the inventory, you can view your weapons and other items.\nThe slots at the left are for your weapons. You can move them around or discard them by dragging and dropping.\n");
     }
 
     private void SelectWeaponSlot(int slotIndex)
     {
-        if (stateManager.CurrentState != GameState.Playing)
+        if (!stateManager.IsGameplay)
             return;
         inventoryUIController?.SetEquippedWeapon(slotIndex);
     }
 
     private void OnWeaponScrollPerformed(InputAction.CallbackContext context)
     {
-        if (inventoryUIController == null || stateManager.CurrentState != GameState.Playing)
+        if (inventoryUIController == null || !stateManager.IsGameplay)
             return;
 
         float scrollY = context.ReadValue<Vector2>().y;
@@ -153,8 +151,9 @@ public class InventoryManager : MonoBehaviour
 
     public void OpenInventory()
     {
-        if (inventoryMenuPanel != null && StateManager.Instance.CurrentState == GameState.Playing)
-            StateManager.Instance.RequestState(GameState.Inventory);
+        if (inventoryMenuPanel != null && StateManager.Instance.IsGameplay &&
+            StateManager.Instance.RequestState(GameState.Inventory))
+            Tutorial.RequestTutorial("inventory-basics", "This is your inventory.\nDouble Click: Equip/Unequip\nRight Click: Split");
     }
 
     public void CloseInventory()
@@ -176,7 +175,7 @@ public class InventoryManager : MonoBehaviour
 
     private void PrepareState(GameState state)
     {
-        if (state == GameState.Playing && stateManager.CurrentState == GameState.Inventory)
+        if ((state == GameState.Playing || state == GameState.Boss) && stateManager.CurrentState == GameState.Inventory)
             inventoryUIController?.RefreshUI();
     }
 

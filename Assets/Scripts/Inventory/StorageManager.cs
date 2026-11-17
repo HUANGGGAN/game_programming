@@ -88,7 +88,9 @@ public class StorageManager : MonoBehaviour
             inventoryData == null || storageData == null ||
             slots.Count != InventorySO.universalSlotCount + storageData.SlotCount)
             return false;
-        return stateManager.RequestState(GameState.Storage);
+        if (!stateManager.RequestState(GameState.Storage)) return false;
+        Tutorial.RequestTutorial("storage-basics", "This is your storage box.");
+        return true;
     }
 
     public void Close() => StateManager.Instance.CloseState(GameState.Storage);

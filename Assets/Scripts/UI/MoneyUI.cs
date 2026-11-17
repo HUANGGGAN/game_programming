@@ -10,7 +10,7 @@ public class MoneyUI : MonoBehaviour
     [SerializeField] private TextMeshProUGUI moneyText;
 
     [Header("Format Settings")]
-    [SerializeField] private string prefix = "\u00d7 ";
+    [SerializeField] private string prefix = "x ";
 
     private void OnEnable()
     {

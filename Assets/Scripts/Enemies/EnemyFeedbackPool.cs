@@ -132,6 +132,11 @@ public class EnemyFeedbackPool : MonoBehaviour
 
     private void UpdateBar(EnemyChase enemy)
     {
+        if (!enemy.ShowWorldHealthBar)
+        {
+            ReleaseBar(enemy);
+            return;
+        }
         if (!bars.TryGetValue(enemy, out Bar bar))
         {
             if (healthBarPrefab == null) return;

@@ -4,18 +4,20 @@ using UnityEngine;
 public class BossHealthBar : MonoBehaviour
 {
     [SerializeField] private Boss boss;
+    [SerializeField] private TreeBoss treeBoss;
     [SerializeField] private InventoryManager inventoryManager;
 
     private HealthBar healthBar;
     private CanvasGroup canvasGroup;
-    private float visibleAlpha;
+    [SerializeField, Range(0f, 1f)] private float visibleAlpha = 1f;
 
     private void Awake()
     {
         healthBar = GetComponent<HealthBar>();
         canvasGroup = GetComponent<CanvasGroup>();
-        visibleAlpha = canvasGroup.alpha;
-        if (boss == null)
+        if (boss == null && treeBoss == null)
+            treeBoss = FindFirstObjectByType<TreeBoss>(FindObjectsInactive.Include);
+        if (boss == null && treeBoss == null)
             boss = FindFirstObjectByType<Boss>(FindObjectsInactive.Include);
         if (inventoryManager == null)
             inventoryManager = FindFirstObjectByType<InventoryManager>(FindObjectsInactive.Include);
@@ -30,18 +32,33 @@ public class BossHealthBar : MonoBehaviour
         Refresh();
     }
 
+    public void SetBoss(TreeBoss value)
+    {
+        treeBoss = value;
+        boss = null;
+        if (healthBar != null && canvasGroup != null) Refresh();
+    }
+
+    private void OnEnable()
+    {
+        if (healthBar != null && canvasGroup != null) Refresh();
+    }
+
     private void Refresh()
     {
-        bool visible = boss != null && boss.isActiveAndEnabled && !boss.IsDead && boss.CurrentHealth > 0f &&
+        if (visibleAlpha <= 0f) visibleAlpha = 1f;
+        EnemyChase activeBoss = treeBoss != null ? (EnemyChase)treeBoss : boss;
+        bool dead = treeBoss != null ? treeBoss.IsDead : boss == null || boss.IsDead;
+        bool visible = activeBoss != null && activeBoss.isActiveAndEnabled && !dead && activeBoss.CurrentHealth > 0f &&
             (inventoryManager == null || !inventoryManager.IsInventoryOpen);
         // Hide the visuals while keeping this controller active to detect inventory closing.
         canvasGroup.alpha = visible ? visibleAlpha : 0f;
         healthBar.enabled = visible;
 
-        if (boss != null)
+        if (activeBoss != null)
         {
-            healthBar.UpdateHealth(boss.CurrentHealth, boss.MaxHealth);
-            healthBar.SetShielded(boss.ShieldCount > 0);
+            healthBar.UpdateHealth(activeBoss.CurrentHealth, activeBoss.MaxHealth);
+            healthBar.SetShielded(treeBoss == null && boss != null && boss.ShieldCount > 0);
         }
     }
 

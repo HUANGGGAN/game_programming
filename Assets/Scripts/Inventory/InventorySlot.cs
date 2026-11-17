@@ -16,6 +16,8 @@ public class InventorySlot : MonoBehaviour,
     public InventorySlotType slotType;
 
     [SerializeField] private Image itemIconImage;
+    [SerializeField] private Sprite emptyWeaponIcon;
+    [SerializeField] private Sprite emptyConsumableIcon;
     [SerializeField] private TMP_Text countText;
     [SerializeField] private Color maxStackCountColor = Color.green;
     [SerializeField, Min(0f)] private float descriptionHoverDelay = 0.5f;
@@ -76,9 +78,7 @@ public class InventorySlot : MonoBehaviour,
         }
         else
         {
-            itemIconImage.sprite = null;
-            itemIconImage.color = Color.clear;
-            isEmpty = true;
+            ShowEmptyIcon();
         }
     }
 
@@ -87,13 +87,20 @@ public class InventorySlot : MonoBehaviour,
         slotType = type;
         if (currentItem != null && !CanAccept(currentItem))
         {
-            itemIconImage.sprite = null;
-            itemIconImage.color = Color.clear;
-            isEmpty = true;
             currentItem = null;
             if (countText != null)
                 countText.text = string.Empty;
         }
+        if (currentItem == null)
+            ShowEmptyIcon();
+    }
+
+    private void ShowEmptyIcon()
+    {
+        isEmpty = true;
+        itemIconImage.sprite = slotType == InventorySlotType.Weapon ? emptyWeaponIcon
+            : slotType == InventorySlotType.Consumable ? emptyConsumableIcon : null;
+        itemIconImage.color = itemIconImage.sprite != null ? Color.white : Color.clear;
     }
 
     private void ResolveCountText()
@@ -193,7 +200,7 @@ public class InventorySlot : MonoBehaviour,
         if (itemIconImage.sprite == null)
             return;
 
-        if (isEmpty)
+        if (isEmpty || currentItem == null)
             return;
 
         isDragging = true;

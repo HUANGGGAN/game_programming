@@ -285,7 +285,7 @@ public class Bullet2D : MonoBehaviour
                     other.attachedRigidbody == rb || ricochetContacts.Contains(other))
                     continue;
                 bool obstacle = other.CompareTag(obstacleTag);
-                EnemyChase enemy = other.GetComponentInParent<EnemyChase>();
+                EnemyChase enemy = EnemyChase.FindDamageTarget(other);
                 if (!obstacle && (enemy == null || !enemy.isActiveAndEnabled || enemy.CurrentHealth <= 0f))
                     continue;
                 if (hit.distance > hitDistance || (hit.distance == hitDistance && hitCollider != null && !obstacle))
@@ -391,8 +391,8 @@ public class Bullet2D : MonoBehaviour
                 continue;
 
             bool isObstacle = other.CompareTag(obstacleTag);
-            EnemyChase enemy = other.GetComponentInParent<EnemyChase>();
-            if (!isObstacle && !other.CompareTag("Enemy") && enemy == null)
+            EnemyChase enemy = EnemyChase.FindDamageTarget(other);
+            if (!isObstacle && enemy == null)
                 continue;
 
             Vector2 impactPosition = origin + direction * hit.distance;
@@ -431,7 +431,7 @@ public class Bullet2D : MonoBehaviour
 
     private void HandleImpact(Collider2D other)
     {
-        EnemyChase enemy = other.GetComponentInParent<EnemyChase>();
+        EnemyChase enemy = EnemyChase.FindDamageTarget(other);
         if (enemy != null)
             ApplyDirectHit(enemy);
 

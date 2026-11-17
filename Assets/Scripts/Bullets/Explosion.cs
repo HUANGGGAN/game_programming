@@ -21,7 +21,7 @@ public static class Explosion
         HashSet<EnemyChase> damaged = new HashSet<EnemyChase>();
         foreach (Collider2D collider in Physics2D.OverlapCircleAll(origin, radius))
         {
-            EnemyChase enemy = collider.GetComponentInParent<EnemyChase>();
+            EnemyChase enemy = EnemyChase.FindDamageTarget(collider);
             if (enemy == null || !enemy.isActiveAndEnabled || !damaged.Add(enemy)) continue;
             Vector2 direction = (Vector2)enemy.transform.position - origin;
             if (direction.sqrMagnitude <= Mathf.Epsilon) direction = fallbackDirection;

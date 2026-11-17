@@ -9,6 +9,10 @@ public struct SpawnRequest
     public float maxRadius;
     public float totalPoint;
     public float currentDifficulty;
+    public bool ignoreDifficulty;
+    public float statMultiplier;
+    public IReadOnlyList<GameObject> allowedPrefabs;
+    public System.Func<GameObject, Vector3, bool> isPositionAllowed;
 }
 
 public interface IEnemySpawner

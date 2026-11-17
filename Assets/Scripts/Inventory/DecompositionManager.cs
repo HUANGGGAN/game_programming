@@ -89,7 +89,9 @@ public class DecompositionManager : MonoBehaviour
             slots.Count != InventorySO.universalSlotCount + DecompositionInventorySO.SlotCount)
             return false;
         if (statusText != null) statusText.text = string.Empty;
-        return stateManager.RequestState(GameState.Decomposition);
+        if (!stateManager.RequestState(GameState.Decomposition)) return false;
+        Tutorial.RequestTutorial("decomposition-basics", "You can decompose weapons here.\nMove weapons to the right side.\nGet random weapons from weapon pieces!");
+        return true;
     }
 
     public void Close() => StateManager.Instance.CloseState(GameState.Decomposition);

@@ -63,7 +63,7 @@ public class InventorySO : ScriptableObject
         EnsureDefaults();
         foreach (InventorySlotType type in System.Enum.GetValues(typeof(InventorySlotType)))
             foreach (InventorySlotData slot in GetSlotsForType(type))
-                if (slot.count > 0) acquisitionData.RegisterWeapon(slot.item);
+                if (slot.count > 0) acquisitionData.RegisterItem(slot.item);
     }
 
     public const int universalSlotCount = 12;
@@ -367,7 +367,7 @@ public class InventorySO : ScriptableObject
                 slot.ammoCount = ammoCount;
             givenCount += added;
         }
-        if (givenCount > 0 && acquisitionData != null) acquisitionData.RegisterWeapon(item);
+        if (givenCount > 0 && acquisitionData != null) acquisitionData.RegisterItem(item);
         return givenCount > 0;
     }
 
@@ -396,7 +396,7 @@ public class InventorySO : ScriptableObject
             CopySlotContents(preview.weaponSlots, weaponSlots);
             CopySlotContents(preview.armorSlots, armorSlots);
             CopySlotContents(preview.consumableSlots, consumableSlots);
-            if (acquisitionData != null) acquisitionData.RegisterWeapon(purchasedItem);
+            if (acquisitionData != null) acquisitionData.RegisterItem(purchasedItem);
             return true;
         }
         finally

@@ -8,6 +8,7 @@ public interface IProjectileWeapon
 public interface IProjectilePatternWeapon
 {
     float ProjectileSpread { get; }
+    float ProjectileBurstAngle { get; }
     int ProjectileBurstCount { get; }
 }
 

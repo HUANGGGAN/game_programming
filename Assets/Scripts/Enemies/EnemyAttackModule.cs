@@ -74,12 +74,14 @@ public abstract class EnemyAttackModule : IEnemyAttackModule
 public sealed class EnemyMeleeAttackModule : EnemyAttackModule
 {
     private readonly Action attack;
+    private readonly Action<AttackIndicator> onCompleted;
     public EnemyMeleeAttackModule(EnemyChase owner, NavMeshAgent agent, AttackIndicator indicator,
-        float range, float interval, float duration, Action<Vector2> face, Action attack)
-        : base(owner, agent, indicator, range, interval, duration, face) { this.attack = attack; }
+        float range, float interval, float duration, Action<Vector2> face, Action attack, Action<AttackIndicator> onCompleted = null)
+        : base(owner, agent, indicator, range, interval, duration, face) { this.attack = attack; this.onCompleted = onCompleted; }
     protected override void Perform(Transform target)
     {
         if (target != null && indicator != null && indicator.Contains(target.position)) attack();
+        onCompleted?.Invoke(indicator);
     }
 }
 
@@ -96,10 +98,13 @@ public sealed class EnemyRangedAttackModule : EnemyAttackModule
         if (target == null) return false;
         Vector2 origin = owner.transform.position;
         Vector2 direction = (Vector2)target.position - origin;
-        foreach (RaycastHit2D hit in Physics2D.RaycastAll(origin, direction.normalized, direction.magnitude))
+        float clearance = BulletPool.Instance != null ? BulletPool.Instance.GetEnemyBulletClearanceRadius(bullet) : 0.02f;
+        // Include the projectile's width and starting overlap, not just its center ray.
+        foreach (RaycastHit2D hit in Physics2D.CircleCastAll(origin, clearance, direction.normalized, direction.magnitude))
         {
             Collider2D collider = hit.collider;
-            if (collider == null || collider.GetComponentInParent<EnemyChase>() != null || collider.GetComponentInParent<Player>() != null) continue;
+            if (collider == null || collider.GetComponentInParent<EnemyChase>() != null ||
+                collider.GetComponentInParent<Player>() != null || collider.GetComponentInParent<EnemyBullet>() != null) continue;
             if (collider.CompareTag("BulletBlocker") || (!collider.isTrigger && (obstacles.value & (1 << collider.gameObject.layer)) != 0)) return false;
         }
         return true;
@@ -110,6 +115,6 @@ public sealed class EnemyRangedAttackModule : EnemyAttackModule
         EnemyBullet projectile = BulletPool.Instance.GetEnemyBullet(bullet);
         if (projectile != null)
             projectile.Launch(owner.transform.position, (Vector2)target.position - (Vector2)owner.transform.position,
-                owner, target.position);
+                owner, target.position, owner.SpawnStatMultiplier);
     }
 }

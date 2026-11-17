@@ -20,10 +20,10 @@ public class Boss : EnemyChase
     [SerializeField] private GameObject shieldPrefab;
     [SerializeField, Min(0f)] private float shieldOrbitRadius = 1.5f;
     [SerializeField] private float shieldOrbitSpeed = 90f; // Degrees per second
-    [SerializeField] private Sprite bossShieldSprite;
 
     public event Action Died;
     public bool IsDead { get; private set; }
+    public override bool ShowWorldHealthBar => false;
     public MovingState MovementState { get; private set; }
     public int ShieldCount { get; private set; }
 
@@ -82,10 +82,6 @@ public class Boss : EnemyChase
         {
             int gained = Mathf.FloorToInt(shieldTimer / period);
             shieldTimer %= period;
-            if (gained > 0)
-            {
-                Tutorial.Instance?.ShowTutorial("shield", "The boss has gained a shield! You must break the shield by melee attacking.\nThe boss won't take damage from ranged attacks while the shield is active.", bossShieldSprite);
-            }
             SetShieldCount(Mathf.Min(Mathf.Max(0, maxShieldCount), ShieldCount + gained * 4));
         }
         base.Update();

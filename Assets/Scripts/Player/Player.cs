@@ -11,6 +11,65 @@ public class Player : MonoBehaviour, IEffectSource
     [SerializeField] private HealthBar healthBar;
     [SerializeField] private HealthBar manaBar;
     [SerializeField] private SpriteRenderer playerSpriteRenderer;
+    [SerializeField] private Sprite front;
+    [SerializeField] private Sprite back;
+    [SerializeField] private WeaponHolder weaponHolder;
+    private bool showingFront = true;
+
+    [Header("Damage & Respawn")]
+    [SerializeField] private CanvasGroup damageFlash;
+    [SerializeField, Min(0.01f)] private float damageFlashSpeed = 3f;
+    private float damageFlashRemaining;
+    private Coroutine deathRoutine;
+    private PlayerShooter2D deathShooter;
+    private bool shooterEnabledBeforeDeath;
+    private Color colorBeforeDeath;
+    private Vector3 initialPosition;
+    public bool IsDying { get; private set; }
+    public bool IsGodMode { get; private set; }
+    public event System.Action Died;
+    private readonly HashSet<UnityEngine.Object> movementLocks = new HashSet<UnityEngine.Object>();
+    private RigidbodyConstraints2D constraintsBeforeMovementLock;
+    private bool hasMovementLockConstraints;
+    public bool IsMovementLocked
+    {
+        get
+        {
+            movementLocks.RemoveWhere(owner => owner == null);
+            if (movementLocks.Count == 0) RestoreMovementConstraints();
+            return movementLocks.Count > 0;
+        }
+    }
+
+    public void SetMovementLocked(UnityEngine.Object owner, bool locked)
+    {
+        if (locked)
+        {
+            if (owner == null) return;
+            if (!hasMovementLockConstraints && _rb != null)
+            {
+                constraintsBeforeMovementLock = _rb.constraints;
+                hasMovementLockConstraints = true;
+                _rb.constraints |= RigidbodyConstraints2D.FreezePosition;
+            }
+            movementLocks.Add(owner);
+            EndMeleeDash();
+            ClearKnockback();
+            if (_rb != null) _rb.linearVelocity = Vector2.zero;
+        }
+        else
+        {
+            movementLocks.Remove(owner);
+            if (movementLocks.Count == 0) RestoreMovementConstraints();
+        }
+    }
+
+    private void RestoreMovementConstraints()
+    {
+        if (!hasMovementLockConstraints) return;
+        if (_rb != null) _rb.constraints = constraintsBeforeMovementLock;
+        hasMovementLockConstraints = false;
+    }
 
     [Header("Movement Configuration")]
     [SerializeField] private float moveSpeed = 5.0f; // Movement speed in units/sec
@@ -28,10 +87,11 @@ public class Player : MonoBehaviour, IEffectSource
     private const float MeleeDashSkin = 0.02f;
     private readonly List<RaycastHit2D> meleeDashHits = new List<RaycastHit2D>();
     public bool IsMeleeDashing { get; private set; }
-    public bool CanMeleeDash => isActiveAndEnabled && !isKnockedBack;
+    public bool CanMeleeDash => isActiveAndEnabled && !isKnockedBack && !IsMovementLocked;
 
     public void BeginMeleeDash(Vector2 direction, float distance, float duration)
     {
+        if (IsMovementLocked) return;
         meleeDashDirection = direction.normalized;
         meleeDashRemaining = distance;
         meleeDashTimeRemaining = Mathf.Max(Time.fixedDeltaTime, duration);
@@ -61,6 +121,13 @@ public class Player : MonoBehaviour, IEffectSource
 
     private void Awake()
     {
+        initialPosition = transform.position;
+        if (damageFlash != null)
+        {
+            damageFlash.alpha = 0f;
+            damageFlash.blocksRaycasts = false;
+            damageFlash.interactable = false;
+        }
         // Cache the Rigidbody2D reference
         _rb = GetComponent<Rigidbody2D>();
         _rb.bodyType = RigidbodyType2D.Dynamic;
@@ -72,6 +139,11 @@ public class Player : MonoBehaviour, IEffectSource
 
         if (playerSpriteRenderer != null)
             playerSpriteRenderer.flipX = false;
+
+        if (weaponHolder == null)
+            weaponHolder = GetComponentInChildren<WeaponHolder>(true);
+        showingFront = back == null || playerSpriteRenderer == null || playerSpriteRenderer.sprite != back;
+        weaponHolder?.SetPlayerFacing(playerSpriteRenderer, showingFront);
 
         if (GetComponent<RegionTracker>() == null)
             gameObject.AddComponent<RegionTracker>();
@@ -113,30 +185,63 @@ public class Player : MonoBehaviour, IEffectSource
             yield return null;
 
         Tutorial tutorial = Tutorial.Instance;
-        tutorial.ShowTutorial("start", "Welcome to the tutorial level, don't worry about dying. Pick up various weapons and try to defeat the boss. The game will get harder over time until the boss is defeated, so keep an eye on the time.");
-        tutorial.ShowTutorial("movement", "WASD to move, left click to shoot\nF to interact with objects\n1-3 or mouse wheel to switch weapons\nE to open inventory.");
+        tutorial.ShowTutorial("startup-controls", "Movement: WASD/arrow keys\nInteract: F\nInventory: E\nWeapon: Scroll/1/2/3\nPotion: Z/X/C");
+        tutorial.ShowTutorial("startup-shortcuts", "Map: M\nTeleport to Home: P\nAdd 10 coins: =");
         startupTutorialRoutine = null;
     }
 
     private void Update()
     {
-        if (StateManager.Instance.CurrentState != GameState.Playing)
+        UpdateDamageFlash();
+        if (IsDying) return;
+        if (playerData != null && playerData.currentHealth <= 0f)
+        {
+            BeginDeath();
+            return;
+        }
+        if (!StateManager.Instance.IsGameplay)
         {
             _inputVector = Vector2.zero;
             return;
         }
-        if (Keyboard.current != null && Keyboard.current.spaceKey.wasPressedThisFrame)
+        if (Keyboard.current != null && Keyboard.current.semicolonKey.wasPressedThisFrame)
+        {
+            IsGodMode = !IsGodMode;
+            Debug.Log($"God mode: {(IsGodMode ? "ON" : "OFF")}");
+        }
+        if (Keyboard.current != null && Keyboard.current.equalsKey.wasPressedThisFrame)
             addMoney(10);
+        if (Keyboard.current != null && Keyboard.current.pKey.wasPressedThisFrame)
+        {
+            EndMeleeDash();
+            ClearKnockback();
+            transform.position = initialPosition;
+            _rb.position = initialPosition;
+            _rb.linearVelocity = Vector2.zero;
+            _rb.angularVelocity = 0f;
+            Interactable.ClearSelection();
+            Physics2D.SyncTransforms();
+        }
         Interactable.UpdateInteraction(transform);
         regionTracker?.RefreshRegions();
         if (EffectRuntime.Tick(activeEffects, Time.deltaTime, amount => TakeDamage(amount), ref effectTickElapsed))
             EffectsChanged?.Invoke();
+        if (IsDying) return;
         ReadMovementInput();
         FaceTowardCursor();
     }
 
     private void OnDisable()
     {
+        movementLocks.Clear();
+        RestoreMovementConstraints();
+        if (deathRoutine != null)
+        {
+            StopCoroutine(deathRoutine);
+            deathRoutine = null;
+            RestoreDeathPresentation();
+        }
+        if (damageFlash != null) damageFlash.alpha = 0f;
         EndMeleeDash();
         ClearKnockback();
         _inputVector = Vector2.zero;
@@ -150,6 +255,11 @@ public class Player : MonoBehaviour, IEffectSource
 
     private void FixedUpdate()
     {
+        if (IsDying || IsMovementLocked)
+        {
+            _rb.linearVelocity = Vector2.zero;
+            return;
+        }
         if (IsMeleeDashing)
         {
             if (isKnockedBack || meleeDashRemaining <= 0.0001f || meleeDashTimeRemaining <= 0f)
@@ -188,7 +298,7 @@ public class Player : MonoBehaviour, IEffectSource
         if (isKnockedBack)
             return;
 
-        float effectiveMoveSpeed = moveSpeed * EffectRuntime.GetMovementMultiplier(activeEffects) *
+        float effectiveMoveSpeed = moveSpeed * (IsGodMode ? 5f : 1f) * EffectRuntime.GetMovementMultiplier(activeEffects) *
             (regionTracker != null ? regionTracker.MovementMultiplier : 1f);
         _rb.linearVelocity = _inputVector * effectiveMoveSpeed;
     }
@@ -228,16 +338,86 @@ public class Player : MonoBehaviour, IEffectSource
 
     public bool TakeDamage(float amount)
     {
-        if (playerData == null || amount <= 0f || playerData.currentHealth <= 0f)
+        if (IsGodMode || IsDying || playerData == null || amount <= 0f || playerData.currentHealth <= 0f)
             return false;
 
         playerData.ApplyDamage(amount);
         UpdatePlayerBarsFromData();
+        if (playerData.currentHealth <= 0f) BeginDeath();
+        else damageFlashRemaining = 0.15f;
         return true;
+    }
+
+    private void UpdateDamageFlash()
+    {
+        if (damageFlash == null) return;
+        if (IsDying) { damageFlash.alpha = 0.5f; return; }
+        float target = damageFlashRemaining > 0f ? 0.3f : 0f;
+        damageFlashRemaining = Mathf.Max(0f, damageFlashRemaining - Time.unscaledDeltaTime);
+        damageFlash.alpha = Mathf.MoveTowards(damageFlash.alpha, target, damageFlashSpeed * Time.unscaledDeltaTime);
+    }
+
+    private void BeginDeath()
+    {
+        if (IsDying) return;
+        IsDying = true;
+        movementLocks.Clear();
+        RestoreMovementConstraints();
+        Died?.Invoke();
+        EndMeleeDash();
+        ClearKnockback();
+        ClearEffects();
+        _inputVector = Vector2.zero;
+        _rb.linearVelocity = Vector2.zero;
+        _rb.angularVelocity = 0f;
+        Interactable.ClearSelection();
+        deathShooter = GetComponentInChildren<PlayerShooter2D>(true);
+        if (deathShooter != null)
+        {
+            shooterEnabledBeforeDeath = deathShooter.enabled;
+            deathShooter.enabled = false;
+        }
+        if (playerSpriteRenderer != null)
+        {
+            colorBeforeDeath = playerSpriteRenderer.color;
+            playerSpriteRenderer.color = Color.red;
+        }
+        if (damageFlash != null) damageFlash.alpha = 0.5f;
+        deathRoutine = StartCoroutine(RespawnAfterDeath());
+    }
+
+    private IEnumerator RespawnAfterDeath()
+    {
+        yield return new WaitForSecondsRealtime(1f);
+        Vector3 position = initialPosition;
+        Debug.Log($"{position}");
+        transform.position = position;
+        _rb.position = position;
+        _rb.linearVelocity = Vector2.zero;
+        _rb.angularVelocity = 0f;
+        playerData.Heal(playerData.maxHealth);
+        playerData.RestoreMP(playerData.maxMP);
+        playerData.SetMoney((int)((long)Mathf.Max(0, playerData.money) * 80 / 100));
+        UpdatePlayerBarsFromData();
+        RestoreDeathPresentation();
+        Physics2D.SyncTransforms();
+        regionTracker?.RefreshRegions();
+        deathRoutine = null;
+        Tutorial.RequestTutorial("first-respawn", "After death, you lose 20% of your money.");
+    }
+
+    private void RestoreDeathPresentation()
+    {
+        IsDying = false;
+        damageFlashRemaining = 0f;
+        if (playerSpriteRenderer != null) playerSpriteRenderer.color = colorBeforeDeath;
+        if (deathShooter != null) deathShooter.enabled = shooterEnabledBeforeDeath;
+        deathShooter = null;
     }
 
     public bool TryUseMP(int amount)
     {
+        if (IsGodMode) return true;
         bool success = amount <= 0 || (playerData != null && playerData.TryUseMP(amount));
         if (success)
             UpdatePlayerBarsFromData();
@@ -270,6 +450,7 @@ public class Player : MonoBehaviour, IEffectSource
 
     public void ApplyEffects(EffectDefinition[] effects, System.Action<int, int> restoreAttacker = null, bool stackMatchingLevels = true)
     {
+        if (IsDying) return;
         if (EffectRuntime.Apply(activeEffects, effects, restoreAttacker: restoreAttacker, stackMatchingLevels: stackMatchingLevels))
             EffectsChanged?.Invoke();
     }
@@ -287,7 +468,7 @@ public class Player : MonoBehaviour, IEffectSource
 
     public void ApplyKnockback(Vector2 direction, float force)
     {
-        if (!isActiveAndEnabled || force <= 0f || direction.sqrMagnitude <= Mathf.Epsilon)
+        if (IsDying || IsMovementLocked || !isActiveAndEnabled || force <= 0f || direction.sqrMagnitude <= Mathf.Epsilon)
             return;
 
         if (!isKnockedBack)
@@ -349,6 +530,11 @@ public class Player : MonoBehaviour, IEffectSource
         ));
 
         playerSpriteRenderer.flipX = mouseWorldPosition.x < transform.position.x;
+        showingFront = mouseWorldPosition.y <= transform.position.y;
+        Sprite facingSprite = showingFront ? front : back;
+        if (facingSprite != null)
+            playerSpriteRenderer.sprite = facingSprite;
+        weaponHolder?.SetPlayerFacing(playerSpriteRenderer, showingFront);
     }
 
     public void addMoney(int amount)

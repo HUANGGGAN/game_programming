@@ -19,6 +19,7 @@ public class Region : MonoBehaviour
 {
     [SerializeField] private RegionType regionType = RegionType.Water;
     public RegionType Type => regionType;
+    public void SetType(RegionType type) => regionType = type;
     internal static readonly HashSet<Region> ActiveRegions = new HashSet<Region>();
     private Collider2D[] regionColliders;
     private readonly List<Collider2D> overlaps = new List<Collider2D>();

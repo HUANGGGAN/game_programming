@@ -35,6 +35,15 @@ public class WeaponHolder : MonoBehaviour
         weaponRenderer.sprite = weapon != null ? weapon.icon : null;
     }
 
+    public void SetPlayerFacing(SpriteRenderer playerRenderer, bool showingFront)
+    {
+        if (weaponRenderer == null)
+            weaponRenderer = GetComponentInChildren<SpriteRenderer>();
+        if (weaponRenderer == null || playerRenderer == null) return;
+        weaponRenderer.sortingLayerID = playerRenderer.sortingLayerID;
+        weaponRenderer.sortingOrder = playerRenderer.sortingOrder + (showingFront ? 1 : -1);
+    }
+
     private void AimAtCursor()
     {
         if (Mouse.current == null || mainCamera == null)

@@ -64,6 +64,22 @@ public class AttackIndicator : MonoBehaviour
             localPosition.y >= bounds.min.y && localPosition.y <= bounds.max.y;
     }
 
+    public void GetPath(out Vector2 origin, out Vector2 direction)
+    {
+        EnsureComponents();
+        if (attackRectangle != null && attackRectangle.sprite != null)
+        {
+            Bounds bounds = attackRectangle.localBounds;
+            origin = attackRectangle.transform.TransformPoint(new Vector3(bounds.min.x, bounds.center.y, 0f));
+            direction = ((Vector2)attackRectangle.transform.right).normalized;
+        }
+        else
+        {
+            origin = transform.position;
+            direction = transform.right;
+        }
+    }
+
     public void Hide()
     {
         SetProgress(0f);

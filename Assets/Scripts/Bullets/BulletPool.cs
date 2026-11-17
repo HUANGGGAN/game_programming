@@ -11,14 +11,16 @@ public class BulletPool : MonoBehaviour
     [SerializeField, Min(0)] private int initialEnemyBulletPoolSize = 10;
     private readonly Dictionary<EnemyBulletSO, List<EnemyBullet>> enemyBulletPools = new Dictionary<EnemyBulletSO, List<EnemyBullet>>();
     public bool CanFireEnemyBullet => enemyBulletPrefab != null && isActiveAndEnabled;
+    public float GetEnemyBulletClearanceRadius(EnemyBulletSO data) =>
+        data != null && enemyBulletPrefab != null ? enemyBulletPrefab.GetClearanceRadius(data) : 0.02f;
 
-    public void ScheduleDeathBurst(EnemyBulletSO data, Vector2 origin, EnemyChase owner, float delay)
+    public void ScheduleDeathBurst(EnemyBulletSO data, Vector2 origin, EnemyChase owner, float delay, float damageMultiplier = 1f)
     {
         if (data == null || !CanFireEnemyBullet) return;
-        StartCoroutine(DeathBurst(data, origin, owner, delay));
+        StartCoroutine(DeathBurst(data, origin, owner, delay, damageMultiplier));
     }
 
-    private IEnumerator DeathBurst(EnemyBulletSO data, Vector2 origin, EnemyChase owner, float delay)
+    private IEnumerator DeathBurst(EnemyBulletSO data, Vector2 origin, EnemyChase owner, float delay, float damageMultiplier = 1f)
     {
         if (delay > 0f) yield return new WaitForSeconds(delay);
         if (data == null || !CanFireEnemyBullet) yield break;
@@ -27,7 +29,7 @@ public class BulletPool : MonoBehaviour
             float angle = i * Mathf.PI / 4f;
             Vector2 direction = new Vector2(Mathf.Cos(angle), Mathf.Sin(angle));
             EnemyBullet bullet = GetEnemyBullet(data);
-            if (bullet != null) bullet.Launch(origin, direction, owner);
+            if (bullet != null) bullet.Launch(origin, direction, owner, damageMultiplier: damageMultiplier);
         }
     }
 

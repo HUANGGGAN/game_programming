@@ -13,6 +13,9 @@ public class EnemyChase : MonoBehaviour, IEffectSource
 
     [Header("Enemy Data")]
     [SerializeField] private EnemySO enemyData;
+    protected virtual EnemySO EnemyData => enemyData;
+    protected virtual int MaxEffectLevel => int.MaxValue;
+    protected virtual bool GrantDeathRewards => true;
 
     [Header("Despawn Settings")]
     [SerializeField, Min(0f)] private float maxDistance = 50f;
@@ -23,19 +26,36 @@ public class EnemyChase : MonoBehaviour, IEffectSource
     protected SpriteRenderer EnemySprite { get => spriteRenderer; set => spriteRenderer = value; }
     protected bool IsKnockedBack => isKnockedBack;
     protected virtual void OnKnockbackStarting() { }
+    protected virtual void OnMeleeAttackCompleted(AttackIndicator indicator) { }
     protected virtual float MovementSpeed => speed;
-    protected virtual EnemyAttackType AttackType => enemyData != null ? enemyData.attackType : EnemyAttackType.Melee;
+    protected virtual EnemyAttackType AttackType => EnemyData != null ? EnemyData.attackType : EnemyAttackType.Melee;
     private IEnemyAttackModule attackModule;
 
-    protected virtual float AttackDamage => damage;
+    public float SpawnStatMultiplier { get; private set; } = 1f;
+    public void ConfigureSpawnStats(float multiplier)
+    {
+        SpawnStatMultiplier = float.IsNaN(multiplier) || float.IsInfinity(multiplier) ? 1f : Mathf.Max(0.01f, multiplier);
+    }
+    protected virtual float AttackDamage => Mathf.Round(damage * SpawnStatMultiplier);
     protected virtual float AttackKnockback => knockbackForce;
     protected virtual bool CanReceiveKnockback => true;
     protected virtual bool CanFlashOnHit => true;
+    protected virtual bool CancelAttackOnHit => true;
 
-    public float EnemyPoint => enemyData != null ? enemyData.enemy_point : 1f;
-    public float EnemyDifficulty => enemyData != null ? enemyData.enemy_difficulty : 1f;
+    public float EnemyPoint => EnemyData != null ? EnemyData.enemy_point : 1f;
+    public float EnemyDifficulty => EnemyData != null ? EnemyData.enemy_difficulty : 1f;
     public float CurrentHealth => currentHealth;
     public float MaxHealth => maxHealth;
+    public virtual bool ShowWorldHealthBar => true;
+
+    public static EnemyChase FindDamageTarget(Collider2D hit)
+    {
+        if (hit == null) return null;
+        EnemyChase enemy = hit.GetComponentInParent<EnemyChase>();
+        return enemy != null && enemy.OwnsDamageCollider(hit) ? enemy : null;
+    }
+
+    protected virtual bool OwnsDamageCollider(Collider2D hit) => true;
 
     [Header("Attack Visual")]
     [SerializeField] private AttackIndicator attackIndicator;
@@ -46,14 +66,16 @@ public class EnemyChase : MonoBehaviour, IEffectSource
     [SerializeField, Min(0f)] private float knockbackDuration = 0.12f;
 
     // EnemySO owns shared enemy stats. Defaults keep enemies without data usable.
-    private float attackRange => enemyData != null ? enemyData.attackRange : 1.5f;
-    private float damage => enemyData != null ? enemyData.damage : 10f;
-    private float knockbackForce => enemyData != null ? enemyData.knockbackForce : 4f;
-    private float knockbackResistance => enemyData != null ? enemyData.knockbackResistance : 0f;
-    private float speed => enemyData != null ? enemyData.speed : 2.5f;
-    private float attackInterval => enemyData != null ? enemyData.attackInterval : 1.2f;
-    private float attackDuration => enemyData != null ? enemyData.attackDuration : 0.4f;
-    private float maxHealth => enemyData != null ? enemyData.HP : 35f;
+    private float attackRange => EnemyData != null ? EnemyData.attackRange : 1.5f;
+    private float damage => EnemyData != null ? EnemyData.damage : 10f;
+    private float knockbackForce => EnemyData != null ? EnemyData.knockbackForce : 4f;
+    private float knockbackResistance => EnemyData != null ? EnemyData.knockbackResistance : 0f;
+    private float speed => EnemyData != null ? EnemyData.speed : 2.5f;
+    private float attackInterval => EnemyData != null ? EnemyData.attackInterval : 1.2f;
+    private float attackDuration => EnemyData != null ? EnemyData.attackDuration : 0.4f;
+    protected virtual float HealthCapacity => Mathf.Max(1f, Mathf.Round((EnemyData != null ? EnemyData.HP : 35f) * SpawnStatMultiplier));
+
+    private float maxHealth => HealthCapacity;
 
     private NavMeshAgent agent;
     private SpriteRenderer spriteRenderer;
@@ -114,8 +136,8 @@ public class EnemyChase : MonoBehaviour, IEffectSource
     {
         return AttackType == EnemyAttackType.Ranged
             ? new EnemyRangedAttackModule(this, agent, attackIndicator, attackRange, attackInterval, attackDuration,
-                FaceDirection, enemyData != null ? enemyData.rangedBullet : null, enemyData != null ? enemyData.obstacleLayers : (LayerMask)0)
-            : new EnemyMeleeAttackModule(this, agent, attackIndicator, attackRange, attackInterval, attackDuration, FaceDirection, Attack);
+                FaceDirection, EnemyData != null ? EnemyData.rangedBullet : null, EnemyData != null ? EnemyData.obstacleLayers : (LayerMask)0)
+            : new EnemyMeleeAttackModule(this, agent, attackIndicator, attackRange, attackInterval, attackDuration, FaceDirection, Attack, OnMeleeAttackCompleted);
     }
 
     protected virtual void OnEnable()
@@ -167,12 +189,12 @@ public class EnemyChase : MonoBehaviour, IEffectSource
 
     private void ApplyEnemyVisuals()
     {
-        if (enemyData == null)
+        if (EnemyData == null)
             return;
 
-        if (spriteRenderer != null && enemyData.sprite != null)
-            spriteRenderer.sprite = enemyData.sprite;
-        spriteFacesRightByDefault = enemyData.spriteFacesRightByDefault;
+        if (spriteRenderer != null && EnemyData.sprite != null)
+            spriteRenderer.sprite = EnemyData.sprite;
+        spriteFacesRightByDefault = EnemyData.spriteFacesRightByDefault;
     }
 
     protected virtual void Update()
@@ -200,8 +222,11 @@ public class EnemyChase : MonoBehaviour, IEffectSource
             return;
         }
 
-        if (!agent.isOnNavMesh)
+        if (!agent.enabled || !agent.isOnNavMesh)
+        {
+            CleanupExpiredDamageSources();
             return;
+        }
 
         agent.speed = MovementSpeed * EffectRuntime.GetMovementMultiplier(activeEffects);
         if (attackModule != null && attackModule.IsAttacking)
@@ -364,8 +389,8 @@ public class EnemyChase : MonoBehaviour, IEffectSource
         Player playerComponent = player.GetComponent<Player>();
         if (playerComponent != null)
         {
-            if (playerComponent.TakeDamage(AttackDamage) && enemyData != null)
-                playerComponent.ApplyEffects(enemyData.effects, RestoreEffectResource);
+            if (playerComponent.TakeDamage(AttackDamage) && EnemyData != null)
+                playerComponent.ApplyEffects(EnemyData.effects, RestoreEffectResource);
             Vector2 knockbackDirection = (Vector2)player.position - (Vector2)transform.position;
             playerComponent.ApplyKnockback(knockbackDirection, AttackKnockback);
         }
@@ -413,7 +438,7 @@ public class EnemyChase : MonoBehaviour, IEffectSource
         if (damageAmount <= 0f)
             return false;
 
-        CancelAttack();
+        if (CancelAttackOnHit) CancelAttack();
         // Record the lethal hit's knockback before Die captures the corpse's momentum.
         if (CanReceiveKnockback && knockbackForce > 0f && knockbackDirection.sqrMagnitude > 0f)
         {
@@ -451,10 +476,10 @@ public class EnemyChase : MonoBehaviour, IEffectSource
         return true;
     }
 
-    public void ApplyEffects(EffectDefinition[] effects, float probabilityMultiplier = 1f, System.Action<int, int> restoreAttacker = null)
+    public virtual void ApplyEffects(EffectDefinition[] effects, float probabilityMultiplier = 1f, System.Action<int, int> restoreAttacker = null)
     {
-        if (EffectRuntime.Apply(activeEffects, effects, probabilityMultiplier, enemyData != null ? enemyData.resistances : null,
-            restoreAttacker, !isDying))
+        if (EffectRuntime.Apply(activeEffects, effects, probabilityMultiplier, EnemyData != null ? EnemyData.resistances : null,
+            restoreAttacker, !isDying, maxLevel: MaxEffectLevel))
             EffectsChanged?.Invoke();
     }
 
@@ -482,13 +507,13 @@ public class EnemyChase : MonoBehaviour, IEffectSource
             EffectsChanged?.Invoke();
     }
 
-    private float GetAttackDamageMultiplier(int[] attackAttributes)
+    protected virtual float GetAttackDamageMultiplier(int[] attackAttributes)
     {
-        if (enemyData == null || attackAttributes == null || attackAttributes.Length == 0)
+        if (EnemyData == null || attackAttributes == null || attackAttributes.Length == 0)
             return 1f;
 
-        bool resisted = HasMatchingAttribute(attackAttributes, enemyData.resistances);
-        bool weakened = HasMatchingAttribute(attackAttributes, enemyData.weaknesses);
+        bool resisted = HasMatchingAttribute(attackAttributes, EnemyData.resistances);
+        bool weakened = HasMatchingAttribute(attackAttributes, EnemyData.weaknesses);
         float multiplier = 1f;
         if (resisted)
             multiplier *= 0.25f;
@@ -589,12 +614,14 @@ public class EnemyChase : MonoBehaviour, IEffectSource
         if (isDying)
             return;
         isDying = true;
+        if (GrantDeathRewards) DroppedItemPool.Instance?.Drop(EnemyData, transform.position);
         PerformDeathEffect();
         ClearEffects();
         Player playerComponent = player != null ? player.GetComponentInParent<Player>() : null;
-        int money = enemyData != null ? enemyData.money : 1;
+        int money = EnemyData != null ? EnemyData.money : 1;
+        if (!GrantDeathRewards) money = 0;
         playerComponent?.addMoney(money);
-        if (playerComponent != null && playerComponent.Data != null) playerComponent.Data.AddKill();
+        if (GrantDeathRewards && playerComponent != null && playerComponent.Data != null) playerComponent.Data.AddKill();
         EnemyFeedbackPool.Died(this, money);
         CancelAttack();
         currentHealth = 0f;
@@ -635,14 +662,14 @@ public class EnemyChase : MonoBehaviour, IEffectSource
 
     private void PerformDeathEffect()
     {
-        if (enemyData == null || enemyData.DieEffectID != 1 || enemyData.deathEffectBullet == null ||
+        if (EnemyData == null || EnemyData.DieEffectID != 1 || EnemyData.deathEffectBullet == null ||
             BulletPool.Instance == null || !BulletPool.Instance.CanFireEnemyBullet) return;
 
-        BulletPool.Instance.ScheduleDeathBurst(enemyData.deathEffectBullet, transform.position, this,
-            Mathf.Max(0f, enemyData.deathEffectDelay));
+        BulletPool.Instance.ScheduleDeathBurst(EnemyData.deathEffectBullet, transform.position, this,
+            Mathf.Max(0f, EnemyData.deathEffectDelay), SpawnStatMultiplier);
     }
 
-    private IEnumerator DeactivateAfterDeath()
+    protected virtual IEnumerator DeactivateAfterDeath()
     {
         float elapsed = 0f;
         while (elapsed < DeathBodyDuration)
@@ -661,6 +688,7 @@ public class EnemyChase : MonoBehaviour, IEffectSource
     protected virtual void OnDisable()
     {
         EnemyFeedbackPool.Unregister(this);
+        SpawnStatMultiplier = 1f;
         CancelAttack();
         ClearKnockback();
         if (deathRoutine != null)

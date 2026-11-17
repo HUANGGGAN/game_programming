@@ -9,6 +9,14 @@ public class Chest : Interactable
     [SerializeField] private ItemSO requiredKey;
     [SerializeField, Min(0f)] private float openTime = 2f;
     [SerializeField] private PickableItem itemPrefab;
+    [SerializeField, Tooltip("Item given by this chest. If unassigned, uses the pickup prefab's item.")]
+    private ItemSO item;
+    [Header("Random Item")]
+    [SerializeField] private bool isRandom;
+    [SerializeField] private ItemDatabaseSO itemDatabase;
+    [SerializeField] private System.Collections.Generic.List<ItemDropChance> itemDrops = new System.Collections.Generic.List<ItemDropChance>();
+    [SerializeField] private System.Collections.Generic.List<ItemCategoryDropChance> categoryDrops = new System.Collections.Generic.List<ItemCategoryDropChance>();
+    [Header("UI")]
     [SerializeField] private InventoryUIController inventoryUI;
     [SerializeField] private GameObject progressBarPrefab;
     [SerializeField] private Vector3 progressBarOffset = new Vector3(0f, 0.8f, 0f);
@@ -55,6 +63,8 @@ public class Chest : Interactable
     public override bool TryInteract()
     {
         if (completed || state == ChestState.Opening || !IsInRange(InteractionPlayer) || itemPrefab == null)
+            return false;
+        if (isRandom && itemDatabase == null)
             return false;
 
         if (state == ChestState.Locked)
@@ -141,9 +151,22 @@ public class Chest : Interactable
             return;
 
         completed = true;
-        PickableItem spawnedItem = Instantiate(itemPrefab, transform.position, Quaternion.identity);
-        spawnedItem.gameObject.SetActive(true);
+        int dropCount = 1;
+        ItemSO selectedItem = isRandom
+            ? itemDatabase.GetRandomDrop(itemDrops, categoryDrops, out dropCount) : item;
+        if (!isRandom || selectedItem != null)
+        {
+            PickableItem spawnedItem = Instantiate(itemPrefab, transform.position, Quaternion.identity);
+            if (isRandom)
+                spawnedItem.SetItem(selectedItem, dropCount);
+            else if (selectedItem != null)
+                spawnedItem.SetItem(selectedItem);
+            spawnedItem.gameObject.SetActive(true);
+        }
+        OnOpened(openingPlayer != null ? openingPlayer.GetComponentInParent<Player>() : null);
         gameObject.SetActive(false);
         Destroy(gameObject);
     }
+
+    protected virtual void OnOpened(Player player) { }
 }

@@ -17,7 +17,11 @@ public class EnemySO : ScriptableObject
     [Min(0f)] public float enemy_difficulty = 1f;
     [Min(0)] public int money = 1;
 
-    [Header("Death Effect")]
+    [Header("Item Drops (combined probability must not exceed 1)")]
+    public System.Collections.Generic.List<ItemDropChance> itemDrops = new System.Collections.Generic.List<ItemDropChance>();
+    public System.Collections.Generic.List<ItemCategoryDropChance> categoryDrops = new System.Collections.Generic.List<ItemCategoryDropChance>();
+
+    [Header("Death Bullets")]
     [Tooltip("0: None. 1: Fire enemy bullets in eight directions.")]
     [Range(0, 1)] public int DieEffectID;
     public EnemyBulletSO deathEffectBullet;

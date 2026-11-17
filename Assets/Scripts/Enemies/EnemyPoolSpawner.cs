@@ -22,23 +22,20 @@ public class EnemyPoolSpawner : MonoBehaviour, IEnemySpawner
 
     private void InitializePools()
     {
-        foreach (GameObject prefab in enemyPrefabs)
-        {
-            if (prefab == null || pools.ContainsKey(prefab)) continue;
-            if (prefab.GetComponent<EnemyChase>() == null || prefab.GetComponent<NavMeshAgent>() == null)
-            {
-                Debug.LogWarning($"[EnemyPoolSpawner] {prefab.name} needs EnemyChase and NavMeshAgent.", this);
-                continue;
-            }
+        foreach (GameObject prefab in enemyPrefabs) EnsurePool(prefab);
+    }
 
-            List<GameObject> pool = new List<GameObject>();
-            for (int i = 0; i < initialPoolSizePerType; i++)
-            {
-                GameObject enemy = CreateNewEnemyInstance(prefab);
-                pool.Add(enemy);
-            }
-            pools.Add(prefab, pool);
+    private void EnsurePool(GameObject prefab)
+    {
+        if (prefab == null || pools.ContainsKey(prefab)) return;
+        if (prefab.GetComponent<EnemyChase>() == null || prefab.GetComponent<NavMeshAgent>() == null)
+        {
+            Debug.LogWarning($"[EnemyPoolSpawner] {prefab.name} needs EnemyChase and NavMeshAgent.", this);
+            return;
         }
+        List<GameObject> pool = new List<GameObject>();
+        for (int i = 0; i < initialPoolSizePerType; i++) pool.Add(CreateNewEnemyInstance(prefab));
+        pools.Add(prefab, pool);
     }
 
     private GameObject CreateNewEnemyInstance(GameObject prefab)
@@ -53,6 +50,9 @@ public class EnemyPoolSpawner : MonoBehaviour, IEnemySpawner
         List<GameObject> spawnedEnemies = new List<GameObject>();
         if (request.totalPoint <= 0f || float.IsNaN(request.totalPoint) || float.IsInfinity(request.totalPoint))
             return spawnedEnemies;
+
+        if (request.allowedPrefabs != null)
+            foreach (GameObject prefab in request.allowedPrefabs) EnsurePool(prefab);
 
         int activeEnemyCount = 0;
         foreach (List<GameObject> pool in pools.Values)
@@ -69,9 +69,10 @@ public class EnemyPoolSpawner : MonoBehaviour, IEnemySpawner
         List<GameObject> candidates = new List<GameObject>();
         foreach (GameObject prefab in pools.Keys)
         {
+            if (request.allowedPrefabs != null && !ContainsPrefab(request.allowedPrefabs, prefab)) continue;
             EnemyChase enemy = prefab.GetComponent<EnemyChase>();
             if (enemy.EnemyPoint >= 0.01f && enemy.EnemyPoint <= request.totalPoint &&
-                enemy.EnemyDifficulty <= request.currentDifficulty)
+                (request.ignoreDifficulty || enemy.EnemyDifficulty <= request.currentDifficulty))
                 candidates.Add(prefab);
         }
 
@@ -83,7 +84,7 @@ public class EnemyPoolSpawner : MonoBehaviour, IEnemySpawner
                 break;
 
             GameObject prefab = candidates[Random.Range(0, candidates.Count)];
-            if (!TryFindSpawnPoint(request, prefab.GetComponent<NavMeshAgent>(), out Vector3 position))
+            if (!TryFindSpawnPoint(request, prefab, out Vector3 position))
             {
                 candidates.Remove(prefab);
                 continue;
@@ -91,6 +92,7 @@ public class EnemyPoolSpawner : MonoBehaviour, IEnemySpawner
 
             GameObject enemy = GetInactiveObject(pools[prefab], prefab);
             enemy.transform.position = position;
+            enemy.GetComponent<EnemyChase>().ConfigureSpawnStats(request.statMultiplier > 0f ? request.statMultiplier : 1f);
             enemy.SetActive(true);
             NavMeshAgent agent = enemy.GetComponent<NavMeshAgent>();
             if (!agent.Warp(position))
@@ -107,9 +109,16 @@ public class EnemyPoolSpawner : MonoBehaviour, IEnemySpawner
         return spawnedEnemies;
     }
 
-    private bool TryFindSpawnPoint(SpawnRequest request, NavMeshAgent agent, out Vector3 position)
+    private static bool ContainsPrefab(IReadOnlyList<GameObject> prefabs, GameObject prefab)
+    {
+        for (int i = 0; i < prefabs.Count; i++) if (prefabs[i] == prefab) return true;
+        return false;
+    }
+
+    private bool TryFindSpawnPoint(SpawnRequest request, GameObject prefab, out Vector3 position)
     {
         position = default;
+        NavMeshAgent agent = prefab.GetComponent<NavMeshAgent>();
         NavMeshQueryFilter filter = new NavMeshQueryFilter
         {
             agentTypeID = agent.agentTypeID,
@@ -130,8 +139,8 @@ public class EnemyPoolSpawner : MonoBehaviour, IEnemySpawner
                 continue;
 
             float actualRadius = Vector2.Distance(hit.position, request.centerPosition);
-            if (actualRadius < minRadius || actualRadius > maxRadius)
-                continue;
+            if (actualRadius < minRadius || actualRadius > maxRadius) continue;
+            if (request.isPositionAllowed != null && !request.isPositionAllowed(prefab, hit.position)) continue;
             if (!NavMesh.CalculatePath(hit.position, centerHit.position, filter, path) ||
                 path.status != NavMeshPathStatus.PathComplete)
                 continue;

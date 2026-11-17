@@ -22,11 +22,11 @@ public class PlayerConsumables : MonoBehaviour
         { 7, target => target.ClearPositiveEffects() },
         { 8, target => { target.ClearPositiveEffects(); target.Data.Heal(20f); target.Data.RestoreMP(20); } },
         { 9, target => { target.ClearPositiveEffects(); target.Data.Heal(target.Data.maxHealth); target.Data.RestoreMP(target.Data.maxMP); } },
-        { 10, target => ApplyResistance(target, EffectRuntime.Fire, 1, 30f) },
-        { 11, target => ApplyResistance(target, EffectRuntime.Fire, 2, 45f) },
+        { 10, target => ApplyResistance(target, EffectRuntime.Fire, 1, 60f) },
+        { 11, target => ApplyResistance(target, EffectRuntime.Fire, 2, 60f) },
         { 12, target => ApplyResistance(target, EffectRuntime.Fire, 4, 60f) },
-        { 13, target => ApplyResistance(target, EffectRuntime.Freeze, 1, 30f) },
-        { 14, target => ApplyResistance(target, EffectRuntime.Freeze, 2, 45f) },
+        { 13, target => ApplyResistance(target, EffectRuntime.Freeze, 1, 60f) },
+        { 14, target => ApplyResistance(target, EffectRuntime.Freeze, 2, 60f) },
         { 15, target => ApplyResistance(target, EffectRuntime.Freeze, 4, 60f) }
     };
 

@@ -38,7 +38,7 @@ public static class EffectRuntime
     public const int MPStealing = 8;
 
     public static bool Apply(List<ActiveEffect> activeEffects, EffectDefinition[] definitions, float probabilityMultiplier = 1f, int[] blockedEffectIDs = null,
-        Action<int, int> restoreAttacker = null, bool allowTimedEffects = true, bool stackMatchingLevels = true)
+        Action<int, int> restoreAttacker = null, bool allowTimedEffects = true, bool stackMatchingLevels = true, int maxLevel = int.MaxValue)
     {
         if (activeEffects == null || definitions == null)
             return false;
@@ -59,13 +59,14 @@ public static class EffectRuntime
             if (probability <= 0f || (probability < 1f && UnityEngine.Random.value >= probability))
                 continue;
 
+            int level = Mathf.Clamp(definition.level, 1, Mathf.Max(1, maxLevel));
             // Test the incoming level before merging or applying Fire/Freeze interactions.
-            if (definition.effectID > 0 && IsResisted(activeEffects, definition.effectID, definition.level))
+            if (definition.effectID > 0 && IsResisted(activeEffects, definition.effectID, level))
                 continue;
 
             if (stealing)
             {
-                restoreAttacker?.Invoke(definition.effectID, (int)Math.Min(int.MaxValue, (long)definition.level * 5));
+                restoreAttacker?.Invoke(definition.effectID, (int)Math.Min(int.MaxValue, (long)level * 5));
                 continue;
             }
             if (definition.effectID == Fire)
@@ -73,7 +74,6 @@ public static class EffectRuntime
             else if (definition.effectID == Freeze)
                 changed |= Remove(activeEffects, Fire);
 
-            int level = definition.level;
             float duration = definition.duration;
             // Positive effects upgrade matching levels; resistances only refresh duration.
             while (true)
@@ -84,7 +84,7 @@ public static class EffectRuntime
                     break;
                 duration = Mathf.Max(duration, matching.remainTime);
                 activeEffects.Remove(matching);
-                if (definition.effectID > 0 && stackMatchingLevels && level < int.MaxValue)
+                if (definition.effectID > 0 && stackMatchingLevels && level < Mathf.Max(1, maxLevel))
                     level++;
             }
             activeEffects.Add(new ActiveEffect
@@ -187,9 +187,9 @@ public static class EffectRuntime
             if (highestLevels.TryGetValue(effect.effectID, out ActiveEffect highest) && highest == effect && activeDelta > 0f)
             {
                 if (effect.effectID == Fire || effect.effectID == Bleed || effect.effectID == Shock)
-                    applyDamage?.Invoke(effect.level * activeDelta);
+                    applyDamage?.Invoke(effect.level * activeDelta * 2.0f);
                 if (effect.effectID == Freeze)
-                    applyDamage?.Invoke(effect.level * activeDelta * 0.5f);
+                    applyDamage?.Invoke(effect.level * activeDelta);
             }
                 
 

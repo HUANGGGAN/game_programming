@@ -2,9 +2,12 @@ using UnityEngine;
 
 public class PickableItem : Interactable
 {
+    public event System.Action<PickableItem> PickedUp;
     [SerializeField] private ItemSO item;
     [SerializeField] private int count = 1;
     [SerializeField] private int ammoCount = 0;
+    [SerializeField, TextArea] private string pickupHint = "Press F to pick up";
+    [SerializeField, TextArea] private string inventoryFullHint = "Inventory full";
     [SerializeField] private InventoryUIController inventoryUI;
     [SerializeField, Tooltip("SpriteRenderer on a child object. Automatically found if unassigned.")]
     private SpriteRenderer itemSpriteRenderer;
@@ -13,6 +16,18 @@ public class PickableItem : Interactable
     {
         base.OnEnable();
         UpdateItemSprite();
+    }
+
+    public void SetItem(ItemSO itemData)
+    {
+        item = itemData;
+        UpdateItemSprite();
+    }
+
+    public void SetItem(ItemSO itemData, int itemCount)
+    {
+        count = Mathf.Max(1, itemCount);
+        SetItem(itemData);
     }
 
     private void UpdateItemSprite()
@@ -47,8 +62,8 @@ public class PickableItem : Interactable
     {
         ResolveInventory();
         return inventoryUI != null && inventoryUI.CanGiveItem(item, InventorySlotType.Universal, count)
-            ? "Press F to pick up"
-            : "Inventory full";
+            ? pickupHint
+            : inventoryFullHint;
     }
 
     public override bool TryInteract()
@@ -58,6 +73,7 @@ public class PickableItem : Interactable
             return false;
 
         count -= givenCount;
+        PickedUp?.Invoke(this);
         if (count > 0)
             return true;
 

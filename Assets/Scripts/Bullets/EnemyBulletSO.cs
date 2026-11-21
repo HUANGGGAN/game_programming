@@ -6,6 +6,8 @@ public class EnemyBulletSO : ScriptableObject
     [Header("Visuals & Identification")]
     public string bulletId;       // Used by pooler to distinguish bullet pools
     public Sprite bulletSprite;
+    [Tooltip("Keep the prefab angle instead of aligning with the firing direction.")]
+    public bool preserveAngle = false;
     [Tooltip("Scale of the bullet image only; does not affect its collider.")]
     public Vector2 imageScale = Vector2.one;
     [Min(0)] public int ParticleID = 0; // 0: no particle effect on deactivation

@@ -9,6 +9,10 @@ public class IceStatue : Interactable
     [SerializeField, Min(0f)] private float holdRadius = 2f;
     [SerializeField, Min(0f)] private float holdTime = 3f;
 
+    [SerializeField] private GameObject progressBarPrefab;
+    [SerializeField] private Vector3 progressBarOffset = new Vector3(0f, 0.8f, 0f);
+    [SerializeField, Min(0f)] private float progressBarScale = 1f;
+    private ProgressBar progressBar;
     private IceStatuePuzzle puzzle;
     private Vector3 lowestPosition;
     private Sprite activeIcon;
@@ -49,7 +53,7 @@ public class IceStatue : Interactable
 
     public void Initialize(IceStatuePuzzle owner) => puzzle = owner;
 
-    public override string GetHint() => charging ? "Stay near the statue" : "Press F to deactivate";
+    public override string GetHint() => charging ? "Stay near the statue" : $"Press {GameInput.Label(GameBinding.Interact)} to deactivate";
 
     public override bool TryInteract()
     {
@@ -62,6 +66,12 @@ public class IceStatue : Interactable
         holdingPlayer = player;
         elapsed = 0f;
         charging = true;
+        EnsureProgressBar();
+        if (progressBar != null)
+        {
+            progressBar.SetProgress(0f);
+            progressBar.SetVisible(true);
+        }
     }
 
     // The puzzle only ticks nearby statues, including their final descent.
@@ -88,6 +98,7 @@ public class IceStatue : Interactable
             // Hold time begins once the statue reaches its highest position.
             if (currentHeight < maximum) return;
             elapsed += deltaTime;
+            if (progressBar != null) progressBar.SetProgress(holdTime <= 0f ? 1f : elapsed / holdTime);
             if (elapsed >= Mathf.Max(0f, holdTime)) puzzle.CompleteDeactivation(this);
         }
         else if (!IsDeactivated && currentHeight == target)
@@ -110,9 +121,32 @@ public class IceStatue : Interactable
         if (statueRenderer != null) statueRenderer.sprite = activeIcon;
     }
 
+    private void EnsureProgressBar()
+    {
+        if (progressBar != null || progressBarPrefab == null)
+            return;
+
+        GameObject canvasObject = new GameObject("Statue Progress Canvas", typeof(RectTransform), typeof(Canvas));
+        canvasObject.transform.SetParent(transform, false);
+        canvasObject.transform.localPosition = progressBarOffset;
+        canvasObject.transform.localRotation = Quaternion.identity;
+        canvasObject.transform.localScale = Vector3.one * (0.01f * progressBarScale);
+        Canvas canvas = canvasObject.GetComponent<Canvas>();
+        canvas.renderMode = RenderMode.WorldSpace;
+        canvas.sortingOrder = short.MaxValue;
+        GameObject visual = Instantiate(progressBarPrefab, canvasObject.transform, false);
+        visual.transform.localPosition = Vector3.zero;
+        visual.transform.localRotation = Quaternion.identity;
+        visual.transform.localScale = Vector3.one;
+        progressBar = visual.GetComponent<ProgressBar>();
+        if (progressBar == null)
+            progressBar = visual.AddComponent<ProgressBar>();
+    }
+
     private void CancelDeactivation()
     {
         charging = false;
+        if (progressBar != null) progressBar.SetVisible(false);
         elapsed = 0f;
         holdingPlayer = null;
     }

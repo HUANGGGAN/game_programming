@@ -15,16 +15,17 @@ MonoBehaviour:
   type: 2
   currency: {fileID: 0}
   currencyIcon: {fileID: 8486161389605743706, guid: 52f57f18ca5a5d6ac9917afd465db94a, type: 3}
-  price: 1
+  price: 50
   object:
-    item: {fileID: 11400000, guid: 0ec0bd055d6c80322a7c2dcd4d5b4837, type: 2}
-    count: 5
+    item: {fileID: 11400000, guid: fd441f9ef61a5b3aaa49a739742b975e, type: 2}
+    count: 1
     ammoCount: 0
     attackModeIndex: -1
   objectIcon: {fileID: 0}
   objectName: 
   buyOneAtOnce: 0
   description: 
+  SpecialID: 0
   isRandom: 0
   randomCategories: []
   randomTags: 

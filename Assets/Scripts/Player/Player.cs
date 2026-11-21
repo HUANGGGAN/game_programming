@@ -13,8 +13,11 @@ public class Player : MonoBehaviour, IEffectSource
     [SerializeField] private SpriteRenderer playerSpriteRenderer;
     [SerializeField] private Sprite front;
     [SerializeField] private Sprite back;
+    [SerializeField] private Sprite waterFront;
+    [SerializeField] private Sprite waterBack;
     [SerializeField] private WeaponHolder weaponHolder;
     private bool showingFront = true;
+    private int lastAttackFacingFrame = -1;
 
     [Header("Damage & Respawn")]
     [SerializeField] private CanvasGroup damageFlash;
@@ -28,6 +31,7 @@ public class Player : MonoBehaviour, IEffectSource
     public bool IsDying { get; private set; }
     public bool IsGodMode { get; private set; }
     public event System.Action Died;
+    public event System.Action TeleportedHome;
     private readonly HashSet<UnityEngine.Object> movementLocks = new HashSet<UnityEngine.Object>();
     private RigidbodyConstraints2D constraintsBeforeMovementLock;
     private bool hasMovementLockConstraints;
@@ -73,6 +77,7 @@ public class Player : MonoBehaviour, IEffectSource
 
     [Header("Movement Configuration")]
     [SerializeField] private float moveSpeed = 5.0f; // Movement speed in units/sec
+    [SerializeField, Min(1f)] private float runSpeedMultiplier = 1.5f;
 
     [Header("Knockback")]
     [SerializeField, Min(0f)] private float knockbackDuration = 0.12f;
@@ -181,7 +186,7 @@ public class Player : MonoBehaviour, IEffectSource
     {
         // Allow scene initialization to finish, then also handle a controller enabled later.
         yield return null;
-        while (Tutorial.Instance == null || !Tutorial.Instance.isActiveAndEnabled)
+        while (SceneLoader.IsLoading || Tutorial.Instance == null || !Tutorial.Instance.isActiveAndEnabled)
             yield return null;
 
         Tutorial tutorial = Tutorial.Instance;
@@ -204,15 +209,17 @@ public class Player : MonoBehaviour, IEffectSource
             _inputVector = Vector2.zero;
             return;
         }
-        if (Keyboard.current != null && Keyboard.current.semicolonKey.wasPressedThisFrame)
+        if (GameInput.Pressed(GameBinding.GodMode))
         {
             IsGodMode = !IsGodMode;
             Debug.Log($"God mode: {(IsGodMode ? "ON" : "OFF")}");
         }
-        if (Keyboard.current != null && Keyboard.current.equalsKey.wasPressedThisFrame)
-            addMoney(10);
-        if (Keyboard.current != null && Keyboard.current.pKey.wasPressedThisFrame)
+        if (GameInput.Pressed(GameBinding.AddCoin))
+            addMoney(100);
+        if (GameInput.Pressed(GameBinding.Teleport))
         {
+            // Release encounter-owned movement locks and camera control before moving home.
+            TeleportedHome?.Invoke();
             EndMeleeDash();
             ClearKnockback();
             transform.position = initialPosition;
@@ -298,7 +305,8 @@ public class Player : MonoBehaviour, IEffectSource
         if (isKnockedBack)
             return;
 
-        float effectiveMoveSpeed = moveSpeed * (IsGodMode ? 5f : 1f) * EffectRuntime.GetMovementMultiplier(activeEffects) *
+        bool isRunning = GameInput.Held(GameBinding.Run);
+        float effectiveMoveSpeed = moveSpeed * (isRunning ? runSpeedMultiplier : 1f) * (IsGodMode ? 5f : 1f) * EffectRuntime.GetMovementMultiplier(activeEffects) *
             (regionTracker != null ? regionTracker.MovementMultiplier : 1f);
         _rb.linearVelocity = _inputVector * effectiveMoveSpeed;
     }
@@ -310,21 +318,21 @@ public class Player : MonoBehaviour, IEffectSource
         _inputVector = Vector2.zero;
 
         // Horizontal Movement
-        if (Keyboard.current.aKey.isPressed || Keyboard.current.leftArrowKey.isPressed)
+        if (GameInput.Held(GameBinding.Left) || Keyboard.current.leftArrowKey.isPressed)
         {
             _inputVector.x -= 1f;
         }
-        if (Keyboard.current.dKey.isPressed || Keyboard.current.rightArrowKey.isPressed)
+        if (GameInput.Held(GameBinding.Right) || Keyboard.current.rightArrowKey.isPressed)
         {
             _inputVector.x += 1f;
         }
 
         // Vertical Movement
-        if (Keyboard.current.wKey.isPressed || Keyboard.current.upArrowKey.isPressed)
+        if (GameInput.Held(GameBinding.Up) || Keyboard.current.upArrowKey.isPressed)
         {
             _inputVector.y += 1f;
         }
-        if (Keyboard.current.sKey.isPressed || Keyboard.current.downArrowKey.isPressed)
+        if (GameInput.Held(GameBinding.Down) || Keyboard.current.downArrowKey.isPressed)
         {
             _inputVector.y -= 1f;
         }
@@ -397,7 +405,8 @@ public class Player : MonoBehaviour, IEffectSource
         _rb.angularVelocity = 0f;
         playerData.Heal(playerData.maxHealth);
         playerData.RestoreMP(playerData.maxMP);
-        playerData.SetMoney((int)((long)Mathf.Max(0, playerData.money) * 80 / 100));
+        if (GameOptions.DeathPenalty)
+            playerData.SetMoney((int)((long)Mathf.Max(0, playerData.money) * 80 / 100));
         UpdatePlayerBarsFromData();
         RestoreDeathPresentation();
         Physics2D.SyncTransforms();
@@ -519,6 +528,11 @@ public class Player : MonoBehaviour, IEffectSource
 
     private void FaceTowardCursor()
     {
+        // Refresh the region-specific sprite even while standing still.
+        SetFacing(showingFront);
+        bool attemptingAttack = Mouse.current != null && Mouse.current.leftButton.isPressed;
+        if (!attemptingAttack && lastAttackFacingFrame != Time.frameCount && _inputVector.y != 0f)
+            SetFacing(_inputVector.y <= 0f);
         if (Mouse.current == null || mainCamera == null || playerSpriteRenderer == null)
             return;
 
@@ -530,9 +544,26 @@ public class Player : MonoBehaviour, IEffectSource
         ));
 
         playerSpriteRenderer.flipX = mouseWorldPosition.x < transform.position.x;
-        showingFront = mouseWorldPosition.y <= transform.position.y;
+        if (attemptingAttack)
+            FaceAttack(mouseWorldPosition);
+    }
+
+    public void FaceAttack(Vector2 targetPosition)
+    {
+        lastAttackFacingFrame = Time.frameCount;
+        SetFacing(targetPosition.y <= transform.position.y);
+    }
+
+    private void SetFacing(bool faceFront)
+    {
+        showingFront = faceFront;
         Sprite facingSprite = showingFront ? front : back;
-        if (facingSprite != null)
+        if (regionTracker != null && regionTracker.IsInWater)
+        {
+            Sprite waterSprite = showingFront ? waterFront : waterBack;
+            if (waterSprite != null) facingSprite = waterSprite;
+        }
+        if (facingSprite != null && playerSpriteRenderer != null)
             playerSpriteRenderer.sprite = facingSprite;
         weaponHolder?.SetPlayerFacing(playerSpriteRenderer, showingFront);
     }

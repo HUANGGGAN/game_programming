@@ -92,6 +92,8 @@ MonoBehaviour:
   slotIndex: 0
   slotType: 0
   itemIconImage: {fileID: 525474374677235358}
+  emptyWeaponIcon: {fileID: 2222896094826061351, guid: 5855711ba821ddecbad352ab2e9fc349, type: 3}
+  emptyConsumableIcon: {fileID: 3473359137553555466, guid: d9d2c8f94a533e9b6998eba2ac69e395, type: 3}
   countText: {fileID: 8056794540663139694}
   maxStackCountColor: {r: 0, g: 1, b: 0, a: 1}
   descriptionHoverDelay: 0.5

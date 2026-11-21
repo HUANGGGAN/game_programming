@@ -118,9 +118,10 @@ internal static class ProjectileAttackExecutor
             float shotDamage = CriticalAttack.RollDamage(
                 damage,
                 bulletData.critRate,
-                bulletData.critMul);
+                bulletData.critMul, out bool isCritical);
             bullet.transform.position = origin;
             bullet.Attacker = attacker;
+            bullet.IsCritical = isCritical;
             bullet.Launch(shotDirection, shotDamage, speed, effectProbabilityMultiplier, targetPosition);
             firedAny = true;
         }

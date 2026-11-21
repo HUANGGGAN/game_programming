@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f22712a39be00187d950d83a05b49ea1, type: 3}
   m_Name: HealPotionL
   m_EditorClassIdentifier: Assembly-CSharp::ConsumableSO
-  itemName: Heal Potion
+  itemName: Heal Potion L
   itemID: 0
   rarity: 4
-  icon: {fileID: -355163865283990380, guid: 87812dfce34b0500f8f89ec40283ad89, type: 3}
+  icon: {fileID: -8441638022856692957, guid: 421b3cb6893fb1b25931ca0e3297bc3f, type: 3}
   maxStackSize: 5
   tag: 0
-  description: Add 20 HP
+  description: Restore all HP
   minPiece: 0
   maxPiece: 0
   id: 3

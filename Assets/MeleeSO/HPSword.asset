@@ -18,7 +18,7 @@ MonoBehaviour:
   icon: {fileID: 7276151456091001111, guid: 51d94f95e1aee8cbeb79d8dec10a11ec, type: 3}
   maxStackSize: 1
   tag: 1
-  description: 
+  description: Steal HP from enemies
   minPiece: 0
   maxPiece: 0
   shootInterval: 0.6
@@ -30,7 +30,7 @@ MonoBehaviour:
   attackType: 0
   attackRadius: 1
   attackCount: 1
-  attackRange: 2.5
+  attackRange: 3
   attackAngle: 90
   attackDamage: 16
   attackDuration: 0.1
@@ -42,6 +42,6 @@ MonoBehaviour:
   effects:
   - effectID: 7
     duration: 0
-    probability: 0.3
+    probability: 0.4
     level: 1
   attackAttributes: 

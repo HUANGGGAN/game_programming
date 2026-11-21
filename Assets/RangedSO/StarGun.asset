@@ -18,10 +18,10 @@ MonoBehaviour:
   icon: {fileID: 2583222161152059464, guid: f091614d457ed764f84dd792a4298854, type: 3}
   maxStackSize: 1
   tag: 1
-  description: 
+  description: Have fun with this gun~
   minPiece: 0
   maxPiece: 0
-  shootInterval: 0.2
+  shootInterval: 0.1
   MPCost: 2
   consumeAmmo: 0
   hasLimitedAmmo: 0
@@ -29,5 +29,6 @@ MonoBehaviour:
   capacity: 48
   reloadTime: 1.5
   spread: 20
+  burstAngle: 10
   burstCount: 1
   bulletData: {fileID: 11400000, guid: 86760893c4ea18a099dbb1857142385b, type: 2}

@@ -109,11 +109,11 @@ public class EnemyFeedbackPool : MonoBehaviour
         if (pool != null && pool.isActiveAndEnabled) pool.ReleaseBar(enemy);
     }
 
-    public static void Damaged(EnemyChase enemy, float amount)
+    public static void Damaged(EnemyChase enemy, float amount, bool isCritical = false, int[] attackAttributes = null)
     {
         if (Instance == null || !Instance.isActiveAndEnabled) return;
         Instance.UpdateBar(enemy);
-        Instance.ShowDamage(enemy.transform.position, amount);
+        Instance.ShowDamage(enemy.transform.position, amount, isCritical, attackAttributes);
     }
 
     public static void Died(EnemyChase enemy, int money)
@@ -148,10 +148,20 @@ public class EnemyFeedbackPool : MonoBehaviour
         if (bar.fill != null) bar.fill.fillAmount = enemy.MaxHealth > 0f ? Mathf.Clamp01(enemy.CurrentHealth / enemy.MaxHealth) : 0f;
     }
 
-    private void ShowDamage(Vector3 position, float amount)
+    [Header("Damage Number Colors")]
+    [SerializeField] private Color normalDamageColor = Color.white;
+    [SerializeField] private Color criticalDamageColor = Color.yellow;
+    [SerializeField] private Color fireDamageColor = new Color(1f, 0.35f, 0.1f, 1f);
+    [SerializeField] private Color frostDamageColor = new Color(0.3f, 0.8f, 1f, 1f);
+
+    private void ShowDamage(Vector3 position, float amount, bool isCritical, int[] attackAttributes)
     {
         if (damageNumberPrefab == null) return;
         TMP_Text text = freeNumbers.Count > 0 ? freeNumbers.Dequeue() : CreateNumber();
+        text.color = isCritical ? criticalDamageColor
+            : attackAttributes != null && System.Array.IndexOf(attackAttributes, EffectRuntime.Fire) >= 0 ? fireDamageColor
+            : attackAttributes != null && System.Array.IndexOf(attackAttributes, EffectRuntime.Freeze) >= 0 ? frostDamageColor
+            : normalDamageColor;
         text.text = amount.ToString("0.#");
         text.transform.position = position + damageNumberOffset;
         text.gameObject.SetActive(true);
@@ -162,7 +172,7 @@ public class EnemyFeedbackPool : MonoBehaviour
     private void ShowCoins(Vector3 position, int amount)
     {
         if (coinPrefab == null || coinDestination == null || amount <= 0) return;
-        int count = Mathf.Min(amount, Mathf.Max(1, maxCoinsPerDeath));
+        int count = Mathf.Min(1 + (amount - 1) / 4, Mathf.Max(1, maxCoinsPerDeath));
         for (int i = 0; i < count; i++)
         {
             Image image = freeCoins.Count > 0 ? freeCoins.Dequeue() : CreateCoin();

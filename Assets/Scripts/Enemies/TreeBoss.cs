@@ -70,10 +70,10 @@ public partial class TreeBoss : EnemyChase
     }
 
     public override bool TakeDamage(float amount, Vector2 direction, float force, int sourceId,
-        float sourceDuration, int[] attributes = null, EnemyDamageKind damageKind = EnemyDamageKind.Other)
+        float sourceDuration, int[] attributes = null, EnemyDamageKind damageKind = EnemyDamageKind.Other, bool isCritical = false)
     {
         if (!combatEnabled || IsDead) return false;
-        return base.TakeDamage(amount, direction, force, sourceId, sourceDuration, attributes, damageKind);
+        return base.TakeDamage(amount, direction, force, sourceId, sourceDuration, attributes, damageKind, isCritical);
     }
 
     protected override void Die()

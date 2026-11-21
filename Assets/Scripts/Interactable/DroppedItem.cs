@@ -54,7 +54,7 @@ public class DroppedItem : Interactable
     {
         ResolveInventory();
         return inventoryUI != null && inventoryUI.CanGiveItem(item, InventorySlotType.Universal, count)
-            ? "Press F to pick up" : "Inventory full";
+            ? $"Press {GameInput.Label(GameBinding.Interact)} to pick up" : "Inventory full";
     }
 
     public override bool TryInteract()

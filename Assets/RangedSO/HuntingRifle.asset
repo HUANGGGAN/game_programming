@@ -19,8 +19,8 @@ MonoBehaviour:
   maxStackSize: 1
   tag: 0
   description: 
-  minPiece: 0
-  maxPiece: 0
+  minPiece: 15
+  maxPiece: 25
   shootInterval: 0.75
   MPCost: 2
   consumeAmmo: 1
@@ -29,5 +29,6 @@ MonoBehaviour:
   capacity: 7
   reloadTime: 1.6
   spread: 0
+  burstAngle: 10
   burstCount: 1
   bulletData: {fileID: 11400000, guid: dca8888ebb6cac27e83009bd78528d41, type: 2}

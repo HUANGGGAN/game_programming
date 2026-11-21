@@ -242,7 +242,7 @@ public class ShopManager : MonoBehaviour
             offer.SpecialID == 0 && !offer.isRandom && offer.@object?.item != null
                 ? offer.@object.item.itemName
                 : offer.objectName);
-        SetText(root, "DescriptionText", offer.description);
+        SetText(root, "DescriptionText", offer.Description);
         Sprite currencyIcon = offer.currencyIcon != null ? offer.currencyIcon : offer.currency?.icon;
         SetImage(root, "PlayerOwnPanel/PriceFrame/PriceImage", currencyIcon);
         SetImage(root, "PurchaseButton/PriceFrame/PriceImage", currencyIcon);

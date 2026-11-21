@@ -14,12 +14,43 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemySO
   sprite: {fileID: -5362292703166988329, guid: 2921685be28110360be8f9db7fe1bf52, type: 3}
   spriteFacesRightByDefault: 1
-  effects: []
-  resistances: 
-  weaknesses: 
-  enemy_point: 1
-  enemy_difficulty: 1
-  money: 1
+  effects:
+  - effectID: 2
+    duration: 3
+    probability: 0.3
+    level: 1
+  - effectID: 5
+    duration: 1
+    probability: 0.3
+    level: 2
+  resistances: 05000000
+  weaknesses: 01000000
+  enemy_point: 4
+  enemy_difficulty: 4
+  money: 12
+  itemDrops:
+  - item: {fileID: 11400000, guid: 5866e0b260acfc8e0a2a0533005006cb, type: 2}
+    probability: 0.06
+    count: 52
+  - item: {fileID: 11400000, guid: d6ea3a4312081f1b386018b6e68f22df, type: 2}
+    probability: 0.15
+    count: 24
+  - item: {fileID: 11400000, guid: 5af4ffb9b2252530da945a1aa0cad79d, type: 2}
+    probability: 0.03
+    count: 1
+  - item: {fileID: 11400000, guid: ca375aa7e28c8337ca8c036068d7b71b, type: 2}
+    probability: 0.02
+    count: 1
+  categoryDrops:
+  - categoryID: 1
+    probability: 0.03
+    tags: 04000000
+  - categoryID: 2
+    probability: 0.02
+    tags: 04000000
+  - categoryID: 6
+    probability: 0.05
+    tags: 
   DieEffectID: 0
   deathEffectBullet: {fileID: 0}
   deathEffectDelay: 0.2
@@ -28,12 +59,12 @@ MonoBehaviour:
   obstacleLayers:
     serializedVersion: 2
     m_Bits: 0
-  attackRange: 1.2
-  damage: 2
-  knockbackForce: 3
-  attackInterval: 0.8
-  attackDuration: 0.2
+  attackRange: 1.5
+  damage: 9
+  knockbackForce: 4
+  attackInterval: 0.9
+  attackDuration: 0.15
   attackAttributes: 
-  speed: 2
-  HP: 20
+  speed: 3
+  HP: 60
   knockbackResistance: 0

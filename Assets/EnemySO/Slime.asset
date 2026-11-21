@@ -19,7 +19,21 @@ MonoBehaviour:
   weaknesses: 
   enemy_point: 1
   enemy_difficulty: 1
-  money: 1
+  money: 2
+  itemDrops:
+  - item: {fileID: 11400000, guid: 698988ad1135bdd91a9c8b7fdf0693b6, type: 2}
+    probability: 0.12
+    count: 24
+  - item: {fileID: 11400000, guid: 5866e0b260acfc8e0a2a0533005006cb, type: 2}
+    probability: 0.06
+    count: 12
+  - item: {fileID: 11400000, guid: a64665effa0df68a08a510abea0f616a, type: 2}
+    probability: 0.025
+    count: 1
+  categoryDrops:
+  - categoryID: 5
+    probability: 0.05
+    tags: 
   DieEffectID: 0
   deathEffectBullet: {fileID: 0}
   deathEffectDelay: 0.2
@@ -35,5 +49,5 @@ MonoBehaviour:
   attackDuration: 0.2
   attackAttributes: 
   speed: 2
-  HP: 20
+  HP: 16
   knockbackResistance: 0

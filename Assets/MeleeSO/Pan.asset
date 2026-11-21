@@ -14,13 +14,13 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::MeleeSO
   itemName: Pan
   itemID: 3
-  rarity: 1
+  rarity: 2
   icon: {fileID: 5148381696236788057, guid: 1186b10d1e3317bb0b89393fb20b71a8, type: 3}
   maxStackSize: 1
   tag: 1
   description: 
-  minPiece: 0
-  maxPiece: 0
+  minPiece: 15
+  maxPiece: 25
   shootInterval: 0.5
   MPCost: 0
   consumeAmmo: 0

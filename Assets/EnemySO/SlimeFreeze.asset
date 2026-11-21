@@ -19,25 +19,48 @@ MonoBehaviour:
     duration: 3
     probability: 0.75
     level: 1
-  resistances: 
-  weaknesses: 
+  resistances: 05000000
+  weaknesses: 01000000
   enemy_point: 1
   enemy_difficulty: 1
-  money: 1
+  money: 4
+  itemDrops:
+  - item: {fileID: 11400000, guid: 698988ad1135bdd91a9c8b7fdf0693b6, type: 2}
+    probability: 0.06
+    count: 48
+  - item: {fileID: 11400000, guid: 5866e0b260acfc8e0a2a0533005006cb, type: 2}
+    probability: 0.12
+    count: 12
+  - item: {fileID: 11400000, guid: d6ea3a4312081f1b386018b6e68f22df, type: 2}
+    probability: 0.06
+    count: 12
+  - item: {fileID: 11400000, guid: a64665effa0df68a08a510abea0f616a, type: 2}
+    probability: 0.015
+    count: 1
+  - item: {fileID: 11400000, guid: 5af4ffb9b2252530da945a1aa0cad79d, type: 2}
+    probability: 0.015
+    count: 1
+  categoryDrops:
+  - categoryID: 2
+    probability: 0.015
+    tags: 04000000
+  - categoryID: 5
+    probability: 0.05
+    tags: 
   DieEffectID: 1
   deathEffectBullet: {fileID: 11400000, guid: 6bafe2770fec688b7bef82b429643024, type: 2}
-  deathEffectDelay: 0.5
+  deathEffectDelay: 1
   attackType: 0
   rangedBullet: {fileID: 0}
   obstacleLayers:
     serializedVersion: 2
     m_Bits: 0
   attackRange: 1.2
-  damage: 2
+  damage: 4
   knockbackForce: 3
   attackInterval: 0.8
   attackDuration: 0.2
   attackAttributes: 
   speed: 2
-  HP: 20
+  HP: 35
   knockbackResistance: 0

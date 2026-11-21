@@ -14,16 +14,18 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::RandomBulletSO
   bulletId: 0
   bulletSprite: {fileID: 0}
+  preserveAngle: 0
   ParticleID: 0
   tint: {r: 1, g: 1, b: 1, a: 1}
   spinningSpeed: 0
   colliderSize: {x: 0.2, y: 0.2}
-  damage: 10
+  damage: 14
   speed: 15
   lifetime: 3
   isPiercing: 0
   bulletMode: 0
   isExplosive: 0
+  explosionParticleId: 0
   explosionRadius: 2
   knockbackForce: 5
   explosiveDamage: 20
@@ -33,9 +35,13 @@ MonoBehaviour:
   attackAttributes: 
   bullets:
   - {fileID: 11400000, guid: 29164aaac2ffa442593a1bcddea367f8, type: 2}
-  - {fileID: 11400000, guid: 2b2179bdfc5f26e76bf9e12af7c2e400, type: 2}
   - {fileID: 11400000, guid: 959b5414f32351a629235c254fd390c3, type: 2}
+  - {fileID: 11400000, guid: 2b2179bdfc5f26e76bf9e12af7c2e400, type: 2}
+  - {fileID: 11400000, guid: 4654b21892d5be7c186e483f48b8d3ae, type: 2}
+  - {fileID: 11400000, guid: c64327edf5ad7b2f0b13dd158e779522, type: 2}
   prob:
+  - 1
+  - 1
   - 1
   - 1
   - 1

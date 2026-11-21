@@ -13,17 +13,19 @@ MonoBehaviour:
   m_Name: StarGunBullet2
   m_EditorClassIdentifier: Assembly-CSharp::BulletSO
   bulletId: 0
-  bulletSprite: {fileID: 6143703599972156183, guid: 595223120a12cd8889146cf48609dde4, type: 3}
+  bulletSprite: {fileID: 7095517312020913376, guid: 7016504c46cfaa9c0962a5b305942961, type: 3}
+  preserveAngle: 0
   ParticleID: 0
   tint: {r: 1, g: 1, b: 1, a: 1}
   spinningSpeed: 180
   colliderSize: {x: 0.2, y: 0.2}
-  damage: 7
+  damage: 12
   speed: 8
   lifetime: 2
   isPiercing: 5
   bulletMode: 0
   isExplosive: 0
+  explosionParticleId: 0
   explosionRadius: 2
   knockbackForce: 5
   explosiveDamage: 20

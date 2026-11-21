@@ -67,7 +67,7 @@ MonoBehaviour:
   maxRange: 50
   endpointParticleID: 4
   endpointGlowPrefab: {fileID: 0}
-  damage: 2
+  damage: 4
   knockbackForce: 0.1
   effects: []
   attackAttributes: 05000000

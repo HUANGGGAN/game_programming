@@ -123,15 +123,28 @@ public class StorageManager : MonoBehaviour
     {
         if (source == null || source.Manager != this || StorageSlot.DraggedSlot != null ||
             stateManager == null || stateManager.CurrentState != GameState.Storage) return false;
-        foreach (StorageSlot destination in slots)
+        InventorySlotData sourceData = GetSlot(source.IsStorage, source.Index);
+        if (sourceData == null || sourceData.item == null || sourceData.count <= 0) return false;
+        bool moved = false;
+        // Merge partial stacks before placing the remaining items in empty slots.
+        for (int pass = 0; pass < 2 && sourceData.count > 0; pass++)
         {
-            if (destination.IsStorage == source.IsStorage) continue;
-            InventorySlotData data = GetSlot(destination.IsStorage, destination.Index);
-            if (data == null || data.item != null || !CanMove(source, destination)) continue;
-            Move(source, destination);
-            return true;
+            foreach (StorageSlot destination in slots)
+            {
+                if (destination.IsStorage == source.IsStorage || !CanMove(source, destination)) continue;
+                InventorySlotData data = GetSlot(destination.IsStorage, destination.Index);
+                if (data == null || (pass == 0 ? data.item != sourceData.item : data.item != null)) continue;
+                if (!InventorySlotData.TryStackInto(sourceData, data)) continue;
+                moved = true;
+                if (sourceData.count == 0) break;
+            }
         }
-        return false;
+        if (moved)
+        {
+            Refresh();
+            inventoryUI?.RefreshUI();
+        }
+        return moved;
     }
 
     public bool SplitStack(StorageSlot source)

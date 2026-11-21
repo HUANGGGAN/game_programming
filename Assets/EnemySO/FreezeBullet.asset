@@ -14,7 +14,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyBulletSO
   bulletId: 0
   bulletSprite: {fileID: 3454003943689393941, guid: 82a0763b9f5c2e143bc9c3da52aabb13, type: 3}
-  imageScale: {x: 0.2, y: 0.2}
+  preserveAngle: 1
+  imageScale: {x: 0.6, y: 0.6}
   ParticleID: 0
   tint: {r: 1, g: 1, b: 1, a: 1}
   spinningSpeed: 0
@@ -31,7 +32,11 @@ MonoBehaviour:
   explosiveDamage: 20
   effects:
   - effectID: 5
-    duration: 3
+    duration: 7
     probability: 1
     level: 1
+  - effectID: 5
+    duration: 3
+    probability: 0.4
+    level: 2
   attackAttributes: 

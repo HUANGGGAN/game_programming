@@ -124,15 +124,28 @@ public class DecompositionManager : MonoBehaviour
     {
         if (source == null || source.Manager != this || DecompositionSlot.DraggedSlot != null ||
             stateManager == null || stateManager.CurrentState != GameState.Decomposition) return false;
-        foreach (DecompositionSlot destination in slots)
+        InventorySlotData sourceData = GetSlot(source.IsDecomposition, source.Index);
+        if (sourceData == null || sourceData.item == null || sourceData.count <= 0) return false;
+        bool moved = false;
+        // Merge partial stacks before placing the remaining items in empty slots.
+        for (int pass = 0; pass < 2 && sourceData.count > 0; pass++)
         {
-            if (destination.IsDecomposition == source.IsDecomposition) continue;
-            InventorySlotData data = GetSlot(destination.IsDecomposition, destination.Index);
-            if (data == null || data.item != null || !CanMove(source, destination)) continue;
-            Move(source, destination);
-            return true;
+            foreach (DecompositionSlot destination in slots)
+            {
+                if (destination.IsDecomposition == source.IsDecomposition || !CanMove(source, destination)) continue;
+                InventorySlotData data = GetSlot(destination.IsDecomposition, destination.Index);
+                if (data == null || (pass == 0 ? data.item != sourceData.item : data.item != null)) continue;
+                if (!InventorySlotData.TryStackInto(sourceData, data)) continue;
+                moved = true;
+                if (sourceData.count == 0) break;
+            }
         }
-        return false;
+        if (moved)
+        {
+            Refresh();
+            inventoryUI?.RefreshUI();
+        }
+        return moved;
     }
 
     public bool SplitStack(DecompositionSlot source)

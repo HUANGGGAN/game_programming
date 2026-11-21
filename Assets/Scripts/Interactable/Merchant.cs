@@ -4,7 +4,7 @@ public class Merchant : Interactable
 {
     [SerializeField] private ShopManager shopManager;
 
-    public override string GetHint() => "Press F to shop";
+    public override string GetHint() => $"Press {GameInput.Label(GameBinding.Interact)} to shop";
 
     public override bool TryInteract()
     {

@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using Unity.Cinemachine;
+using UnityEngine.Rendering.Universal;
 
 public class BossManager : MonoBehaviour
 {
@@ -13,7 +14,8 @@ public class BossManager : MonoBehaviour
     [SerializeField, Tooltip("Existing scene object activated when TreeBoss dies.")]
     private GameObject treasure;
     [SerializeField] private Vector2 treeArenaCenter = new Vector2(-135f, 14.5f);
-    [SerializeField, Min(0.01f)] private float treeArenaWidth = 30f;
+    [SerializeField, Min(0.01f), Tooltip("Exact visible arena width in world units. Pixel Perfect zoom is suspended during the encounter.")]
+    private float treeArenaWidth = 30f;
     [SerializeField, Min(0f)] private float awakeningDuration = 2f;
     [SerializeField, Min(0f)] private float awakeningCameraShake = 0.12f;
     [SerializeField] private GameObject sealDoor;
@@ -23,6 +25,8 @@ public class BossManager : MonoBehaviour
     private EncounterState state;
     private CinemachineBrain brain;
     private Camera outputCamera;
+    private PixelPerfectCamera pixelPerfectCamera;
+    private bool restorePixelPerfect;
     private CinemachineCamera arenaCamera;
     private CinemachineBlenderSettings originalBlends;
     private CinemachineBlenderSettings encounterBlends;
@@ -38,7 +42,10 @@ public class BossManager : MonoBehaviour
     {
         outputCamera = Camera.main;
         if (outputCamera != null)
+        {
             brain = outputCamera.GetComponent<CinemachineBrain>();
+            pixelPerfectCamera = outputCamera.GetComponent<PixelPerfectCamera>();
+        }
         if (playerCamera == null)
             playerCamera = FindFirstObjectByType<CinemachineCamera>();
 
@@ -50,6 +57,7 @@ public class BossManager : MonoBehaviour
         }
 
         state = EncounterState.Sleeping;
+        EnsurePixelPerfectExtension(playerCamera);
         if (treasure != null) treasure.SetActive(false);
         treeBoss.Died += OnBossDied;
         treeBoss.CheckpointReached += OnCheckpointReached;
@@ -58,13 +66,25 @@ public class BossManager : MonoBehaviour
         BossEncounterTrigger trigger = bossTrigger.GetComponent<BossEncounterTrigger>();
         if (trigger == null) trigger = bossTrigger.gameObject.AddComponent<BossEncounterTrigger>();
         trigger.Initialize(this);
+        ResolveBossPanel();
         if (bossPanel != null)
         {
-            foreach (BossHealthBar bar in bossPanel.GetComponentsInChildren<BossHealthBar>(true))
-                bar.SetBoss(treeBoss);
             bossPanel.SetActive(false);
         }
         sealDoor.SetActive(false);
+    }
+
+    private void ResolveBossPanel()
+    {
+        if (bossPanel == null)
+        {
+            // The shared UI may belong to Main while this manager belongs to an additive map scene.
+            BossHealthBar bar = FindFirstObjectByType<BossHealthBar>(FindObjectsInactive.Include);
+            if (bar != null) bossPanel = bar.gameObject;
+        }
+        if (bossPanel != null)
+            foreach (BossHealthBar bar in bossPanel.GetComponentsInChildren<BossHealthBar>(true))
+                bar.SetBoss(treeBoss);
     }
 
     private void Update()
@@ -76,19 +96,24 @@ public class BossManager : MonoBehaviour
     public void ActivateEncounter()
     {
         if (!isActiveAndEnabled || state != EncounterState.Sleeping || brain == null || playerCamera == null) return;
+        ResolveBossPanel();
         encounterPlayer = FindFirstObjectByType<Player>();
         encounterStateManager = StateManager.Instance;
         if (encounterPlayer == null || encounterPlayer.IsDying || !encounterStateManager.IsGameplay ||
             encounterStateManager.CurrentState == GameState.Boss || !encounterStateManager.RequestState(GameState.Boss)) return;
         ownsBossState = true;
         encounterPlayer.Died += OnPlayerDied;
+        encounterPlayer.TeleportedHome += OnPlayerTeleportedHome;
+        // Pixel Perfect quantizes/clamps the lens size, so it cannot represent an arbitrary arena width.
+        restorePixelPerfect = pixelPerfectCamera != null && pixelPerfectCamera.enabled;
+        if (restorePixelPerfect) pixelPerfectCamera.enabled = false;
         GameObject cameraObject = new GameObject("Boss Arena Camera");
         cameraObject.SetActive(false);
         arenaCamera = cameraObject.AddComponent<CinemachineCamera>();
         arenaCamera.OutputChannel = playerCamera.OutputChannel;
         arenaCamera.Lens = playerCamera.Lens;
         // Default horizontal bounds: -150 to -120.
-        cameraObject.transform.position = new Vector3(treeArenaCenter.x, treeArenaCenter.y, outputCamera.transform.position.z);
+        cameraObject.transform.position = SnapCameraPosition(new Vector3(treeArenaCenter.x, treeArenaCenter.y, outputCamera.transform.position.z));
         cameraObject.transform.rotation = Quaternion.identity;
         UpdateArenaLens();
         arenaCamera.Priority = (int)playerCamera.Priority + 1;
@@ -115,7 +140,7 @@ public class BossManager : MonoBehaviour
         {
             treeBoss.SetPresentationAlpha(elapsed / awakeningDuration);
             if (Time.deltaTime > 0f)
-                arenaCamera.transform.position = cameraPosition + (Vector3)(Random.insideUnitCircle * awakeningCameraShake);
+                arenaCamera.transform.position = SnapCameraPosition(cameraPosition + (Vector3)(Random.insideUnitCircle * awakeningCameraShake));
             yield return null;
             elapsed += Time.deltaTime;
         }
@@ -130,9 +155,25 @@ public class BossManager : MonoBehaviour
     {
         LensSettings lens = arenaCamera.Lens;
         lens.ModeOverride = LensSettings.OverrideModes.Orthographic;
-        // Also keep the skills' Y=7..22 arena visible on wide screens.
-        lens.OrthographicSize = Mathf.Max(7.5f, treeArenaWidth * 0.5f / Mathf.Max(0.01f, outputCamera.aspect));
+        lens.OrthographicSize = Mathf.Max(0.01f, treeArenaWidth) * 0.5f / Mathf.Max(0.01f, outputCamera.aspect);
         arenaCamera.Lens = lens;
+    }
+
+    private void EnsurePixelPerfectExtension(CinemachineCamera camera)
+    {
+        if (pixelPerfectCamera == null || !pixelPerfectCamera.isActiveAndEnabled) return;
+        CinemachinePixelPerfect extension = camera.GetComponent<CinemachinePixelPerfect>();
+        if (extension == null) extension = camera.gameObject.AddComponent<CinemachinePixelPerfect>();
+        extension.enabled = true;
+    }
+
+    private Vector3 SnapCameraPosition(Vector3 position)
+    {
+        if (pixelPerfectCamera == null || (!pixelPerfectCamera.isActiveAndEnabled && !restorePixelPerfect)) return position;
+        float ppu = Mathf.Max(1, pixelPerfectCamera.assetsPPU);
+        position.x = Mathf.Round(position.x * ppu) / ppu;
+        position.y = Mathf.Round(position.y * ppu) / ppu;
+        return position;
     }
 
     private void ConfigureEncounterBlends()
@@ -173,6 +214,25 @@ public class BossManager : MonoBehaviour
         if (!ownsBossState) return;
         ownsBossState = false;
         if (encounterStateManager != null) encounterStateManager.CloseState(GameState.Boss);
+    }
+
+    private void OnPlayerTeleportedHome()
+    {
+        if (state == EncounterState.Active || state == EncounterState.Awakening)
+        {
+            OnPlayerDied();
+            return;
+        }
+        // Teleporting during the boss death animation must also release the arena camera.
+        if (state != EncounterState.Dying) return;
+        if (encounterRoutine != null) StopCoroutine(encounterRoutine);
+        encounterRoutine = null;
+        StopCheckpointShake();
+        if (treeBoss != null) treeBoss.gameObject.SetActive(false);
+        if (bossPanel != null) bossPanel.SetActive(false);
+        if (sealDoor != null) sealDoor.SetActive(false);
+        state = EncounterState.Died;
+        RestoreCameraSettings();
     }
 
     private void OnPlayerDied()
@@ -216,7 +276,7 @@ public class BossManager : MonoBehaviour
         while (elapsed < 1f && arenaCamera != null)
         {
             if (Time.deltaTime > 0f)
-                arenaCamera.transform.position = checkpointCameraPosition + (Vector3)(Random.insideUnitCircle * awakeningCameraShake);
+                arenaCamera.transform.position = SnapCameraPosition(checkpointCameraPosition + (Vector3)(Random.insideUnitCircle * awakeningCameraShake));
             yield return null;
             elapsed += Time.deltaTime;
         }
@@ -254,6 +314,10 @@ public class BossManager : MonoBehaviour
 
     private void RestoreCameraSettings()
     {
+        if (encounterPlayer != null) encounterPlayer.TeleportedHome -= OnPlayerTeleportedHome;
+        if (restorePixelPerfect && pixelPerfectCamera != null)
+            pixelPerfectCamera.enabled = true;
+        restorePixelPerfect = false;
         if (brain != null && brain.CustomBlends == encounterBlends)
             brain.CustomBlends = originalBlends;
         if (encounterBlends != null)

@@ -13,19 +13,11 @@ MonoBehaviour:
   m_Name: PlayerInventoryData
   m_EditorClassIdentifier: Assembly-CSharp::InventorySO
   slots:
-  - item: {fileID: 11400000, guid: 19aa54060d9ff7133b840258a9bb6c69, type: 2}
-    count: 1
+  - item: {fileID: 11400000, guid: 698988ad1135bdd91a9c8b7fdf0693b6, type: 2}
+    count: 42
     ammoCount: 0
     attackModeIndex: -1
-  - item: {fileID: 11400000, guid: 296685651f25499c6a57d0f93c3afd14, type: 2}
-    count: 10
-    ammoCount: 0
-    attackModeIndex: -1
-  - item: {fileID: 11400000, guid: 8369980fbdb58f06c97820c30d236337, type: 2}
-    count: 1
-    ammoCount: 0
-    attackModeIndex: -1
-  - item: {fileID: 11400000, guid: 21621542819cfa555b776939b422dca8, type: 2}
+  - item: {fileID: 11400000, guid: 7575a7ce492ab24e9b3070871f144ee9, type: 2}
     count: 1
     ammoCount: 0
     attackModeIndex: -1
@@ -33,11 +25,7 @@ MonoBehaviour:
     count: 1
     ammoCount: 0
     attackModeIndex: -1
-  - item: {fileID: 11400000, guid: 9b4f5edc0dc1e2fdf9f4cf1495a11c32, type: 2}
-    count: 1
-    ammoCount: 0
-    attackModeIndex: -1
-  - item: {fileID: 11400000, guid: 4b27838c02f5b35e28dc2c829d028563, type: 2}
+  - item: {fileID: 11400000, guid: 5af4ffb9b2252530da945a1aa0cad79d, type: 2}
     count: 1
     ammoCount: 0
     attackModeIndex: -1
@@ -45,32 +33,44 @@ MonoBehaviour:
     count: 1
     ammoCount: 0
     attackModeIndex: -1
-  - item: {fileID: 11400000, guid: 21621542819cfa555b776939b422dca8, type: 2}
+  - item: {fileID: 11400000, guid: b6766445919ff2b82a70b301c541a029, type: 2}
     count: 1
     ammoCount: 0
     attackModeIndex: -1
-  - item: {fileID: 11400000, guid: 6579d80a3b05930429762367ea991f49, type: 2}
-    count: 1
-    ammoCount: 0
-    attackModeIndex: 1
   - item: {fileID: 0}
     count: 0
     ammoCount: 0
     attackModeIndex: -1
-  - item: {fileID: 11400000, guid: 71a98ca430d18b91e9fec7c0185fff13, type: 2}
-    count: 1
+  - item: {fileID: 0}
+    count: 0
     ammoCount: 0
-    attackModeIndex: 1
+    attackModeIndex: -1
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+    attackModeIndex: -1
   weaponSlots:
-  - item: {fileID: 11400000, guid: e63ce1139123deb199fbe6f55f4fe6fd, type: 2}
-    count: 1
-    ammoCount: 0
-    attackModeIndex: 1
-  - item: {fileID: 11400000, guid: 54361bd885db51356a989211713c03ec, type: 2}
+  - item: {fileID: 11400000, guid: d85ce87dd3474aa8589e1405ad67abb3, type: 2}
     count: 1
     ammoCount: 0
     attackModeIndex: -1
-  - item: {fileID: 11400000, guid: 9b4f5edc0dc1e2fdf9f4cf1495a11c32, type: 2}
+  - item: {fileID: 11400000, guid: 9e43986532809bd899502270ec8f5e1a, type: 2}
+    count: 1
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 11400000, guid: 8369980fbdb58f06c97820c30d236337, type: 2}
     count: 1
     ammoCount: 0
     attackModeIndex: -1
@@ -92,12 +92,12 @@ MonoBehaviour:
     ammoCount: 0
     attackModeIndex: -1
   consumableSlots:
-  - item: {fileID: 0}
-    count: 0
+  - item: {fileID: 11400000, guid: ba18b6115c2aea237b7a4198d3afd7f3, type: 2}
+    count: 1
     ammoCount: 0
     attackModeIndex: -1
-  - item: {fileID: 11400000, guid: ba18b6115c2aea237b7a4198d3afd7f3, type: 2}
-    count: 3
+  - item: {fileID: 0}
+    count: 0
     ammoCount: 0
     attackModeIndex: -1
   - item: {fileID: 0}

@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::EnemyBulletSO
   bulletId: 0
   bulletSprite: {fileID: -2035558491043738193, guid: e8d8da5bd3c5a228b969fcad5dba89fa, type: 3}
-  imageScale: {x: 1, y: 1}
+  imageScale: {x: 0.2, y: 0.2}
   ParticleID: 0
   tint: {r: 1, g: 1, b: 1, a: 1}
   spinningSpeed: 0

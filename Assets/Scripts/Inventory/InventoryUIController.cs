@@ -23,7 +23,7 @@ public class InventoryUIController : MonoBehaviour
         if (MPText != null) MPText.text = $"{playerData.currentMP}/{playerData.maxMP}";
         if (CoinText != null) CoinText.text = playerData.money.ToString();
         if (KillText != null) KillText.text = playerData.killCount.ToString();
-        if (UniqueWeaponText != null) UniqueWeaponText.text = $"{playerData.uniqueWeapon}/34";
+        if (UniqueWeaponText != null) UniqueWeaponText.text = $"{playerData.uniqueWeapon}/35";
     }
 
     public InventorySO InventoryData => inventoryData;
@@ -90,6 +90,8 @@ public class InventoryUIController : MonoBehaviour
         if (isInitialized)
             return;
         isInitialized = true;
+        // Begin with empty inventory and equipment before registering owned items or creating UI.
+        if (inventoryData != null) inventoryData.Clear();
         if (playerData == null)
         {
             Player player = FindFirstObjectByType<Player>(FindObjectsInactive.Include);

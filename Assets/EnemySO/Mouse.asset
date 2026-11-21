@@ -17,9 +17,29 @@ MonoBehaviour:
   effects: []
   resistances: 
   weaknesses: 
-  enemy_point: 1
-  enemy_difficulty: 1
-  money: 1
+  enemy_point: 2
+  enemy_difficulty: 2
+  money: 4
+  itemDrops:
+  - item: {fileID: 11400000, guid: 698988ad1135bdd91a9c8b7fdf0693b6, type: 2}
+    probability: 0.02
+    count: 6
+  - item: {fileID: 11400000, guid: 5866e0b260acfc8e0a2a0533005006cb, type: 2}
+    probability: 0.04
+    count: 12
+  - item: {fileID: 11400000, guid: d6ea3a4312081f1b386018b6e68f22df, type: 2}
+    probability: 0.02
+    count: 6
+  - item: {fileID: 11400000, guid: a64665effa0df68a08a510abea0f616a, type: 2}
+    probability: 0.006
+    count: 1
+  - item: {fileID: 11400000, guid: 5af4ffb9b2252530da945a1aa0cad79d, type: 2}
+    probability: 0.003
+    count: 1
+  categoryDrops:
+  - categoryID: 5
+    probability: 0.05
+    tags: 
   DieEffectID: 0
   deathEffectBullet: {fileID: 0}
   deathEffectDelay: 0.2
@@ -29,11 +49,11 @@ MonoBehaviour:
     serializedVersion: 2
     m_Bits: 0
   attackRange: 1.2
-  damage: 2
-  knockbackForce: 3
-  attackInterval: 0.8
-  attackDuration: 0.2
+  damage: 4
+  knockbackForce: 2.3
+  attackInterval: 0.45
+  attackDuration: 0.15
   attackAttributes: 
-  speed: 2
-  HP: 20
+  speed: 4.5
+  HP: 24
   knockbackResistance: 0

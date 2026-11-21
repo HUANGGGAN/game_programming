@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.InputSystem;
 
 public class Tutorial : MonoBehaviour
 {
@@ -47,10 +48,11 @@ public class Tutorial : MonoBehaviour
 
     private void Update()
     {
+        if (SceneLoader.IsLoading) return;
         foreach (Request request in pendingRequests.Values)
             ShowTutorial(request.id, request.text, request.image);
         pendingRequests.Clear();
-        if (IsShowing && stateManager != null && stateManager.CurrentState != GameState.Tutorial)
+        if (IsShowing && stateManager != null && stateManager.CurrentState != GameState.Tutorial && !stateManager.IsPausedTutorial)
             Close();
         if (IsShowing || requests.Count == 0) return;
         stateManager = StateManager.Instance;
@@ -64,8 +66,21 @@ public class Tutorial : MonoBehaviour
     private readonly HashSet<string> queuedIds = new HashSet<string>();
     private readonly Queue<Request> requests = new Queue<Request>();
     private StateManager stateManager;
+    private int displayedFrame;
     public bool IsShowing { get; private set; }
     public bool TutorialsSkipped { get; private set; }
+
+    private void LateUpdate()
+    {
+        // Handle dismissal after menu input so this key cannot also close the underlying panel.
+        if (!IsShowing || displayedFrame == Time.frameCount || stateManager == null ||
+            stateManager.CurrentState != GameState.Tutorial) return;
+        if (GameInput.Pressed(GameBinding.Inventory) || GameInput.Pressed(GameBinding.Leave))
+        {
+            GameInput.Consume();
+            Continue();
+        }
+    }
 
     private void Awake()
     {
@@ -108,6 +123,7 @@ public class Tutorial : MonoBehaviour
 
     private void Display(Request request)
     {
+        displayedFrame = Time.frameCount;
         IsShowing = true;
         readTutorials.Add(request.id);
         tutorialText.text = request.text ?? string.Empty;

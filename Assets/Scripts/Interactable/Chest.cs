@@ -20,6 +20,7 @@ public class Chest : Interactable
     [SerializeField] private InventoryUIController inventoryUI;
     [SerializeField] private GameObject progressBarPrefab;
     [SerializeField] private Vector3 progressBarOffset = new Vector3(0f, 0.8f, 0f);
+    [SerializeField, Min(0f)] private float progressBarScale = 1f;
 
     private ChestState state;
     private Transform openingPlayer;
@@ -52,7 +53,7 @@ public class Chest : Interactable
             return string.Empty;
         if (state == ChestState.Locked)
             return $"You need {requiredKey.itemName} to open ({KeyCount()}/1)";
-        return "Press F to open";
+        return $"Press {GameInput.Label(GameBinding.Interact)} to open";
     }
 
     public override Color GetHintColor()
@@ -116,7 +117,7 @@ public class Chest : Interactable
         canvasObject.transform.SetParent(transform, false);
         canvasObject.transform.localPosition = progressBarOffset;
         canvasObject.transform.localRotation = Quaternion.identity;
-        canvasObject.transform.localScale = Vector3.one * 0.01f;
+        canvasObject.transform.localScale = Vector3.one * (0.01f * progressBarScale);
         Canvas canvas = canvasObject.GetComponent<Canvas>();
         canvas.renderMode = RenderMode.WorldSpace;
         canvas.sortingOrder = short.MaxValue;

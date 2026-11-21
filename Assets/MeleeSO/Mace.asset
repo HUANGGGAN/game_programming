@@ -18,9 +18,11 @@ MonoBehaviour:
   icon: {fileID: 8612480020434785557, guid: d384fff777becef42b5a02482c439935, type: 3}
   maxStackSize: 1
   tag: 0
-  description: 
-  minPiece: 0
-  maxPiece: 0
+  description: 'A: Normal attack
+
+    B: Spin attack'
+  minPiece: 15
+  maxPiece: 25
   shootInterval: 1
   MPCost: 0
   consumeAmmo: 1

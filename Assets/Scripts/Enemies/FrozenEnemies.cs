@@ -7,6 +7,7 @@ public class FrozenEnemies : EnemyChase
     [Tooltip("Images for 81–120 HP, 41–80 HP, and 1–40 HP, in that order.")]
     [SerializeField] private Sprite[] stageImages = new Sprite[3];
     [SerializeField] private FrozenEnemyGroup enemyGroup;
+    [SerializeField] private GameObject iceGround;
     public event Action<FrozenEnemies> Broken;
     public bool IsBroken { get; private set; }
     protected override EnemySO EnemyData => null;
@@ -40,9 +41,9 @@ public class FrozenEnemies : EnemyChase
     }
 
     public override bool TakeDamage(float damageAmount, Vector2 direction, float force, int sourceId,
-        float sourceDuration, int[] attackAttributes = null, EnemyDamageKind damageKind = EnemyDamageKind.Other)
+        float sourceDuration, int[] attackAttributes = null, EnemyDamageKind damageKind = EnemyDamageKind.Other, bool isCritical = false)
     {
-        bool damaged = base.TakeDamage(damageAmount, direction, force, sourceId, sourceDuration, attackAttributes, damageKind);
+        bool damaged = base.TakeDamage(damageAmount, direction, force, sourceId, sourceDuration, attackAttributes, damageKind, isCritical);
         if (damaged && !IsBroken) RefreshImage();
         return damaged;
     }
@@ -58,6 +59,7 @@ public class FrozenEnemies : EnemyChase
     {
         if (IsBroken) return;
         IsBroken = true;
+        if (iceGround != null) iceGround.SetActive(true);
         base.Die();
         if (enemyGroup != null) enemyGroup.Release();
         Broken?.Invoke(this);

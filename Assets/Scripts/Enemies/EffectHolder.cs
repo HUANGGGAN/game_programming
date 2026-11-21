@@ -36,7 +36,11 @@ public class EffectHolder : MonoBehaviour
             foreach (ActiveEffect effect in enemy.ActiveEffects)
             {
                 if (effect == null || effect.level <= 0 || effect.remainTime <= 0f || !shownIDs.Add(effect.effectID)) continue;
-                Sprite image = lastTable.GetImage(effect.effectID);
+                int level = effect.level;
+                foreach (ActiveEffect candidate in enemy.ActiveEffects)
+                    if (candidate != null && candidate.effectID == effect.effectID && candidate.remainTime > 0f)
+                        level = Mathf.Max(level, candidate.level);
+                Sprite image = lastTable.GetImage(effect.effectID, level);
                 if (image == null) continue;
                 while (index < icons.Length && icons[index] == null) index++;
                 if (index >= icons.Length) break;

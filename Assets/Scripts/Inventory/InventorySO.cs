@@ -8,6 +8,35 @@ public class InventorySlotData
     public int ammoCount;
     public int attackModeIndex = -1;
 
+    public static bool TryStackInto(InventorySlotData source, InventorySlotData destination)
+    {
+        if (source == null || destination == null || source == destination || source.item == null || source.count <= 0)
+            return false;
+        bool empty = destination.item == null;
+        if (!empty && (destination.item != source.item ||
+            (source.item is MultiWeaponSO && (source.ammoCount != destination.ammoCount ||
+                source.attackModeIndex != destination.attackModeIndex)))) return false;
+        int capacity = Mathf.Max(1, source.item.maxStackSize);
+        int amount = Mathf.Min(source.count, Mathf.Max(0, capacity - (empty ? 0 : destination.count)));
+        if (amount <= 0) return false;
+        if (empty)
+        {
+            destination.item = source.item;
+            destination.count = 0;
+            destination.ammoCount = source.ammoCount;
+            destination.attackModeIndex = source.attackModeIndex;
+        }
+        destination.count += amount;
+        source.count -= amount;
+        if (source.count == 0)
+        {
+            source.item = null;
+            source.ammoCount = 0;
+            source.attackModeIndex = -1;
+        }
+        return true;
+    }
+
     public static bool TrySplitHalf(InventorySlotData source, InventorySlotData destination)
     {
         if (source == null || destination == null || source == destination || source.item == null ||
@@ -86,6 +115,21 @@ public class InventorySO : ScriptableObject
         EnsureSlotState(ref weaponSlots, weaponSlotCount);
         EnsureSlotState(ref armorSlots, armorSlotCount);
         EnsureSlotState(ref consumableSlots, consumableSlotCount);
+    }
+
+    public void Clear()
+    {
+        EnsureDefaults();
+        foreach (InventorySlotType type in System.Enum.GetValues(typeof(InventorySlotType)))
+        {
+            foreach (InventorySlotData slot in GetSlotsForType(type))
+            {
+                slot.item = null;
+                slot.count = 0;
+                slot.ammoCount = 0;
+                slot.attackModeIndex = -1;
+            }
+        }
     }
 
     private static void EnsureSlotState(ref InventorySlotData[] slotData, int capacity)

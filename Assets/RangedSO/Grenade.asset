@@ -16,11 +16,11 @@ MonoBehaviour:
   itemID: 20
   rarity: 2
   icon: {fileID: -2576084159183346013, guid: e310e9c720829de28ba7c35b50b9907f, type: 3}
-  maxStackSize: 10
+  maxStackSize: 15
   tag: 0
   description: 
   minPiece: 1
-  maxPiece: 3
+  maxPiece: 1
   shootInterval: 0.5
   MPCost: 0
   consumeAmmo: 1
@@ -29,5 +29,6 @@ MonoBehaviour:
   capacity: 30
   reloadTime: 2
   spread: 5
+  burstAngle: 10
   burstCount: 1
   bulletData: {fileID: 11400000, guid: b2ba689d8949ba543bf40e8c51d6a1be, type: 2}

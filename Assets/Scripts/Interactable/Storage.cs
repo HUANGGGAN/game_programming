@@ -4,7 +4,7 @@ public class Storage : Interactable
 {
     [SerializeField] private StorageManager storageManager;
 
-    public override string GetHint() => "Press F to open storage";
+    public override string GetHint() => $"Press {GameInput.Label(GameBinding.Interact)} to open storage";
 
     public override bool TryInteract()
     {

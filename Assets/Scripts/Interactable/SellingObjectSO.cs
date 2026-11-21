@@ -13,6 +13,9 @@ public class SellingObjectSO : ScriptableObject
     public string objectName;
     public bool buyOneAtOnce = true;
     [TextArea] public string description;
+    public string Description => !string.IsNullOrWhiteSpace(description)
+        ? description
+        : @object?.item?.description ?? string.Empty;
     [Tooltip("0: Item/random item. 1: +5 max HP. 2: +5 max MP.")]
     [Min(0)] public int SpecialID = 0;
     public bool isRandom;

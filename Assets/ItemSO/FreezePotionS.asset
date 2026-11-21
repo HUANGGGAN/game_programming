@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f22712a39be00187d950d83a05b49ea1, type: 3}
   m_Name: FreezePotionS
   m_EditorClassIdentifier: Assembly-CSharp::ConsumableSO
-  itemName: Freeze Potion
+  itemName: Freeze Potion S
   itemID: 0
   rarity: 4
   icon: {fileID: 1870574771495655458, guid: 769c860b792a0ab8297f7fa2cfd02894, type: 3}
   maxStackSize: 5
   tag: 0
-  description: Freeze Resistance lv:1 30s
+  description: Freeze Resistance lv:1 60s
   minPiece: 0
   maxPiece: 0
   id: 13

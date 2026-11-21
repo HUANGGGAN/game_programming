@@ -13,8 +13,8 @@ MonoBehaviour:
   m_Name: FIreBullet
   m_EditorClassIdentifier: Assembly-CSharp::EnemyBulletSO
   bulletId: 0
-  bulletSprite: {fileID: 454000618555810492, guid: bbb0be265247bea2c8c9a977f3153710, type: 3}
-  imageScale: {x: 1, y: 1}
+  bulletSprite: {fileID: 4278785494955023954, guid: 604688ca4f0a5da02b2bc587c3693a45, type: 3}
+  imageScale: {x: 0.6, y: 0.6}
   ParticleID: 0
   tint: {r: 1, g: 1, b: 1, a: 1}
   spinningSpeed: 0
@@ -31,7 +31,11 @@ MonoBehaviour:
   explosiveDamage: 20
   effects:
   - effectID: 1
-    duration: 3
+    duration: 7
     probability: 1
     level: 1
+  - effectID: 1
+    duration: 3
+    probability: 0.4
+    level: 2
   attackAttributes: 

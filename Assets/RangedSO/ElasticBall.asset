@@ -18,9 +18,9 @@ MonoBehaviour:
   icon: {fileID: -3427126441530014940, guid: dd724e59f370685f8a495b28ef69a6e7, type: 3}
   maxStackSize: 1
   tag: 1
-  description: 
-  minPiece: 0
-  maxPiece: 0
+  description: Bouncing!
+  minPiece: 15
+  maxPiece: 25
   shootInterval: 0.25
   MPCost: 1
   consumeAmmo: 0
@@ -29,6 +29,7 @@ MonoBehaviour:
   capacity: 30
   reloadTime: 2
   spread: 5
+  burstAngle: 10
   burstCount: 1
   bulletData: {fileID: 11400000, guid: 270d279d091cd3b6491e6d073065a359, type: 2}
   baseDamage: 2

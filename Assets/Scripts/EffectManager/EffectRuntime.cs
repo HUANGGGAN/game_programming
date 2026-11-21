@@ -29,6 +29,7 @@ public interface IEffectSource
 
 public static class EffectRuntime
 {
+    public const int MaximumLevel = 5;
     public const int Fire = 1;
     public const int Faint = 2;
     public const int Bleed = 3;
@@ -38,11 +39,12 @@ public static class EffectRuntime
     public const int MPStealing = 8;
 
     public static bool Apply(List<ActiveEffect> activeEffects, EffectDefinition[] definitions, float probabilityMultiplier = 1f, int[] blockedEffectIDs = null,
-        Action<int, int> restoreAttacker = null, bool allowTimedEffects = true, bool stackMatchingLevels = true, int maxLevel = int.MaxValue)
+        Action<int, int> restoreAttacker = null, bool allowTimedEffects = true, bool stackMatchingLevels = true, int maxLevel = MaximumLevel)
     {
         if (activeEffects == null || definitions == null)
             return false;
 
+        maxLevel = Mathf.Clamp(maxLevel, 1, MaximumLevel);
         bool changed = false;
 
         foreach (EffectDefinition definition in definitions)
@@ -142,7 +144,7 @@ public static class EffectRuntime
 
     public const float TickInterval = 0.5f;
 
-    public static bool Tick(List<ActiveEffect> activeEffects, float deltaTime, Action<float> applyDamage, ref float elapsed)
+    public static bool Tick(List<ActiveEffect> activeEffects, float deltaTime, Action<float> applyDamage, ref float elapsed, Action<float, int> applyTypedDamage = null)
     {
         if (activeEffects == null || activeEffects.Count == 0)
         {
@@ -154,14 +156,14 @@ public static class EffectRuntime
         while (elapsed >= TickInterval && activeEffects.Count > 0)
         {
             elapsed -= TickInterval;
-            changed |= TickStep(activeEffects, applyDamage);
+            changed |= TickStep(activeEffects, applyDamage, applyTypedDamage);
         }
         if (activeEffects.Count == 0)
             elapsed = 0f;
         return changed;
     }
 
-    private static bool TickStep(List<ActiveEffect> activeEffects, Action<float> applyDamage)
+    private static bool TickStep(List<ActiveEffect> activeEffects, Action<float> applyDamage, Action<float, int> applyTypedDamage)
     {
         bool changed = false;
         var highestLevels = new Dictionary<int, ActiveEffect>();
@@ -187,9 +189,17 @@ public static class EffectRuntime
             if (highestLevels.TryGetValue(effect.effectID, out ActiveEffect highest) && highest == effect && activeDelta > 0f)
             {
                 if (effect.effectID == Fire || effect.effectID == Bleed || effect.effectID == Shock)
-                    applyDamage?.Invoke(effect.level * activeDelta * 2.0f);
+                {
+                    float amount = effect.level * activeDelta * 2.0f;
+                    if (applyTypedDamage != null) applyTypedDamage(amount, effect.effectID);
+                    else applyDamage?.Invoke(amount);
+                }
                 if (effect.effectID == Freeze)
-                    applyDamage?.Invoke(effect.level * activeDelta);
+                {
+                    float amount = effect.level * activeDelta;
+                    if (applyTypedDamage != null) applyTypedDamage(amount, effect.effectID);
+                    else applyDamage?.Invoke(amount);
+                }
             }
                 
 

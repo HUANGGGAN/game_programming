@@ -12,13 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f22712a39be00187d950d83a05b49ea1, type: 3}
   m_Name: ClearPotionL
   m_EditorClassIdentifier: Assembly-CSharp::ConsumableSO
-  itemName: ClearPotion
+  itemName: Clear Potion L
   itemID: 0
   rarity: 4
-  icon: {fileID: -22490691976609277, guid: a56d75fbd3f6d6135a345b4a2a7510df, type: 3}
+  icon: {fileID: -7345336185087899436, guid: 9b7e3d82c55d86fb4858ea2f41cba329, type: 3}
   maxStackSize: 5
   tag: 0
-  description: 
+  description: 'Clear all effect
+
+    Restore all HP/MP'
   minPiece: 0
   maxPiece: 0
   id: 9

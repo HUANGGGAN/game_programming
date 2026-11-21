@@ -17,10 +17,10 @@ MonoBehaviour:
   rarity: 3
   icon: {fileID: 4501683250418446551, guid: 4d5bc4d044675a379be38b28404a0c79, type: 3}
   maxStackSize: 1
-  tag: 1
-  description: 
-  minPiece: 0
-  maxPiece: 0
+  tag: 3
+  description: Fire Attribute
+  minPiece: 15
+  maxPiece: 25
   shootInterval: 0.5
   MPCost: 4
   consumeAmmo: 0
@@ -44,4 +44,8 @@ MonoBehaviour:
     duration: 5
     probability: 1
     level: 2
+  - effectID: 1
+    duration: 0.5
+    probability: 0.5
+    level: 4
   attackAttributes: 01000000

@@ -15,7 +15,7 @@ MonoBehaviour:
   itemName: Weapon Piece
   itemID: 0
   rarity: 3
-  icon: {fileID: 5279201860775138906, guid: c49823bfdda9d415c9419df4d3e3cbe1, type: 3}
+  icon: {fileID: 2341649020116572202, guid: 745d3d4899ce27524bc51d43df674029, type: 3}
   maxStackSize: 999
   tag: 1
   description: 

@@ -18,9 +18,11 @@ MonoBehaviour:
   icon: {fileID: 6348385188075547880, guid: 6b5a14228c74602439b8ad92bc82fb01, type: 3}
   maxStackSize: 1
   tag: 1
-  description: 
-  minPiece: 0
-  maxPiece: 0
+  description: 'A: Throw 1
+
+    B: Throw 3'
+  minPiece: 15
+  maxPiece: 25
   shootInterval: 1
   MPCost: 0
   consumeAmmo: 0

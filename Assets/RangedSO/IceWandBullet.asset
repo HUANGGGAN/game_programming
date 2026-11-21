@@ -14,6 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::BulletSO
   bulletId: 0
   bulletSprite: {fileID: -6263091795111771235, guid: 49f55dfb91d900ecb9ea84eb1c77e5a9, type: 3}
+  preserveAngle: 0
   ParticleID: 0
   tint: {r: 1, g: 1, b: 1, a: 1}
   spinningSpeed: 0
@@ -24,6 +25,7 @@ MonoBehaviour:
   isPiercing: 0
   bulletMode: 0
   isExplosive: 0
+  explosionParticleId: 0
   explosionRadius: 1
   knockbackForce: 0.5
   explosiveDamage: 7
@@ -31,7 +33,7 @@ MonoBehaviour:
   critMul: 3
   effects:
   - effectID: 5
-    duration: 1
+    duration: 1.5
     probability: 1
-    level: 3
+    level: 4
   attackAttributes: 05000000

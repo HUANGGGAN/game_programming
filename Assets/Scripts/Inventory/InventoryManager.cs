@@ -9,8 +9,6 @@ public class InventoryManager : MonoBehaviour
     [SerializeField] private GameObject inventoryMenuPanel;
     [SerializeField] private InventoryUIController inventoryUIController;
 
-    private InputAction toggleInventoryAction;
-    private InputAction[] equipWeaponActions;
     private InputAction switchWeaponAction;
     private StateManager stateManager;
     public bool IsInventoryOpen => stateManager != null && stateManager.CurrentState == GameState.Inventory;
@@ -22,29 +20,11 @@ public class InventoryManager : MonoBehaviour
             inventoryUIController = inventoryMenuPanel.GetComponentInChildren<InventoryUIController>(true);
         }
 
-        // Define an action bound to the 'E' key
-        toggleInventoryAction = new InputAction(
-            name: "ToggleInventory",
-            binding: "<Keyboard>/e"
-        );
         switchWeaponAction = new InputAction(
             name: "SwitchWeapon",
             type: InputActionType.Value,
             binding: "<Mouse>/scroll"
         );
-
-        equipWeaponActions = new[]
-        {
-            new InputAction(name: "EquipWeaponSlot1", binding: "<Keyboard>/1"),
-            new InputAction(name: "EquipWeaponSlot2", binding: "<Keyboard>/2"),
-            new InputAction(name: "EquipWeaponSlot3", binding: "<Keyboard>/3")
-        };
-
-        for (int i = 0; i < equipWeaponActions.Length; i++)
-        {
-            int slotIndex = i;
-            equipWeaponActions[i].performed += context => SelectWeaponSlot(slotIndex);
-        }
     }
 
     private void OnEnable()
@@ -58,16 +38,9 @@ public class InventoryManager : MonoBehaviour
         stateManager.StateChanging += PrepareState;
         ApplyState(stateManager.CurrentState);
 
-        // 1. Subscribe to the event (Fires ONLY when E is pressed)
-        toggleInventoryAction.performed += OnToggleInventoryPerformed;
-        toggleInventoryAction.Enable();
+        // Mouse wheel remains an InputAction; keyboard actions use the shared bindings.
         switchWeaponAction.performed += OnWeaponScrollPerformed;
         switchWeaponAction.Enable();
-
-        foreach (InputAction action in equipWeaponActions)
-        {
-            action.Enable();
-        }
     }
 
     private void OnDisable()
@@ -78,31 +51,32 @@ public class InventoryManager : MonoBehaviour
             stateManager.StateChanging -= PrepareState;
         }
         // 2. Unsubscribe and disable to avoid memory leaks
-        toggleInventoryAction.performed -= OnToggleInventoryPerformed;
-        toggleInventoryAction.Disable();
         switchWeaponAction.performed -= OnWeaponScrollPerformed;
         switchWeaponAction.Disable();
-
-        foreach (InputAction action in equipWeaponActions)
-        {
-            action.Disable();
-        }
     }
 
     private void OnDestroy()
     {
-        toggleInventoryAction.Dispose();
         switchWeaponAction.Dispose();
-
-        foreach (InputAction action in equipWeaponActions)
-        {
-            action.Dispose();
-        }
     }
 
-    private void OnToggleInventoryPerformed(InputAction.CallbackContext context)
+    private void Update()
     {
-        ToggleInventory();
+        if (stateManager == null) return;
+        if (GameInput.Pressed(GameBinding.Inventory) && (stateManager.IsGameplay || IsInventoryOpen))
+        {
+            GameInput.Consume();
+            ToggleInventory();
+            return;
+        }
+        if (!stateManager.IsGameplay) return;
+        for (int i = 0; i < WeaponSlotCount; i++)
+            if (GameInput.Pressed((GameBinding)((int)GameBinding.Weapon1 + i)))
+            {
+                GameInput.Consume();
+                SelectWeaponSlot(i);
+                break;
+            }
     }
 
     private void SelectWeaponSlot(int slotIndex)

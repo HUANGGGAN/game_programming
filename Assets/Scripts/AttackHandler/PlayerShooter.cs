@@ -57,6 +57,7 @@ public class PlayerShooter2D : MonoBehaviour
             regionTracker = GetComponentInParent<RegionTracker>();
         attackHandlers.Insert(0, new WandProjectileAttack());
         attackHandlers.Insert(0, new MeteoriteAttack());
+        attackHandlers.Insert(0, new TornadoAttack());
         weaponHolder = GetComponent<WeaponHolder>();
         if (weaponHolder == null)
             weaponHolder = GetComponentInParent<WeaponHolder>();
@@ -97,10 +98,10 @@ public class PlayerShooter2D : MonoBehaviour
                 timedHandler.Tick(Time.deltaTime);
         }
 
-        if (Keyboard.current != null && Keyboard.current.tKey.wasPressedThisFrame && shootingEnabled)
+        if (GameInput.Pressed(GameBinding.ChangeAttackMode) && shootingEnabled)
             inventoryUIController?.TrySwitchEquippedAttackMode();
 
-        if (Keyboard.current != null && Keyboard.current.rKey.wasPressedThisFrame)
+        if (GameInput.Pressed(GameBinding.Reload))
             StartReload();
 
         if (isReloading)
@@ -159,7 +160,10 @@ public class PlayerShooter2D : MonoBehaviour
 
         Vector2 origin = weaponTransform.TransformPoint(equippedWeapon.firePointOffset);
         if (firingLazer)
+        {
             lazerAttack.UpdateBeam((LazerSO)equippedWeapon, origin, direction, aimPosition);
+            player?.FaceAttack(aimPosition ?? origin + direction);
+        }
         else
             meleeAttack.UpdateRange(equippedWeapon is MeleeSO melee && melee.attackType == 1 && player != null ? (Vector2)player.transform.position : origin, direction);
     }
@@ -241,7 +245,7 @@ public class PlayerShooter2D : MonoBehaviour
             return false;
         }
 
-        if (equippedWeapon is not WandSO { attackMode: 1 } &&
+        if (equippedWeapon is not WandSO { attackMode: 1 or 2 } &&
             equippedWeapon is IProjectileWeapon projectileWeapon && projectileWeapon.ProjectileData is RandomBulletSO random &&
             !random.HasValidBullets)
         {
@@ -475,6 +479,7 @@ public class PlayerShooter2D : MonoBehaviour
             return false;
         }
 
+        player?.FaceAttack(mouseWorldPos);
         if (equippedWeapon != null)
         {
             nextShotTime = Time.time + shootInterval;

@@ -15,12 +15,12 @@ MonoBehaviour:
   itemName: Freeze Sword
   itemID: 0
   rarity: 2
-  icon: {fileID: 6293742469751685422, guid: 5b0218c41d4d23727815c1bc586037f1, type: 3}
+  icon: {fileID: 3976916447029538207, guid: d85bf59684b9a99069fbe73fbcd9c8fa, type: 3}
   maxStackSize: 1
-  tag: 1
-  description: 
-  minPiece: 0
-  maxPiece: 0
+  tag: 4
+  description: Frost Attribute
+  minPiece: 15
+  maxPiece: 25
   shootInterval: 0.5
   MPCost: 2
   consumeAmmo: 0

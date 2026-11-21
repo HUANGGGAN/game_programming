@@ -12,19 +12,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ed0fe66b425b4d738d88e97d14d4058b, type: 3}
   m_Name: RandomRare
   m_EditorClassIdentifier: Assembly-CSharp::SellingObjectSO
-  type: 1
+  type: 4
   currency: {fileID: 11400000, guid: d6ea3a4312081f1b386018b6e68f22df, type: 2}
   currencyIcon: {fileID: 0}
-  price: 1
+  price: 100
   object:
     item: {fileID: 0}
     count: 1
     ammoCount: 0
     attackModeIndex: -1
-  objectIcon: {fileID: -855298285791758126, guid: ee46af6b762eef1d7b2310cce8c7ddb4, type: 3}
-  objectName: Random Rare Weapon
+  objectIcon: {fileID: 4991534409045780734, guid: c36200a6d614b0bf58e20c01c4f398fe, type: 3}
+  objectName: Random Weapon III
   buyOneAtOnce: 1
-  description: 
+  description: '60% Rare
+
+    30% Epic
+
+    10% Legendary'
+  SpecialID: 0
   isRandom: 1
   randomCategories:
   - categoryID: 2

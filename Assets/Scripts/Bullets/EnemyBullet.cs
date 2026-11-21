@@ -6,6 +6,7 @@ public class EnemyBullet : MonoBehaviour
 {
     [SerializeField] private string obstacleTag = "BulletBlocker";
     private EnemyBulletSO data;
+    private float prefabAngle;
     private EnemyChase attacker;
     private Rigidbody2D body;
     private Collider2D hitCollider;
@@ -22,6 +23,7 @@ public class EnemyBullet : MonoBehaviour
     private void EnsureComponents()
     {
         if (body != null) return;
+        prefabAngle = transform.eulerAngles.z;
         body = GetComponent<Rigidbody2D>();
         body.gravityScale = 0f;
         body.bodyType = RigidbodyType2D.Kinematic;
@@ -84,7 +86,7 @@ public class EnemyBullet : MonoBehaviour
         remainingPierces = Mathf.Max(0, data.isPiercing);
         hitPlayers.Clear();
         transform.position = new Vector3(origin.x, origin.y, 0f);
-        transform.rotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg);
+        transform.rotation = Quaternion.Euler(0f, 0f, data.preserveAngle ? prefabAngle : Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg);
         body.position = origin;
         body.rotation = transform.eulerAngles.z;
         body.linearVelocity = Vector2.zero;

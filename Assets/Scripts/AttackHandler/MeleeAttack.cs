@@ -22,6 +22,7 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
     private float activeDuration;
     private float elapsedDuration;
     private float activeDamage;
+    private bool activeCritical;
     private int activeDamageSourceId;
     private MeleeSO equippedWeapon;
     private WeaponHolder weaponHolder;
@@ -43,10 +44,10 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
 
     private void BeginStrike()
     {
-        activeDamage = CriticalAttack.RollDamage(activeWeapon.attackDamage, activeWeapon.critRate, activeWeapon.critMul);
+        activeDamage = CriticalAttack.RollDamage(activeWeapon.attackDamage, activeWeapon.critRate, activeWeapon.critMul, out activeCritical);
         activeDamageSourceId = DamageSources.Next();
         hitEnemies.Clear();
-        if (activeWeapon.attackType == 2 && activeWeapon.drawAttackRange)
+        if (activeWeapon.attackType == 2 && activeWeapon.drawAttackRange && GameOptions.ShowMeleeRange)
             DrawAttackRange(activeOrigin, activeDirection, Mathf.Max(0f, activeWeapon.attackRange), 360f, 0.9f);
     }
 
@@ -59,7 +60,7 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
         if (equippedWeapon != weapon)
             CancelAttack();
         equippedWeapon = weapon;
-        if (weapon == null || !weapon.drawAttackRange)
+        if (weapon == null || !weapon.drawAttackRange || !GameOptions.ShowMeleeRange)
             HideRange();
     }
 
@@ -90,7 +91,7 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
 
         bool attacking = activeWeapon != null;
         MeleeSO weapon = attacking ? activeWeapon : equippedWeapon;
-        if (!weapon.drawAttackRange)
+        if (!weapon.drawAttackRange || !GameOptions.ShowMeleeRange)
         {
             HideRange();
             return;
@@ -238,7 +239,7 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
                 activeDamageSourceId,
                 activeDuration + Time.fixedDeltaTime,
                 activeWeapon.attackAttributes,
-                EnemyDamageKind.Melee))
+                EnemyDamageKind.Melee, activeCritical))
             {
                 hitEnemies.Add(enemy);
                 enemy.ApplyEffects(activeWeapon.effects, restoreAttacker: activeAttacker != null ? activeAttacker.RestoreEffectResource : null);
@@ -248,6 +249,8 @@ public sealed class MeleeAttack : IWeaponAttackHandler, ITimedWeaponAttackHandle
 
     private void DrawAttackRange(Vector2 origin, Vector2 direction, float range, float attackAngle, float opacity)
     {
+        if (!GameOptions.ShowMeleeRange) { HideRange(); return; }
+
         if (rangeRenderer == null)
         {
             Shader shader = Shader.Find("Sprites/Default");

@@ -20,6 +20,7 @@ public class Bullet2D : MonoBehaviour
     private int remainingPierces;
     private Vector2? explosionTarget;
     private bool componentsInitialized;
+    private float prefabAngle;
     private readonly List<RaycastHit2D> castHits = new List<RaycastHit2D>();
     private readonly HashSet<EnemyChase> hitEnemies = new HashSet<EnemyChase>();
     private readonly HashSet<Collider2D> ricochetContacts = new HashSet<Collider2D>();
@@ -33,6 +34,7 @@ public class Bullet2D : MonoBehaviour
     protected virtual bool UsesConfiguredSpin => true;
     protected virtual bool DespawnOffScreen => !IsRicochet || bulletData.bulletMode != 2;
 
+    public bool IsCritical { get; set; }
     public float Damage => currentDamage;
     public float KnockbackForce => bulletData != null ? bulletData.knockbackForce : 0f;
     public EffectDefinition[] Effects => bulletData != null ? bulletData.effects : null;
@@ -58,6 +60,7 @@ public class Bullet2D : MonoBehaviour
         spriteRenderer = GetComponent<SpriteRenderer>();
         bulletCollider = GetComponent<Collider2D>();
         mainCamera = Camera.main;
+        prefabAngle = transform.eulerAngles.z;
         componentsInitialized = true;
     }
 
@@ -66,6 +69,7 @@ public class Bullet2D : MonoBehaviour
         Attacker = null;
         EnsureComponents();
         bulletData = data;
+        IsCritical = false;
         currentDamage = bulletData != null ? bulletData.damage : 0f;
         effectProbabilityMultiplier = 1f;
 
@@ -135,7 +139,7 @@ public class Bullet2D : MonoBehaviour
         remainingLifetime = bulletData.lifetime;
 
         // Rotate bullet sprite to align with direction
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        float angle = bulletData.preserveAngle ? prefabAngle : Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         transform.rotation = Quaternion.Euler(0f, 0f, angle);
         // Synchronize pooled spawn transforms before the first physics sweep.
         rb.position = transform.position;
@@ -336,7 +340,7 @@ public class Bullet2D : MonoBehaviour
             rb.position = position;
         }
         transform.position = new Vector3(position.x, position.y, transform.position.z);
-        float angle = Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
+        float angle = bulletData.preserveAngle ? prefabAngle : Mathf.Atan2(direction.y, direction.x) * Mathf.Rad2Deg;
         rb.rotation = angle;
         transform.rotation = Quaternion.Euler(0f, 0f, angle);
         // Position was advanced manually using casts; resume its velocity next step.

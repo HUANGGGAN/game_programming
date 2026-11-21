@@ -6,7 +6,7 @@ public class PickableItem : Interactable
     [SerializeField] private ItemSO item;
     [SerializeField] private int count = 1;
     [SerializeField] private int ammoCount = 0;
-    [SerializeField, TextArea] private string pickupHint = "Press F to pick up";
+    [SerializeField, TextArea] private string pickupHint = "Press {Interact} to pick up";
     [SerializeField, TextArea] private string inventoryFullHint = "Inventory full";
     [SerializeField] private InventoryUIController inventoryUI;
     [SerializeField, Tooltip("SpriteRenderer on a child object. Automatically found if unassigned.")]
@@ -62,7 +62,7 @@ public class PickableItem : Interactable
     {
         ResolveInventory();
         return inventoryUI != null && inventoryUI.CanGiveItem(item, InventorySlotType.Universal, count)
-            ? pickupHint
+            ? FormatInteractionHint(pickupHint)
             : inventoryFullHint;
     }
 

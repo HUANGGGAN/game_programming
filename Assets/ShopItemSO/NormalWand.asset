@@ -15,7 +15,7 @@ MonoBehaviour:
   type: 1
   currency: {fileID: 0}
   currencyIcon: {fileID: 8486161389605743706, guid: 52f57f18ca5a5d6ac9917afd465db94a, type: 3}
-  price: 10
+  price: 120
   object:
     item: {fileID: 11400000, guid: b1340c1ae9eeb9ed7bbb5b9e4f750c48, type: 2}
     count: 1
@@ -25,4 +25,7 @@ MonoBehaviour:
   objectName: 
   buyOneAtOnce: 1
   description: 
-  randomItemGroupID: 0
+  SpecialID: 0
+  isRandom: 0
+  randomCategories: []
+  randomTags: 

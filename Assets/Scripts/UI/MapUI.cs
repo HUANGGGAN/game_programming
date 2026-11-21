@@ -31,8 +31,14 @@ public class MapUI : MonoBehaviour
 
     private void Update()
     {
-        if (Keyboard.current != null && Keyboard.current.mKey.wasPressedThisFrame)
-            ToggleMap();
+        if (GameInput.Pressed(GameBinding.OpenMap))
+        {
+            if (stateManager != null && (stateManager.CurrentState == GameState.Playing || stateManager.CurrentState == GameState.Map))
+            {
+                GameInput.Consume();
+                ToggleMap();
+            }
+        }
     }
 
     public void ToggleMap()

@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f22712a39be00187d950d83a05b49ea1, type: 3}
   m_Name: ManaPotionM
   m_EditorClassIdentifier: Assembly-CSharp::ConsumableSO
-  itemName: ManaPotion
+  itemName: Mana Potion M
   itemID: 0
   rarity: 4
-  icon: {fileID: 1181572697556129649, guid: 5cf6365200c985cdaa2ae5a59af63cd1, type: 3}
+  icon: {fileID: 6633073754782117335, guid: ae5fc2e80b39341779fda06937d77d9d, type: 3}
   maxStackSize: 5
   tag: 0
-  description: Add 20 MP
+  description: Add 70 MP
   minPiece: 0
   maxPiece: 0
   id: 5

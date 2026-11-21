@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f22712a39be00187d950d83a05b49ea1, type: 3}
   m_Name: HealPotionS
   m_EditorClassIdentifier: Assembly-CSharp::ConsumableSO
-  itemName: Heal Potion
+  itemName: Heal Potion S
   itemID: 0
   rarity: 4
   icon: {fileID: -355163865283990380, guid: 87812dfce34b0500f8f89ec40283ad89, type: 3}

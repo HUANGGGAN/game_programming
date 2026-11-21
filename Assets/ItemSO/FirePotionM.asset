@@ -12,13 +12,13 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f22712a39be00187d950d83a05b49ea1, type: 3}
   m_Name: FirePotionM
   m_EditorClassIdentifier: Assembly-CSharp::ConsumableSO
-  itemName: Fire Potion
+  itemName: Fire Potion M
   itemID: 0
   rarity: 3
-  icon: {fileID: -2278921326555189276, guid: 39630e32376104b338aa6a499112e129, type: 3}
+  icon: {fileID: -774258224262738243, guid: 6004db032bb8e0d53a1183d92dbd66ff, type: 3}
   maxStackSize: 5
   tag: 0
-  description: Fire Resistance lv:1 30s
+  description: Fire Resistance lv:2 60s
   minPiece: 0
   maxPiece: 0
   id: 11

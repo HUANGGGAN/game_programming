@@ -18,9 +18,11 @@ MonoBehaviour:
   icon: {fileID: 5271604357546552513, guid: b8a65f38b0d688d3589e5788573d89e4, type: 3}
   maxStackSize: 1
   tag: 1
-  description: 
-  minPiece: 0
-  maxPiece: 0
+  description: 'A: Normal attack
+
+    B: Dash'
+  minPiece: 15
+  maxPiece: 25
   shootInterval: 1
   MPCost: 0
   consumeAmmo: 1

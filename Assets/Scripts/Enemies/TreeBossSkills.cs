@@ -262,6 +262,19 @@ public partial class TreeBoss
             root.transform.rotation = Quaternion.identity;
             Sprite image = PickVineImage();
             root.GetComponent<Vine>().Configure(image, vineHealth, vineAttackDuration, vineWidth);
+            if (visuals != null && visuals.Length > 0 && visuals[0] != null)
+            {
+                SpriteRenderer bossVisual = visuals[0];
+                int order = bossVisual.sortingOrder;
+                foreach (SpriteRenderer visual in visuals)
+                    if (visual != null && visual.sortingLayerID == bossVisual.sortingLayerID)
+                        order = Mathf.Min(order, visual.sortingOrder);
+                foreach (SpriteRenderer vineVisual in root.GetComponentsInChildren<SpriteRenderer>(true))
+                {
+                    vineVisual.sortingLayerID = bossVisual.sortingLayerID;
+                    vineVisual.sortingOrder = order - 1;
+                }
+            }
             root.SetActive(true);
         }
     }

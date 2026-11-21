@@ -8,6 +8,8 @@ public class EffectPool : MonoBehaviour
     public class EffectImageRegistration
     {
         public int ID;
+        [Tooltip("Effect levels that use this image.")]
+        public int[] levels = Array.Empty<int>();
         public Sprite image;
     }
 
@@ -19,11 +21,12 @@ public class EffectPool : MonoBehaviour
         if (Instance == null) Instance = this;
     }
 
-    public Sprite GetImage(int effectID)
+    public Sprite GetImage(int effectID, int level)
     {
         if (effects != null)
             foreach (EffectImageRegistration entry in effects)
-                if (entry != null && entry.ID == effectID && entry.image != null)
+                if (entry != null && entry.ID == effectID && entry.image != null &&
+                    entry.levels != null && Array.IndexOf(entry.levels, level) >= 0)
                     return entry.image;
         return null;
     }

@@ -4,9 +4,13 @@ public static class CriticalAttack
 {
     public static float RollDamage(float baseDamage, float critRate, float critMultiplier)
     {
-        return UnityEngine.Random.value < Mathf.Clamp01(critRate)
-            ? baseDamage * critMultiplier
-            : baseDamage;
+        return RollDamage(baseDamage, critRate, critMultiplier, out _);
+    }
+
+    public static float RollDamage(float baseDamage, float critRate, float critMultiplier, out bool isCritical)
+    {
+        isCritical = UnityEngine.Random.value < Mathf.Clamp01(critRate);
+        return isCritical ? baseDamage * critMultiplier : baseDamage;
     }
 }
 
@@ -16,6 +20,8 @@ public class BulletSO : ScriptableObject
     [Header("Visuals & Identification")]
     public string bulletId;       // Used by pooler to distinguish bullet pools
     public Sprite bulletSprite;
+    [Tooltip("Keep the prefab angle instead of aligning with the firing direction.")]
+    public bool preserveAngle = false;
     [Min(0)] public int ParticleID = 0; // 0: no particle effect on deactivation
     public Color tint = Color.white;
     [Tooltip("Visual rotation in degrees per second. Zero disables spinning; negative values reverse it.")]

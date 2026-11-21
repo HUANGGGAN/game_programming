@@ -17,16 +17,19 @@ MonoBehaviour:
   rarity: 3
   icon: {fileID: 2800715737579632502, guid: bcbf12c599460257c8128cc60c625245, type: 3}
   maxStackSize: 1
-  tag: 0
-  description: 
-  minPiece: 0
-  maxPiece: 0
+  tag: 3
+  description: Fire Attribute
+  minPiece: 15
+  maxPiece: 25
   shootInterval: 0.3
   MPCost: 1
   consumeAmmo: 0
   hasLimitedAmmo: 0
   firePointOffset: {x: 0.5, y: 0.1}
   attackAnimation: -1
+  attackType: 0
+  attackRadius: 1
+  attackCount: 1
   attackRange: 8
   attackAngle: 30
   attackDamage: 2
@@ -38,7 +41,7 @@ MonoBehaviour:
   ParticleID: 2
   effects:
   - effectID: 1
-    duration: 0.25
-    probability: 0.7
+    duration: 2
+    probability: 0.75
     level: 1
   attackAttributes: 01000000

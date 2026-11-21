@@ -42,7 +42,7 @@ public class PlayerData : ScriptableObject
     {
         killCount = 0;
         maxHealth = 100f;
-        maxMP = 200;
+        maxMP = 250;
         acquiredWeapons.Clear();
         currentScore = 0;
         money = 0;

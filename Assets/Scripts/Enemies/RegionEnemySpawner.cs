@@ -68,7 +68,7 @@ public class RegionEnemySpawner : MonoBehaviour
     private void OnEnable() => timer = 0f;
     private void Update()
     {
-        if (IsSuppressedByHome || StateManager.Instance.IsBossEncounter || Time.deltaTime <= 0f) return;
+        if (SceneLoader.IsLoading || IsSuppressedByHome || StateManager.Instance.IsBossEncounter || Time.deltaTime <= 0f) return;
         ResolveReferences();
         if (playerTransform == null || homePosition == null || enemyPool == null) return;
         timer += Time.deltaTime;
@@ -87,7 +87,7 @@ public class RegionEnemySpawner : MonoBehaviour
     public List<GameObject> SpawnNow(float enemyPoints)
     {
         ResolveReferences();
-        if (!isActiveAndEnabled || IsSuppressedByHome || StateManager.Instance.IsBossEncounter || playerTransform == null || homePosition == null || enemyPool == null ||
+        if (SceneLoader.IsLoading || !isActiveAndEnabled || IsSuppressedByHome || StateManager.Instance.IsBossEncounter || playerTransform == null || homePosition == null || enemyPool == null ||
             float.IsNaN(enemyPoints) || float.IsInfinity(enemyPoints) || enemyPoints <= 0f)
             return new List<GameObject>();
         Physics2D.SyncTransforms();
@@ -132,6 +132,7 @@ public class RegionEnemySpawner : MonoBehaviour
 
     private bool IsAllowed(GameObject prefab, Vector3 point)
     {
+        if (point.x < -150f || point.x > 150f || point.y < -150f || point.y > 150f) return false;
         if (!collidersByPrefab.TryGetValue(prefab, out List<Collider2D> areas)) return false;
         foreach (Collider2D area in areas)
         {

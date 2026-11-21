@@ -17,10 +17,10 @@ MonoBehaviour:
   rarity: 2
   icon: {fileID: 3711656471350060144, guid: e1d33177b43822207bb0a1d1fc2f6132, type: 3}
   maxStackSize: 1
-  tag: 1
-  description: 
-  minPiece: 0
-  maxPiece: 0
+  tag: 4
+  description: Frost Attribute
+  minPiece: 15
+  maxPiece: 25
   shootInterval: 0.6
   MPCost: 1
   consumeAmmo: 0
@@ -29,5 +29,6 @@ MonoBehaviour:
   capacity: 30
   reloadTime: 2
   spread: 5
+  burstAngle: 10
   burstCount: 1
   bulletData: {fileID: 11400000, guid: c952465322ea8f6cea54d4eba78df9ba, type: 2}

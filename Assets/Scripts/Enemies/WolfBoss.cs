@@ -280,7 +280,7 @@ public class Boss : EnemyChase
 
     public override bool TakeDamage(float damageAmount, Vector2 knockbackDirection, float knockbackForce,
         int damageSourceId, float damageSourceDuration, int[] attackAttributes = null,
-        EnemyDamageKind damageKind = EnemyDamageKind.Other)
+        EnemyDamageKind damageKind = EnemyDamageKind.Other, bool isCritical = false)
     {
         if (IsDead || damageAmount <= 0f)
             return false;
@@ -294,7 +294,7 @@ public class Boss : EnemyChase
             return false;
         }
         return base.TakeDamage(damageAmount, knockbackDirection, knockbackForce, damageSourceId,
-            damageSourceDuration, attackAttributes, damageKind);
+            damageSourceDuration, attackAttributes, damageKind, isCritical);
     }
 
     protected override void Die()

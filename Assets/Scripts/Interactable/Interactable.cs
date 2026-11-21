@@ -6,7 +6,7 @@ using UnityEngine.InputSystem;
 public class Interactable : MonoBehaviour
 {
     [SerializeField, Min(0f)] private float interactionRange = 1.5f;
-    [SerializeField] private string interactionHint = "Press F to interact";
+    [SerializeField] private string interactionHint = "Press {Interact} to interact";
     [SerializeField] private UnityEvent onInteract = new UnityEvent();
 
     private static readonly List<Interactable> activeInteractables = new List<Interactable>();
@@ -31,7 +31,16 @@ public class Interactable : MonoBehaviour
             ClearSelection();
     }
 
-    public virtual string GetHint() => interactionHint;
+    public virtual string GetHint() => FormatInteractionHint(interactionHint);
+
+    protected static string FormatInteractionHint(string text)
+    {
+        if (string.IsNullOrEmpty(text)) return text;
+        string key = GameInput.Label(GameBinding.Interact);
+        // Support existing serialized hints as well as new configurable templates.
+        return text.Replace("{Interact}", key).Replace("Press F", "Press " + key)
+            .Replace("press F", "press " + key).Replace("F to ", key + " to ");
+    }
     public virtual Color GetHintColor() => Color.white;
 
     public virtual bool TryInteract()
@@ -74,8 +83,9 @@ public class Interactable : MonoBehaviour
 
         selected.InteractionPlayer = player;
         selected.SetHintVisible(true);
-        if (Keyboard.current != null && Keyboard.current.fKey.wasPressedThisFrame)
+        if (GameInput.Pressed(GameBinding.Interact))
         {
+            GameInput.Consume();
             selected.TryInteract();
             if (selected != null)
                 selected.SetHintVisible(true);
@@ -91,7 +101,7 @@ public class Interactable : MonoBehaviour
 
     private void SetHintVisible(bool visible)
     {
-        InteractionHint.SetHint(visible ? GetHint() : string.Empty,
+        InteractionHint.SetHint(visible ? FormatInteractionHint(GetHint()) : string.Empty,
             visible ? GetHintColor() : Color.white, visible ? transform : null);
     }
 }

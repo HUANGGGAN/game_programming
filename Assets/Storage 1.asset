@@ -1,0 +1,99 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: caccda9d4b4d402bafff9aee930c127c, type: 3}
+  m_Name: Storage 1
+  m_EditorClassIdentifier: Assembly-CSharp::StorageSO
+  slots:
+  - item: {fileID: 11400000, guid: a64665effa0df68a08a510abea0f616a, type: 2}
+    count: 3
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 11400000, guid: 296685651f25499c6a57d0f93c3afd14, type: 2}
+    count: 15
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 11400000, guid: ba18b6115c2aea237b7a4198d3afd7f3, type: 2}
+    count: 5
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 11400000, guid: 88c23e484dc2b5e91842f9dfade117fd, type: 2}
+    count: 5
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 11400000, guid: a9ee3cec64fcf7898bd150f0e1812a44, type: 2}
+    count: 1
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 11400000, guid: 0ec0bd055d6c80322a7c2dcd4d5b4837, type: 2}
+    count: 1
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 11400000, guid: d3581dce2585c091687f70c6bcb2d57d, type: 2}
+    count: 1
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+    attackModeIndex: -1
+  - item: {fileID: 0}
+    count: 0
+    ammoCount: 0
+    attackModeIndex: -1

@@ -203,7 +203,9 @@ public class EnemyChase : MonoBehaviour, IEffectSource
             return;
 
         if (EffectRuntime.Tick(activeEffects, Time.deltaTime, amount => TakeDamage(
-            amount, Vector2.zero, 0f, 0, hitCooldownDuration, null, EnemyDamageKind.Effect), ref effectTickElapsed))
+            amount, Vector2.zero, 0f, 0, hitCooldownDuration, null, EnemyDamageKind.Effect), ref effectTickElapsed,
+            (amount, effectID) => TakeDamage(amount, Vector2.zero, 0f, 0, hitCooldownDuration,
+                new[] { effectID }, EnemyDamageKind.Effect)))
             EffectsChanged?.Invoke();
         if (currentHealth <= 0f || !isActiveAndEnabled)
             return;
@@ -265,6 +267,11 @@ public class EnemyChase : MonoBehaviour, IEffectSource
     }
 
     private void CancelAttack() => attackModule?.Cancel();
+
+    public void PullToward(Vector2 center, float force, float deltaTime)
+    {
+        ApplyKnockback(center - (Vector2)transform.position, Mathf.Max(0f, force) * Mathf.Max(0f, deltaTime));
+    }
 
     private void ApplyKnockback(Vector2 direction, float force)
     {
@@ -406,7 +413,7 @@ public class EnemyChase : MonoBehaviour, IEffectSource
             bullet.DamageSourceId,
             hitCooldownDuration,
             bullet.AttackAttributes,
-            EnemyDamageKind.Projectile))
+            EnemyDamageKind.Projectile, bullet.IsCritical))
             ApplyEffects(bullet.Effects, bullet.EffectProbabilityMultiplier,
                 bullet.Attacker != null ? bullet.Attacker.RestoreEffectResource : null);
     }
@@ -426,7 +433,7 @@ public class EnemyChase : MonoBehaviour, IEffectSource
         return TakeDamage(damageAmount, knockbackDirection, knockbackForce, damageSourceId, hitCooldownDuration, null);
     }
 
-    public virtual bool TakeDamage(float damageAmount, Vector2 knockbackDirection, float knockbackForce, int damageSourceId, float damageSourceDuration, int[] attackAttributes = null, EnemyDamageKind damageKind = EnemyDamageKind.Other)
+    public virtual bool TakeDamage(float damageAmount, Vector2 knockbackDirection, float knockbackForce, int damageSourceId, float damageSourceDuration, int[] attackAttributes = null, EnemyDamageKind damageKind = EnemyDamageKind.Other, bool isCritical = false)
     {
         if (damageAmount <= 0f || currentHealth <= 0f)
             return false;
@@ -434,7 +441,9 @@ public class EnemyChase : MonoBehaviour, IEffectSource
         if (damageSourceId != 0 && !CanTakeDamageFromSource(damageSourceId, damageSourceDuration))
             return false;
 
-        damageAmount *= GetAttackDamageMultiplier(attackAttributes);
+        // Effect IDs identify popup colors; timed damage keeps its existing damage calculation.
+        if (damageKind != EnemyDamageKind.Effect)
+            damageAmount *= GetAttackDamageMultiplier(attackAttributes);
         if (damageAmount <= 0f)
             return false;
 
@@ -453,7 +462,7 @@ public class EnemyChase : MonoBehaviour, IEffectSource
 
         float healthLost = Mathf.Min(currentHealth, damageAmount);
         currentHealth -= damageAmount;
-        EnemyFeedbackPool.Damaged(this, healthLost);
+        EnemyFeedbackPool.Damaged(this, healthLost, isCritical, attackAttributes);
 
         if (currentHealth <= 0f)
         {

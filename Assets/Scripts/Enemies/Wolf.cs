@@ -145,9 +145,9 @@ public class Wolf : EnemyChase
     protected override void OnKnockbackStarting() => EndJump();
 
     public override bool TakeDamage(float amount, Vector2 direction, float force, int sourceId, float sourceDuration,
-        int[] attributes = null, EnemyDamageKind damageKind = EnemyDamageKind.Other)
+        int[] attributes = null, EnemyDamageKind damageKind = EnemyDamageKind.Other, bool isCritical = false)
     {
-        bool accepted = base.TakeDamage(amount, direction, force, sourceId, sourceDuration, attributes, damageKind);
+        bool accepted = base.TakeDamage(amount, direction, force, sourceId, sourceDuration, attributes, damageKind, isCritical);
         if (accepted) EndJump();
         return accepted;
     }

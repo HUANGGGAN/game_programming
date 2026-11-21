@@ -13,8 +13,9 @@ MonoBehaviour:
   m_Name: FreezeSlimeBullet
   m_EditorClassIdentifier: Assembly-CSharp::EnemyBulletSO
   bulletId: 0
-  bulletSprite: {fileID: 3370812523196817345, guid: d3464062cd6418fc18ade0526a411822, type: 3}
-  imageScale: {x: 0.2, y: 0.2}
+  bulletSprite: {fileID: 2641573475193562059, guid: 5b75310ad5896ee848714cc8f89df058, type: 3}
+  preserveAngle: 0
+  imageScale: {x: 1, y: 1}
   ParticleID: 0
   tint: {r: 1, g: 1, b: 1, a: 1}
   spinningSpeed: 0

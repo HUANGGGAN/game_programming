@@ -59,8 +59,26 @@ public class BulletPool : MonoBehaviour
 
     [SerializeField] private GameObject bulletPrefab;
     [SerializeField] private GameObject arcBulletPrefab;
+    [Header("Tornado")]
+    [SerializeField] private Tornado tornadoPrefab;
+    private readonly List<Tornado> tornadoes = new List<Tornado>();
+    public bool CanSummonTornado => tornadoPrefab != null && isActiveAndEnabled;
+
+    public Tornado SummonTornado(Vector2 target)
+    {
+        if (!CanSummonTornado) return null;
+        Tornado tornado = tornadoes.Find(item => item != null && !item.gameObject.activeSelf);
+        if (tornado == null)
+        {
+            tornado = Instantiate(tornadoPrefab, transform);
+            tornado.gameObject.SetActive(false);
+            tornadoes.Add(tornado);
+        }
+        tornado.Launch(target);
+        return tornado;
+    }
+
     [SerializeField] private Meteorite meteoritePrefab;
-    [SerializeField, Min(0)] private int initialMeteoritePoolSize = 0;
     private readonly List<Meteorite> meteorites = new List<Meteorite>();
     public bool CanSummonMeteorite => meteoritePrefab != null;
 
@@ -109,7 +127,6 @@ public class BulletPool : MonoBehaviour
     private void Awake()
     {
         Instance = this;
-        for (int i = 0; i < initialMeteoritePoolSize && meteoritePrefab != null; i++) CreateMeteorite();
     }
 
     public Bullet2D GetBullet(BulletSO bulletData)
@@ -129,7 +146,9 @@ public class BulletPool : MonoBehaviour
             bulletPool = new List<Bullet2D>();
             bulletPools.Add(poolKey, bulletPool);
 
-            for (int i = 0; i < poolSize; i++)
+            // Special projectiles start empty and grow only when requested.
+            int initialCount = bulletData.bulletId == "1" ? 0 : Mathf.Max(0, poolSize);
+            for (int i = 0; i < initialCount; i++)
             {
                 Bullet2D pooledBullet = CreateBullet(bulletData);
                 if (pooledBullet == null) return null;

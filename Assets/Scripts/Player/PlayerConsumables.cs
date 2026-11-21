@@ -52,11 +52,11 @@ public class PlayerConsumables : MonoBehaviour
         UpdateCooldownUI();
         if (Time.timeScale == 0f || Keyboard.current == null)
             return;
-        if (Keyboard.current.zKey.wasPressedThisFrame)
+        if (GameInput.Pressed(GameBinding.Consumable1))
             TryUseSlot(0);
-        if (Keyboard.current.xKey.wasPressedThisFrame)
+        if (GameInput.Pressed(GameBinding.Consumable2))
             TryUseSlot(1);
-        if (Keyboard.current.cKey.wasPressedThisFrame)
+        if (GameInput.Pressed(GameBinding.Consumable3))
             TryUseSlot(2);
     }
 

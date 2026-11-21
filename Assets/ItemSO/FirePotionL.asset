@@ -12,13 +12,15 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f22712a39be00187d950d83a05b49ea1, type: 3}
   m_Name: FirePotionL
   m_EditorClassIdentifier: Assembly-CSharp::ConsumableSO
-  itemName: Fire Potion
+  itemName: Fire Potion L
   itemID: 0
   rarity: 3
-  icon: {fileID: -2278921326555189276, guid: 39630e32376104b338aa6a499112e129, type: 3}
+  icon: {fileID: -3400995751544093555, guid: 8dd34b16cdab6a03398c825745eac1bc, type: 3}
   maxStackSize: 5
   tag: 0
-  description: Fire Resistance lv:1 30s
+  description: 'Fire Resistance lv:4 60s
+
+    Can swin in Lava'
   minPiece: 0
   maxPiece: 0
   id: 12

@@ -61,7 +61,7 @@ public class DropSlot : MonoBehaviour, IDropHandler
     {
         // A swap or removal while the panel is open must not discard a replacement item.
         if (pendingController != null && pendingSlot != null &&
-            pendingController.GetSlotData(pendingSlotType, pendingSlotIndex) == pendingSlot &&
+            pendingController.InventoryData.MatchesSlot(pendingSlotType, pendingSlotIndex, pendingSlot) &&
             pendingSlot.item == pendingItem && pendingItem != null)
             pendingController.DropFromSlot(pendingSlotType, pendingSlotIndex);
 

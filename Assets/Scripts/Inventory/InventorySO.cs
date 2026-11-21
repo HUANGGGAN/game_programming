@@ -78,21 +78,21 @@ public enum InventorySlotType
 [CreateAssetMenu(fileName = "NewInventory", menuName = "Inventory/Inventory Storage")]
 public class InventorySO : ScriptableObject
 {
-    private PlayerData acquisitionData;
+    private System.Action<ItemSO> itemAcquired;
 
-    public void BindPlayerData(PlayerData data)
+    public void BindItemAcquisition(System.Action<ItemSO> callback)
     {
-        acquisitionData = data;
+        itemAcquired = callback;
         RegisterOwnedWeapons();
     }
 
     public void RegisterOwnedWeapons()
     {
-        if (acquisitionData == null) return;
+        if (itemAcquired == null) return;
         EnsureDefaults();
         foreach (InventorySlotType type in System.Enum.GetValues(typeof(InventorySlotType)))
             foreach (InventorySlotData slot in GetSlotsForType(type))
-                if (slot.count > 0) acquisitionData.RegisterItem(slot.item);
+                if (slot.count > 0) itemAcquired(slot.item);
     }
 
     public const int universalSlotCount = 12;
@@ -411,7 +411,7 @@ public class InventorySO : ScriptableObject
                 slot.ammoCount = ammoCount;
             givenCount += added;
         }
-        if (givenCount > 0 && acquisitionData != null) acquisitionData.RegisterItem(item);
+        if (givenCount > 0 && itemAcquired != null) itemAcquired(item);
         return givenCount > 0;
     }
 
@@ -440,7 +440,7 @@ public class InventorySO : ScriptableObject
             CopySlotContents(preview.weaponSlots, weaponSlots);
             CopySlotContents(preview.armorSlots, armorSlots);
             CopySlotContents(preview.consumableSlots, consumableSlots);
-            if (acquisitionData != null) acquisitionData.RegisterItem(purchasedItem);
+            if (itemAcquired != null) itemAcquired(purchasedItem);
             return true;
         }
         finally

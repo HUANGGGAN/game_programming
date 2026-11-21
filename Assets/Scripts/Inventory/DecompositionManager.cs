@@ -5,8 +5,8 @@ using UnityEngine.UI;
 
 public class DecompositionManager : MonoBehaviour
 {
-    [SerializeField] private InventorySO inventoryData;
-    [SerializeField] private DecompositionInventorySO decompositionInventory;
+    private GameDataManager.InventoryAPI inventoryData => GameDataManager.Instance.Inventory;
+    private GameDataManager.DecompositionAPI decompositionInventory => GameDataManager.Instance.Decomposition;
     [SerializeField] private InventoryUIController inventoryUI;
     [SerializeField] private GameObject decompositionPanel;
     [SerializeField] private GameObject slotPrefab;
@@ -22,6 +22,7 @@ public class DecompositionManager : MonoBehaviour
     private readonly List<GameObject> slotFrames = new List<GameObject>();
     private StateManager stateManager;
     private Canvas dragCanvas;
+    public GameDataManager.DecompositionAPI Data => decompositionInventory;
     private bool initialized;
 
     private void Awake() => Initialize();
@@ -33,8 +34,6 @@ public class DecompositionManager : MonoBehaviour
         initialized = true;
         if (inventoryUI == null)
             inventoryUI = FindFirstObjectByType<InventoryUIController>(FindObjectsInactive.Include);
-        if (inventoryData == null && inventoryUI != null)
-            inventoryData = inventoryUI.InventoryData;
         if (decompositionPanel != null)
         {
             CanvasGroup panelGroup = decompositionPanel.GetComponent<CanvasGroup>() ??
@@ -118,28 +117,13 @@ public class DecompositionManager : MonoBehaviour
     public bool CanMove(DecompositionSlot source, DecompositionSlot destination) =>
         source != null && destination != null && source.Manager == this && destination.Manager == this &&
         stateManager != null && stateManager.CurrentState == GameState.Decomposition && decompositionInventory != null &&
-        decompositionInventory.CanMove(inventoryData, source.IsDecomposition, source.Index, destination.IsDecomposition, destination.Index);
+        decompositionInventory.CanMove( source.IsDecomposition, source.Index, destination.IsDecomposition, destination.Index);
 
     public bool QuickMove(DecompositionSlot source)
     {
         if (source == null || source.Manager != this || DecompositionSlot.DraggedSlot != null ||
             stateManager == null || stateManager.CurrentState != GameState.Decomposition) return false;
-        InventorySlotData sourceData = GetSlot(source.IsDecomposition, source.Index);
-        if (sourceData == null || sourceData.item == null || sourceData.count <= 0) return false;
-        bool moved = false;
-        // Merge partial stacks before placing the remaining items in empty slots.
-        for (int pass = 0; pass < 2 && sourceData.count > 0; pass++)
-        {
-            foreach (DecompositionSlot destination in slots)
-            {
-                if (destination.IsDecomposition == source.IsDecomposition || !CanMove(source, destination)) continue;
-                InventorySlotData data = GetSlot(destination.IsDecomposition, destination.Index);
-                if (data == null || (pass == 0 ? data.item != sourceData.item : data.item != null)) continue;
-                if (!InventorySlotData.TryStackInto(sourceData, data)) continue;
-                moved = true;
-                if (sourceData.count == 0) break;
-            }
-        }
+        bool moved = decompositionInventory.QuickMove(source.IsDecomposition, source.Index);
         if (moved)
         {
             Refresh();
@@ -152,21 +136,15 @@ public class DecompositionManager : MonoBehaviour
     {
         if (source == null || source.Manager != this || DecompositionSlot.DraggedSlot != null ||
             stateManager == null || stateManager.CurrentState != GameState.Decomposition) return false;
-        InventorySlotData data = GetSlot(source.IsDecomposition, source.Index);
-        foreach (DecompositionSlot destination in slots)
-        {
-            if (destination.IsDecomposition != source.IsDecomposition) continue;
-            if (!InventorySlotData.TrySplitHalf(data, GetSlot(destination.IsDecomposition, destination.Index))) continue;
-            Refresh();
-            inventoryUI?.RefreshUI();
-            return true;
-        }
-        return false;
+        if (!decompositionInventory.SplitStack(source.IsDecomposition, source.Index)) return false;
+        Refresh();
+        inventoryUI?.RefreshUI();
+        return true;
     }
 
     public void Move(DecompositionSlot source, DecompositionSlot destination)
     {
-        if (CanMove(source, destination) && decompositionInventory.TryMove(inventoryData,
+        if (CanMove(source, destination) && decompositionInventory.TryMove(
             source.IsDecomposition, source.Index, destination.IsDecomposition, destination.Index))
         {
             Refresh();

@@ -19,6 +19,12 @@ public class DecompositionInventorySO : ScriptableObject
                 slots[i] = new InventorySlotData();
     }
 
+    public void Clear()
+    {
+        slots = new InventorySlotData[SlotCount];
+        EnsureDefaults();
+    }
+
     public static bool CanDecompose(ItemSO item) => item == null || item.minPiece > 0 || item.maxPiece > 0;
 
     public bool CanMove(InventorySO inventory, bool fromDecomposition, int from, bool toDecomposition, int to)

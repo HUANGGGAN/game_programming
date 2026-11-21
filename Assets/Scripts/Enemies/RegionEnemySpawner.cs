@@ -58,18 +58,27 @@ public class RegionEnemySpawner : MonoBehaviour
     private void ResolveReferences()
     {
         if (enemyPool == null) enemyPool = EnemyPoolSpawner.Instance;
+        if (enemyPool == null)
+            enemyPool = FindFirstObjectByType<EnemyPoolSpawner>(FindObjectsInactive.Include);
         if (playerTransform == null)
         {
-            GameObject player = GameObject.FindGameObjectWithTag("Player");
+            Player player = FindFirstObjectByType<Player>(FindObjectsInactive.Include);
             if (player != null) playerTransform = player.transform;
+        }
+        if (playerTransform != null)
+        {
+            RegionTracker tracker = playerTransform.GetComponentInParent<RegionTracker>();
+            if (tracker != null && IsSuppressedByHome != tracker.IsInRegion(RegionType.Home))
+                SetHomeRegionActive(tracker.IsInRegion(RegionType.Home));
         }
     }
 
     private void OnEnable() => timer = 0f;
     private void Update()
     {
-        if (SceneLoader.IsLoading || IsSuppressedByHome || StateManager.Instance.IsBossEncounter || Time.deltaTime <= 0f) return;
+        if (SceneLoader.IsLoading || StateManager.Instance.IsBossEncounter || Time.deltaTime <= 0f) return;
         ResolveReferences();
+        if (IsSuppressedByHome) return;
         if (playerTransform == null || homePosition == null || enemyPool == null) return;
         timer += Time.deltaTime;
         float period = Mathf.Max(0.01f, spawnPeriod);

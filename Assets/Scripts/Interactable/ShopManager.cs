@@ -9,8 +9,8 @@ public class ShopManager : MonoBehaviour
 {
     [Header("Data")]
     [SerializeField] private SellingObjectSO[] SellingObjects;
-    [SerializeField] private InventorySO inventoryData;
-    [SerializeField] private PlayerData playerData;
+    private GameDataManager.InventoryAPI inventoryData => GameDataManager.Instance.Inventory;
+    private GameDataManager.PlayerAPI playerData => GameDataManager.Instance.Player;
     [SerializeField] private ItemDatabaseSO itemDatabase;
     private ItemSO lastPurchasedItem;
     [SerializeField] private InventoryUIController inventoryUIController;
@@ -167,8 +167,6 @@ public class ShopManager : MonoBehaviour
     {
         if (inventoryUIController == null)
             inventoryUIController = FindFirstObjectByType<InventoryUIController>(FindObjectsInactive.Include);
-        if (inventoryData == null && inventoryUIController != null)
-            inventoryData = inventoryUIController.InventoryData;
     }
 
     public bool Open(Player player = null)
@@ -176,8 +174,6 @@ public class ShopManager : MonoBehaviour
         Initialize();
         if (shopPanel == null || StateManager.Instance.CurrentState != GameState.Playing)
             return false;
-        if (player != null)
-            playerData = player.Data;
         if (statusText != null)
             statusText.text = string.Empty;
         Interactable.ClearSelection();

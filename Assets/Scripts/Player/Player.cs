@@ -7,7 +7,7 @@ using UnityEngine.InputSystem; // Required for New Input System
 public class Player : MonoBehaviour, IEffectSource
 {
     [Header("Data References")]
-    [SerializeField] private PlayerData playerData;
+    private GameDataManager.PlayerAPI playerData => GameDataManager.Instance.Player;
     [SerializeField] private HealthBar healthBar;
     [SerializeField] private HealthBar manaBar;
     [SerializeField] private SpriteRenderer playerSpriteRenderer;
@@ -122,7 +122,7 @@ public class Player : MonoBehaviour, IEffectSource
     private Coroutine startupTutorialRoutine;
     private RegionTracker regionTracker;
 
-    public PlayerData Data => playerData;
+    public GameDataManager.PlayerAPI Data => playerData;
 
     private void Awake()
     {
@@ -172,7 +172,6 @@ public class Player : MonoBehaviour, IEffectSource
 
         if (playerData != null)
         {
-            playerData.Reset();
             UpdatePlayerBarsFromData();
         }
     }
@@ -567,6 +566,8 @@ public class Player : MonoBehaviour, IEffectSource
             playerSpriteRenderer.sprite = facingSprite;
         weaponHolder?.SetPlayerFacing(playerSpriteRenderer, showingFront);
     }
+
+    public void CancelEncounterForMenu() => TeleportedHome?.Invoke();
 
     public void addMoney(int amount)
     {

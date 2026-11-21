@@ -1,5 +1,6 @@
 using System;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 /// <summary>Tracks all region volumes touching the player's solid colliders, including overlapping regions.</summary>
 public class RegionTracker : MonoBehaviour
@@ -18,12 +19,23 @@ public class RegionTracker : MonoBehaviour
 
     private void OnEnable()
     {
+        SceneManager.sceneLoaded += OnSceneLoaded;
         playerColliders = GetComponentsInChildren<Collider2D>(true);
         player = GetComponent<Player>();
         if (regionEnemySpawner == null)
             regionEnemySpawner = FindFirstObjectByType<RegionEnemySpawner>(FindObjectsInactive.Include);
         nextEffectRefresh = 0f;
         RefreshRegions();
+    }
+
+    private void OnSceneLoaded(Scene scene, LoadSceneMode mode)
+    {
+        // Main's player may already be inside Home before MainGame's spawner exists.
+        if (regionEnemySpawner == null)
+            regionEnemySpawner = FindFirstObjectByType<RegionEnemySpawner>(FindObjectsInactive.Include);
+        RefreshRegions();
+        if (regionEnemySpawner != null)
+            regionEnemySpawner.SetHomeRegionActive(IsInRegion(RegionType.Home));
     }
 
     private void FixedUpdate() => RefreshRegions();
@@ -85,5 +97,9 @@ public class RegionTracker : MonoBehaviour
         RegionsChanged?.Invoke(regions);
     }
 
-    private void OnDisable() => SetRegions(RegionType.None);
+    private void OnDisable()
+    {
+        SceneManager.sceneLoaded -= OnSceneLoaded;
+        SetRegions(RegionType.None);
+    }
 }

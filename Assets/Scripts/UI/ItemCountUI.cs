@@ -17,7 +17,7 @@ public static class CountDisplayFormatter
 
 public class ItemCountUI : MonoBehaviour
 {
-    [SerializeField] private InventorySO inventoryData;
+    private GameDataManager.InventoryAPI inventoryData => GameDataManager.Instance.Inventory;
     [SerializeField] private ItemSO item;
     [SerializeField] private TMP_Text countText;
 

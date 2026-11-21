@@ -4,7 +4,7 @@ using TMPro;
 public class MoneyUI : MonoBehaviour
 {
     [Header("Data Reference")]
-    [SerializeField] private PlayerData playerData;
+    private GameDataManager.PlayerAPI playerData => GameDataManager.Instance.Player;
 
     [Header("UI Reference")]
     [SerializeField] private TextMeshProUGUI moneyText;

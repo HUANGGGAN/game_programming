@@ -13,28 +13,28 @@ MonoBehaviour:
   m_Name: PlayerInventoryData
   m_EditorClassIdentifier: Assembly-CSharp::InventorySO
   slots:
-  - item: {fileID: 11400000, guid: 698988ad1135bdd91a9c8b7fdf0693b6, type: 2}
-    count: 42
+  - item: {fileID: 0}
+    count: 0
     ammoCount: 0
     attackModeIndex: -1
-  - item: {fileID: 11400000, guid: 7575a7ce492ab24e9b3070871f144ee9, type: 2}
-    count: 1
+  - item: {fileID: 0}
+    count: 0
     ammoCount: 0
     attackModeIndex: -1
-  - item: {fileID: 11400000, guid: 3b840bf4ccae39aab9ce3b6ada920d50, type: 2}
-    count: 1
+  - item: {fileID: 0}
+    count: 0
     ammoCount: 0
     attackModeIndex: -1
-  - item: {fileID: 11400000, guid: 5af4ffb9b2252530da945a1aa0cad79d, type: 2}
-    count: 1
+  - item: {fileID: 0}
+    count: 0
     ammoCount: 0
     attackModeIndex: -1
-  - item: {fileID: 11400000, guid: c01e752d0010777119c962c94af0291e, type: 2}
-    count: 1
+  - item: {fileID: 0}
+    count: 0
     ammoCount: 0
     attackModeIndex: -1
-  - item: {fileID: 11400000, guid: b6766445919ff2b82a70b301c541a029, type: 2}
-    count: 1
+  - item: {fileID: 0}
+    count: 0
     ammoCount: 0
     attackModeIndex: -1
   - item: {fileID: 0}
@@ -62,16 +62,16 @@ MonoBehaviour:
     ammoCount: 0
     attackModeIndex: -1
   weaponSlots:
-  - item: {fileID: 11400000, guid: d85ce87dd3474aa8589e1405ad67abb3, type: 2}
+  - item: {fileID: 11400000, guid: 0fac26f122752532cb54d3b9b3395ad4, type: 2}
     count: 1
     ammoCount: 0
     attackModeIndex: -1
-  - item: {fileID: 11400000, guid: 9e43986532809bd899502270ec8f5e1a, type: 2}
-    count: 1
+  - item: {fileID: 0}
+    count: 0
     ammoCount: 0
     attackModeIndex: -1
-  - item: {fileID: 11400000, guid: 8369980fbdb58f06c97820c30d236337, type: 2}
-    count: 1
+  - item: {fileID: 0}
+    count: 0
     ammoCount: 0
     attackModeIndex: -1
   armorSlots:
@@ -92,8 +92,8 @@ MonoBehaviour:
     ammoCount: 0
     attackModeIndex: -1
   consumableSlots:
-  - item: {fileID: 11400000, guid: ba18b6115c2aea237b7a4198d3afd7f3, type: 2}
-    count: 1
+  - item: {fileID: 0}
+    count: 0
     ammoCount: 0
     attackModeIndex: -1
   - item: {fileID: 0}

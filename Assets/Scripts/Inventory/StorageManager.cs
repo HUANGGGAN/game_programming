@@ -4,7 +4,7 @@ using UnityEngine.UI;
 
 public class StorageManager : MonoBehaviour
 {
-    [SerializeField] private InventorySO inventoryData;
+    private GameDataManager.InventoryAPI inventoryData => GameDataManager.Instance.Inventory;
     [SerializeField] private StorageSO storageData;
     [SerializeField] private InventoryUIController inventoryUI;
     [SerializeField] private GameObject storagePanel;
@@ -30,8 +30,6 @@ public class StorageManager : MonoBehaviour
         initialized = true;
         if (inventoryUI == null)
             inventoryUI = FindFirstObjectByType<InventoryUIController>(FindObjectsInactive.Include);
-        if (inventoryData == null && inventoryUI != null)
-            inventoryData = inventoryUI.InventoryData;
         storageData?.EnsureDefaults(initialSlotCount);
         if (storagePanel != null)
         {
@@ -108,37 +106,19 @@ public class StorageManager : MonoBehaviour
     {
         if (inventoryData == null || storageData == null)
             return null;
-        inventoryData.EnsureDefaults();
-        storageData.EnsureDefaults();
-        InventorySlotData[] data = storage ? storageData.slots : inventoryData.slots;
-        return index >= 0 && index < data.Length ? data[index] : null;
+        return inventoryData.GetStorageSlot(storageData, storage, index);
     }
 
     public bool CanMove(StorageSlot source, StorageSlot destination) =>
         source != null && destination != null && source.Manager == this && destination.Manager == this &&
         stateManager != null && stateManager.CurrentState == GameState.Storage && storageData != null &&
-        storageData.CanMove(inventoryData, source.IsStorage, source.Index, destination.IsStorage, destination.Index);
+        inventoryData.CanStorageMove(storageData, source.IsStorage, source.Index, destination.IsStorage, destination.Index);
 
     public bool QuickMove(StorageSlot source)
     {
         if (source == null || source.Manager != this || StorageSlot.DraggedSlot != null ||
             stateManager == null || stateManager.CurrentState != GameState.Storage) return false;
-        InventorySlotData sourceData = GetSlot(source.IsStorage, source.Index);
-        if (sourceData == null || sourceData.item == null || sourceData.count <= 0) return false;
-        bool moved = false;
-        // Merge partial stacks before placing the remaining items in empty slots.
-        for (int pass = 0; pass < 2 && sourceData.count > 0; pass++)
-        {
-            foreach (StorageSlot destination in slots)
-            {
-                if (destination.IsStorage == source.IsStorage || !CanMove(source, destination)) continue;
-                InventorySlotData data = GetSlot(destination.IsStorage, destination.Index);
-                if (data == null || (pass == 0 ? data.item != sourceData.item : data.item != null)) continue;
-                if (!InventorySlotData.TryStackInto(sourceData, data)) continue;
-                moved = true;
-                if (sourceData.count == 0) break;
-            }
-        }
+        bool moved = inventoryData.QuickStorageMove(storageData, source.IsStorage, source.Index);
         if (moved)
         {
             Refresh();
@@ -151,21 +131,15 @@ public class StorageManager : MonoBehaviour
     {
         if (source == null || source.Manager != this || StorageSlot.DraggedSlot != null ||
             stateManager == null || stateManager.CurrentState != GameState.Storage) return false;
-        InventorySlotData data = GetSlot(source.IsStorage, source.Index);
-        foreach (StorageSlot destination in slots)
-        {
-            if (destination.IsStorage != source.IsStorage) continue;
-            if (!InventorySlotData.TrySplitHalf(data, GetSlot(destination.IsStorage, destination.Index))) continue;
-            Refresh();
-            inventoryUI?.RefreshUI();
-            return true;
-        }
-        return false;
+        if (!inventoryData.SplitStorage(storageData, source.IsStorage, source.Index)) return false;
+        Refresh();
+        inventoryUI?.RefreshUI();
+        return true;
     }
 
     public void Move(StorageSlot source, StorageSlot destination)
     {
-        if (CanMove(source, destination) && storageData.TryMove(inventoryData,
+        if (CanMove(source, destination) && inventoryData.MoveStorage(storageData,
             source.IsStorage, source.Index, destination.IsStorage, destination.Index))
         {
             Refresh();

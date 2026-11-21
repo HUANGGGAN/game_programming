@@ -4,9 +4,9 @@ using UnityEngine.UI;
 
 public class InventoryUIController : MonoBehaviour
 {
-    [SerializeField] private InventorySO inventoryData;
+    private GameDataManager.InventoryAPI inventoryData => GameDataManager.Instance.Inventory;
     [Header("Inventory Stats")]
-    [SerializeField] private PlayerData playerData;
+    private GameDataManager.PlayerAPI playerData => GameDataManager.Instance.Player;
     [SerializeField] private TMP_Text HPText;
     [SerializeField] private TMP_Text MPText;
     [SerializeField] private TMP_Text CoinText;
@@ -26,7 +26,7 @@ public class InventoryUIController : MonoBehaviour
         if (UniqueWeaponText != null) UniqueWeaponText.text = $"{playerData.uniqueWeapon}/35";
     }
 
-    public InventorySO InventoryData => inventoryData;
+    public GameDataManager.InventoryAPI InventoryData => inventoryData;
     [SerializeField] private PlayerShooter2D playerShooter;
     [SerializeField] private Transform universalSlotGridTransform;
     [SerializeField] private Transform weaponSlotGridTransform;
@@ -90,14 +90,6 @@ public class InventoryUIController : MonoBehaviour
         if (isInitialized)
             return;
         isInitialized = true;
-        // Begin with empty inventory and equipment before registering owned items or creating UI.
-        if (inventoryData != null) inventoryData.Clear();
-        if (playerData == null)
-        {
-            Player player = FindFirstObjectByType<Player>(FindObjectsInactive.Include);
-            if (player != null) playerData = player.Data;
-        }
-        if (inventoryData != null && playerData != null) inventoryData.BindPlayerData(playerData);
         if (descriptionPanel != null)
         {
             if (descriptionText == null)
@@ -620,9 +612,7 @@ public class InventoryUIController : MonoBehaviour
         if (inventoryData == null)
             return null;
 
-        inventoryData.EnsureDefaults();
-        InventorySlotData[] slots = inventoryData.GetSlotsForType(slotType);
-        return slots != null && slotIndex >= 0 && slotIndex < slots.Length ? slots[slotIndex] : null;
+        return inventoryData.GetSlot(slotType, slotIndex);
     }
 
     public bool DropFromSlot(InventorySlotType slotType, int slotIndex)
@@ -770,8 +760,7 @@ public class InventoryUIController : MonoBehaviour
             inventoryData.weaponSlots[equippedWeaponIndex].count <= 0)
             return false;
 
-        inventoryData.weaponSlots[equippedWeaponIndex].ammoCount = ammoCapacity;
-        return true;
+        return inventoryData.ReloadWeapon(equippedWeaponIndex, weapon, ammoCapacity);
     }
 
     public WeaponSO GetWeaponAtSlot(int index)
@@ -779,8 +768,7 @@ public class InventoryUIController : MonoBehaviour
         if (inventoryData == null)
             return null;
         inventoryData.EnsureDefaults();
-        return index >= 0 && index < inventoryData.weaponSlots.Length
-            ? inventoryData.weaponSlots[index].ResolveWeapon() : null;
+        return inventoryData.ResolveWeapon(index);
     }
 
     public bool TrySwitchEquippedAttackMode()
@@ -791,15 +779,15 @@ public class InventoryUIController : MonoBehaviour
         InventorySlotData slot = inventoryData.weaponSlots[equippedWeaponIndex];
         if (slot.item is not MultiWeaponSO)
             return false;
-        slot.ResolveWeapon();
+        inventoryData.ResolveWeapon(equippedWeaponIndex);
+        slot = inventoryData.weaponSlots[equippedWeaponIndex];
         int oldIndex = slot.attackModeIndex;
         int oldAmmo = slot.ammoCount;
         if (!inventoryData.TrySwitchWeaponAttackMode(equippedWeaponIndex))
             return false;
         if (!EquipShooterForSelectedWeapon())
         {
-            slot.attackModeIndex = oldIndex;
-            slot.ammoCount = oldAmmo;
+            inventoryData.RestoreWeaponState(equippedWeaponIndex, oldIndex, oldAmmo);
             EquipShooterForSelectedWeapon();
             return false;
         }

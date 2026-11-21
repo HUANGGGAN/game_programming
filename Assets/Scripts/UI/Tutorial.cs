@@ -8,6 +8,8 @@ public class Tutorial : MonoBehaviour
 {
     public static Tutorial Instance { get; private set; }
 
+    [SerializeField] private TutorialSO tutorialData;
+    public TutorialSO Data => tutorialData;
     [SerializeField] private GameObject tutorialPanel;
     [SerializeField] private TMP_Text tutorialText;
     [SerializeField] private Image tutorialImage;
@@ -34,6 +36,8 @@ public class Tutorial : MonoBehaviour
         else
             pendingRequests[id] = new Request { id = id, text = text };
     }
+
+    public static void ClearPendingRequests() => pendingRequests.Clear();
 
     public static void NotifyItemObtained(ItemSO item)
     {
@@ -62,13 +66,12 @@ public class Tutorial : MonoBehaviour
         Display(next);
     }
 
-    private readonly HashSet<string> readTutorials = new HashSet<string>();
     private readonly HashSet<string> queuedIds = new HashSet<string>();
     private readonly Queue<Request> requests = new Queue<Request>();
     private StateManager stateManager;
     private int displayedFrame;
     public bool IsShowing { get; private set; }
-    public bool TutorialsSkipped { get; private set; }
+    public bool TutorialsSkipped => tutorialData != null && tutorialData.tutorialsSkipped;
 
     private void LateUpdate()
     {
@@ -91,6 +94,8 @@ public class Tutorial : MonoBehaviour
             return;
         }
         Instance = this;
+        if (SceneLoader.Instance != null) tutorialData = SceneLoader.Instance.GetTutorialData(tutorialData);
+        else if (tutorialData == null) tutorialData = ScriptableObject.CreateInstance<TutorialSO>();
         if (continueButton != null)
             continueButton.onClick.AddListener(Continue);
         if (skipTutorialButton != null)
@@ -103,7 +108,7 @@ public class Tutorial : MonoBehaviour
     public bool ShowTutorial(string tutorialId, string text, Sprite image = null)
     {
         if (TutorialsSkipped || !isActiveAndEnabled || string.IsNullOrWhiteSpace(tutorialId) ||
-            readTutorials.Contains(tutorialId) || queuedIds.Contains(tutorialId))
+            tutorialData.HasRead(tutorialId) || queuedIds.Contains(tutorialId))
             return false;
 
         if (tutorialPanel == null || tutorialText == null || continueButton == null)
@@ -119,13 +124,13 @@ public class Tutorial : MonoBehaviour
         return true;
     }
 
-    public bool HasRead(string tutorialId) => readTutorials.Contains(tutorialId);
+    public bool HasRead(string tutorialId) => tutorialData.HasRead(tutorialId);
 
     private void Display(Request request)
     {
         displayedFrame = Time.frameCount;
         IsShowing = true;
-        readTutorials.Add(request.id);
+        tutorialData.MarkRead(request.id);
         tutorialText.text = request.text ?? string.Empty;
         if (tutorialImage != null)
         {
@@ -153,7 +158,7 @@ public class Tutorial : MonoBehaviour
 
     public void SkipTutorial()
     {
-        TutorialsSkipped = true;
+        tutorialData.tutorialsSkipped = true;
         requests.Clear();
         queuedIds.Clear();
         Close();

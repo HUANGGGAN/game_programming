@@ -3,7 +3,7 @@ using UnityEngine.UI;
 
 public interface IPlayerBar
 {
-    void RefreshFromData(PlayerData data);
+    void RefreshFromData(GameDataManager.PlayerAPI data);
 }
 
 public class HealthBar : MonoBehaviour, IPlayerBar
@@ -58,7 +58,7 @@ public class HealthBar : MonoBehaviour, IPlayerBar
         targetFillAmount = Mathf.Clamp01(currentHealth / maxHealth);
     }
 
-    public void RefreshFromData(PlayerData data)
+    public void RefreshFromData(GameDataManager.PlayerAPI data)
     {
         if (data == null)
             return;
